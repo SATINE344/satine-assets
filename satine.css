@@ -2442,3 +2442,384 @@ button.js-show-filters {
     font-size: 14px !important;
   }
 }
+/* ==========================================================================
+   ╔════════════════════════════════════════════════════════════════╗
+   ║  PAGINA SOBRE NOSOTROS v1                                      ║
+   ║  Estilos Nomad-like: foto hero, bloques con textura,           ║
+   ║  stats cards, cierre oscuro, full responsive                   ║
+   ╚════════════════════════════════════════════════════════════════╝
+   Scopeado bajo .satine-sobre para no afectar otras páginas
+   ========================================================================== */
+
+/* Ocultar el título nativo "Sobre Nosotros" que mete el theme arriba */
+.page-header[data-store="page-title"]:has(+ .user-content .satine-sobre),
+.page-header.pt-4:has(~ .user-content .satine-sobre) {
+  display: none !important;
+}
+
+.satine-sobre {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 24px 80px 24px;
+  font-family: "Plus Jakarta Sans", sans-serif !important;
+  color: #34211b !important;
+  line-height: 1.6 !important;
+}
+
+.satine-sobre * {
+  box-sizing: border-box !important;
+}
+
+/* ---------- HERO ---------- */
+.satine-sobre .s-hero-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  max-height: 520px;
+  overflow: hidden;
+  border-radius: 20px !important;
+  margin-bottom: 64px;
+  box-shadow: 0 10px 40px -8px rgba(52, 33, 27, 0.25),
+              0 4px 12px rgba(52, 33, 27, 0.08);
+}
+
+.satine-sobre .s-hero-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  aspect-ratio: auto !important;
+}
+
+.satine-sobre .s-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(180deg, rgba(52,33,27,0) 40%, rgba(52,33,27,0.55) 100%);
+  pointer-events: none;
+}
+
+.satine-sobre .s-hero-text {
+  position: absolute;
+  left: 40px;
+  bottom: 32px;
+  right: 40px;
+  color: #f5f0e5;
+}
+
+.satine-sobre .s-hero-kicker {
+  font-size: 12px !important;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  opacity: 0.85;
+  margin: 0 0 8px 0 !important;
+  font-weight: 600;
+}
+
+.satine-sobre .s-hero-title {
+  font-family: "Arca Majora", "Plus Jakarta Sans", sans-serif !important;
+  font-size: 52px !important;
+  line-height: 1.05 !important;
+  margin: 0 !important;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #f5f0e5 !important;
+}
+
+/* ---------- LABELS Y TIPOGRAFIA ---------- */
+.satine-sobre .s-label {
+  font-size: 12px !important;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  color: #34211b !important;
+  opacity: 0.55;
+  margin: 0 0 14px 0 !important;
+  font-weight: 600;
+}
+
+.satine-sobre .s-h2 {
+  font-family: "Arca Majora", "Plus Jakarta Sans", sans-serif !important;
+  font-size: 40px !important;
+  line-height: 1.15 !important;
+  color: #34211b !important;
+  margin: 0 0 24px 0 !important;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.satine-sobre .s-p {
+  font-size: 17px !important;
+  line-height: 1.75 !important;
+  color: #34211b !important;
+  margin: 0 0 20px 0 !important;
+}
+
+.satine-sobre .s-p-sm {
+  font-size: 16px !important;
+  line-height: 1.75 !important;
+  color: #34211b !important;
+  margin: 0 0 16px 0 !important;
+}
+
+.satine-sobre .s-p strong,
+.satine-sobre .s-p-sm strong,
+.satine-sobre .s-hero-title strong {
+  font-weight: 700;
+  color: inherit !important;
+}
+
+/* ---------- SECCION INTRO ---------- */
+.satine-sobre .s-intro {
+  max-width: 780px;
+  margin-bottom: 80px;
+}
+
+/* ---------- BLOQUE DE 2 COLUMNAS CON FONDO TEXTURA ---------- */
+.satine-sobre .s-bloque {
+  background-color: #f4f2f0 !important;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='900' viewBox='0 0 1200 900'%3E%3Cg fill='none' stroke='%2334211b' stroke-width='0.7' opacity='0.06'%3E%3Cpath d='M-100,180 Q250,120 500,180 T1100,180 T1700,180'/%3E%3Cpath d='M-100,240 Q250,180 500,240 T1100,240 T1700,240'/%3E%3Cpath d='M-100,300 Q250,240 500,300 T1100,300 T1700,300'/%3E%3Cpath d='M-100,360 Q250,300 500,360 T1100,360 T1700,360'/%3E%3Cpath d='M-100,420 Q250,360 500,420 T1100,420 T1700,420'/%3E%3Cpath d='M-100,480 Q250,420 500,480 T1100,480 T1700,480'/%3E%3Cpath d='M-100,540 Q250,480 500,540 T1100,540 T1700,540'/%3E%3Cpath d='M-100,600 Q250,540 500,600 T1100,600 T1700,600'/%3E%3Cpath d='M-100,660 Q250,600 500,660 T1100,660 T1700,660'/%3E%3Cpath d='M150,50 Q400,30 650,70 T1150,50 T1650,70'/%3E%3Cpath d='M-150,750 Q150,730 400,770 T900,750 T1400,770'/%3E%3Cellipse cx='300' cy='420' rx='260' ry='180'/%3E%3Cellipse cx='900' cy='480' rx='290' ry='200'/%3E%3Cellipse cx='600' cy='340' rx='220' ry='150'/%3E%3Cellipse cx='1050' cy='250' rx='180' ry='120'/%3E%3Cellipse cx='150' cy='700' rx='200' ry='140'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: 28px !important;
+  padding: 56px 48px;
+  margin-bottom: 80px;
+}
+
+.satine-sobre .s-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 48px;
+  align-items: center;
+}
+
+.satine-sobre .s-col {
+  flex: 1 1 360px;
+  min-width: 260px;
+}
+
+.satine-sobre .s-detalle-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  max-height: 520px;
+  overflow: hidden;
+  border-radius: 20px !important;
+  box-shadow: 0 10px 32px -6px rgba(52, 33, 27, 0.25),
+              0 4px 10px rgba(52, 33, 27, 0.08);
+}
+
+.satine-sobre .s-detalle-wrap img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  aspect-ratio: auto !important;
+}
+
+/* ---------- BLOQUE EQUIPO ---------- */
+.satine-sobre .s-equipo {
+  max-width: 820px;
+  margin-bottom: 56px;
+}
+
+/* ---------- STATS CARDS ---------- */
+.satine-sobre .s-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+  margin-bottom: 80px;
+}
+
+.satine-sobre .s-stat {
+  padding: 36px 28px;
+  background-color: #f4f2f0 !important;
+  border-radius: 20px !important;
+  border: 1px solid rgba(52, 33, 27, 0.08);
+  transition: transform 0.4s cubic-bezier(0.215, 0.61, 0.355, 1),
+              box-shadow 0.4s cubic-bezier(0.215, 0.61, 0.355, 1);
+}
+
+.satine-sobre .s-stat:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 32px -8px rgba(52, 33, 27, 0.20),
+              0 4px 12px rgba(52, 33, 27, 0.08);
+}
+
+.satine-sobre .s-stat-num {
+  font-family: "Arca Majora", "Plus Jakarta Sans", sans-serif !important;
+  font-size: 44px !important;
+  line-height: 1 !important;
+  color: #34211b !important;
+  margin: 0 0 10px 0 !important;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+}
+
+.satine-sobre .s-stat-lbl {
+  font-size: 14px !important;
+  line-height: 1.5 !important;
+  color: #34211b !important;
+  margin: 0 !important;
+  opacity: 0.70;
+}
+
+/* ---------- CIERRE OSCURO ---------- */
+.satine-sobre .s-cierre {
+  background-color: #34211b !important;
+  background-image: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='1200' height='900' viewBox='0 0 1200 900'%3E%3Cg fill='none' stroke='%23f5f0e5' stroke-width='0.7' opacity='0.10'%3E%3Cpath d='M-100,180 Q250,120 500,180 T1100,180 T1700,180'/%3E%3Cpath d='M-100,240 Q250,180 500,240 T1100,240 T1700,240'/%3E%3Cpath d='M-100,300 Q250,240 500,300 T1100,300 T1700,300'/%3E%3Cpath d='M-100,360 Q250,300 500,360 T1100,360 T1700,360'/%3E%3Cpath d='M-100,420 Q250,360 500,420 T1100,420 T1700,420'/%3E%3Cpath d='M-100,480 Q250,420 500,480 T1100,480 T1700,480'/%3E%3Cpath d='M-100,540 Q250,480 500,540 T1100,540 T1700,540'/%3E%3Cpath d='M-100,600 Q250,540 500,600 T1100,600 T1700,600'/%3E%3Cpath d='M-100,660 Q250,600 500,660 T1100,660 T1700,660'/%3E%3Cpath d='M150,50 Q400,30 650,70 T1150,50 T1650,70'/%3E%3Cpath d='M-150,750 Q150,730 400,770 T900,750 T1400,770'/%3E%3Cellipse cx='300' cy='420' rx='260' ry='180'/%3E%3Cellipse cx='900' cy='480' rx='290' ry='200'/%3E%3Cellipse cx='600' cy='340' rx='220' ry='150'/%3E%3Cellipse cx='1050' cy='250' rx='180' ry='120'/%3E%3Cellipse cx='150' cy='700' rx='200' ry='140'/%3E%3C/g%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-size: cover;
+  background-position: center;
+  border-radius: 28px !important;
+  text-align: center;
+  padding: 80px 40px;
+}
+
+.satine-sobre .s-cierre-h {
+  font-family: "Arca Majora", "Plus Jakarta Sans", sans-serif !important;
+  font-size: 36px !important;
+  line-height: 1.25 !important;
+  color: #f5f0e5 !important;
+  margin: 0 0 20px 0 !important;
+  font-weight: 800;
+  letter-spacing: -0.4px;
+}
+
+.satine-sobre .s-cierre-p {
+  font-size: 17px !important;
+  line-height: 1.6 !important;
+  color: #f5f0e5 !important;
+  margin: 0 !important;
+  opacity: 0.75;
+  max-width: 540px;
+  margin-left: auto !important;
+  margin-right: auto !important;
+}
+
+/* ---------- TABLET ≤1024px ---------- */
+@media (max-width: 1024px) {
+  .satine-sobre .s-hero-title { font-size: 42px !important; }
+  .satine-sobre .s-h2 { font-size: 34px !important; }
+  .satine-sobre .s-bloque { padding: 44px 36px; }
+  .satine-sobre .s-cierre { padding: 64px 32px; }
+  .satine-sobre .s-cierre-h { font-size: 30px !important; }
+}
+
+/* ---------- MOBILE ≤767px ---------- */
+@media (max-width: 767px) {
+  .satine-sobre {
+    padding: 12px 16px 56px 16px;
+  }
+
+  .satine-sobre .s-hero-wrap {
+    aspect-ratio: 4 / 5;
+    max-height: 520px;
+    border-radius: 16px !important;
+    margin-bottom: 40px;
+  }
+
+  .satine-sobre .s-hero-text {
+    left: 20px;
+    bottom: 20px;
+    right: 20px;
+  }
+
+  .satine-sobre .s-hero-kicker {
+    font-size: 11px !important;
+    letter-spacing: 2px;
+  }
+
+  .satine-sobre .s-hero-title {
+    font-size: 30px !important;
+  }
+
+  .satine-sobre .s-label {
+    font-size: 11px !important;
+    letter-spacing: 2px;
+    margin-bottom: 10px !important;
+  }
+
+  .satine-sobre .s-h2 {
+    font-size: 26px !important;
+    margin-bottom: 18px !important;
+  }
+
+  .satine-sobre .s-p {
+    font-size: 15px !important;
+    margin-bottom: 16px !important;
+  }
+
+  .satine-sobre .s-p-sm {
+    font-size: 14px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .satine-sobre .s-intro {
+    margin-bottom: 48px;
+  }
+
+  .satine-sobre .s-bloque {
+    padding: 32px 24px;
+    border-radius: 20px !important;
+    margin-bottom: 48px;
+  }
+
+  .satine-sobre .s-row {
+    gap: 28px;
+  }
+
+  .satine-sobre .s-detalle-wrap {
+    aspect-ratio: 4 / 5;
+    max-height: 460px;
+    border-radius: 16px !important;
+  }
+
+  .satine-sobre .s-equipo {
+    margin-bottom: 36px;
+  }
+
+  .satine-sobre .s-stats {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    margin-bottom: 48px;
+  }
+
+  .satine-sobre .s-stat {
+    padding: 28px 24px;
+    border-radius: 16px !important;
+  }
+
+  .satine-sobre .s-stat-num {
+    font-size: 36px !important;
+  }
+
+  .satine-sobre .s-stat-lbl {
+    font-size: 13px !important;
+  }
+
+  .satine-sobre .s-cierre {
+    padding: 48px 24px;
+    border-radius: 20px !important;
+  }
+
+  .satine-sobre .s-cierre-h {
+    font-size: 24px !important;
+    margin-bottom: 14px !important;
+  }
+
+  .satine-sobre .s-cierre-p {
+    font-size: 14px !important;
+  }
+
+  /* Mobile: el <br> del cierre se oculta para que fluya */
+  .satine-sobre .s-cierre-h br {
+    display: none;
+  }
+}
+
+/* ---------- MOBILE MUY CHICO ≤360px ---------- */
+@media (max-width: 360px) {
+  .satine-sobre .s-hero-title { font-size: 26px !important; }
+  .satine-sobre .s-h2 { font-size: 22px !important; }
+  .satine-sobre .s-stat-num { font-size: 32px !important; }
+  .satine-sobre .s-cierre-h { font-size: 20px !important; }
+}
