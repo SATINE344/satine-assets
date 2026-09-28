@@ -1,0 +1,319 @@
+/* SATINE v203-marron (27/09/2026) -- Opcion E "marron y blanco": el marron
+   (#34211b) predomina en header, footer y newsletter; el blanco queda en
+   cards y detalles; el dorado (#e8a33d) SOLO se usa en estrellas, sellos o
+   iconos chicos (nunca en fondos ni botones). Sin crema/beige de fondo en
+   secciones. Valores literales a proposito (sin custom properties ni
+   var(): el compilador de Tiendanube es viejo). No toca: hero, selector de
+   modelo/color, checkout, carrito, botones de la ficha (sticky/CTA),
+   #satine-topshadow, layout.tpl. El bloque de Mercado Libre lo resuelve
+   otro agente con su propio CSS: aca no hay reglas para el. */
+
+/* ===================================================================
+   1. HEADER (header.js-head-main)
+   Diagnosticado en vivo en satinecases.com, mobile 375px, inicio y ficha,
+   con getComputedStyle, recorrida de document.styleSheets y fetch() de los
+   CSS compilados (cross-origin, dart-*.css) para ver reglas que el CORS le
+   esconde a document.styleSheets:
+   - El header es position:fixed, top:16px, altura ~76px, z-index 9999; su
+     propio background computa transparente. La pildora visible son DOS
+     div.container-fluid hijos (fila adbar arriba, fila logo+iconos abajo).
+   - SI hay estado de scroll, y cambia clases del header (no solo estilos
+     inline): arriba de todo trae "head-transparent head-transparent-on-section"
+     y, al hacer scroll (probado a 900px), esas dos se sacan y se agrega
+     "compress" -- pero "head-transparent-contrast" queda puesta SIEMPRE, en
+     los dos estados.
+   - La fila del adbar (arriba) tiene un style="" INLINE puesto por la
+     plataforma (background:#fff!important;backdrop-filter:none!important)
+     que no cambia con el scroll: siempre queda blanca, ver nota abajo.
+   - La fila del logo+iconos (abajo) SOLO tiene ese mismo inline blanco
+     mientras el header esta "arriba de todo" (transparente, sobre el hero);
+     al hacer scroll ese inline se saca y ahi si gana el CSS (mi regla la
+     pinta marron). Osea: el header entero es marron una vez que se scrollea,
+     pero en el primer pantallazo (encima del hero) se ve: fila de arriba
+     blanca siempre + fila de abajo blanca tambien hasta que se scrollea.
+     Es un limite de la plataforma (ver nota), no se puede evitar por CSS.
+   - Se deja igual SIEMPRE la intencion marron (mas seguro, no cambia layout
+     ni depende de JS propio) sabiendo que el primer instante arriba del
+     hero va a verse blanco por este motivo.
+   - El header flota SOBRE el hero pero no tapa contenido importante del
+     slider (es una capsula chica arriba, no una barra que ocupe el ancho).
+   =================================================================== */
+html body header.js-head-main .container-fluid {
+  background-color: #34211b !important;
+}
+/* fila del adbar (arriba): PROBADO en vivo (getComputedStyle + recorrida de
+   document.styleSheets) que NO se puede pintar de marron por CSS. El propio
+   div.container-fluid de esa fila trae un atributo style="" inline puesto
+   por la plataforma:
+     background: rgb(255,255,255) !important; backdrop-filter: none !important;
+   Un !important inline le gana a CUALQUIER !important de hoja de estilos sin
+   importar la especificidad (se probo con selectores mas especificos y con
+   filter/setProperty por JS: nada le gana). Se confirmo ademas que esto NO
+   es un estado de scroll (se hizo scroll 900px y el inline y las clases del
+   header no cambiaron) sino un valor fijo, probablemente el color de header
+   configurado desde el panel de Tiendanube (que se aplica inline a proposito
+   para ganarle al CSS del theme). El texto de los mensajes rotativos
+   (.satine-adbar-message) tampoco se puede recolorear -- se comparo el color
+   con esta hoja de estilos activa y desactivada y da identico rgb(176,168,166)
+   en los dos casos -- asi que se deja intacto: ya tiene contraste propio
+   pensado para un fondo blanco. Unico control real posible desde CSS: un
+   hairline oscuro en la base de la fila para separarla de la fila marron de
+   abajo (reemplaza el intento de hairline claro, pensado por error para un
+   marron-sobre-marron que nunca sucede). Fix real: cambiar el color de header
+   en el panel de Tiendanube, no por CSS -- queda anotado en el informe. */
+html body header.js-head-main .satine-adbar-section .container-fluid {
+  border-bottom: 1px solid rgba(52,33,27,.12) !important;
+}
+/* logo: es una imagen (logo-img) con el icono y el nombre en oscuro sobre
+   fondo transparente; se invierte a claro para que se vea sobre marron --
+   pero SOLO cuando el header ya esta scrolleado (marron de verdad detras).
+   Causa del problema base (leida con fetch() de dart-style-async-*.css,
+   CORS se lo esconde a document.styleSheets): dos reglas del theme con 3
+   clases y !important, ambas con specificity (0,3,0):
+     .head-main.head-transparent-contrast .logo-img{opacity:1!important;
+     filter:none!important}
+     .head-main .logo-img-container .logo-img{filter:none!important}
+   La primera SIEMPRE gana porque head-transparent-contrast queda puesta en
+   los dos estados de scroll -- hace falta pisarla, pero PROBADO en vivo con
+   screenshot que pisarla SIEMPRE (repitiendo .js-head-main) rompe el logo
+   arriba de todo: la fila queda blanca por el inline de plataforma (ver nota
+   mas arriba) y el filtro invertido deja una silueta blanca invisible sobre
+   fondo blanco. Fix: usar la clase real de scroll ".compress" en vez de
+   repetir la clase -- confirmada en vivo con getComputedStyle (el header la
+   agrega SOLO al scrollear, junto con sacar "head-transparent" y
+   "head-transparent-on-section"; "head-transparent-contrast" no se saca
+   nunca, por eso no sirve para distinguir el estado). Dala misma specificity
+   (0,3,3: empata en 3 clases, gana por html/body/header contra 0 etiquetas)
+   pero solo aplica cuando corresponde. Confirmado en vivo: al scrollear el
+   logo sigue crema sobre marron igual que antes; arriba de todo vuelve solo
+   a quedar version oscura de fabrica (visible sobre la fila blanca). */
+html body header.js-head-main.compress .logo-img {
+  filter: brightness(0) invert(1) !important;
+  -webkit-filter: brightness(0) invert(1) !important;
+  opacity: .92 !important;
+}
+/* iconos del header (buscador, carrito, menu): hoy son #34211b solido.
+   Se probo con header.js-head-main svg simple y NO le gano a una regla del
+   propio theme (dart-style-async-*.css, invisible para document.styleSheets
+   por CORS asi que se leyo con fetch()):
+     .head-main.head-transparent-contrast .container-fluid svg{fill:#34211b
+     !important;color:#34211b!important;stroke:none} (gana por specificity:
+     3 clases vs las 1 clase+1 etiqueta de mi regla original). Ademas el
+     icono de cerrar el menu (hamburguesa) tiene su PROPIA regla todavia mas
+     especifica en satine-v198-a.scss:
+     a[data-toggle="#nav-hamburger"] .satine-v62-x-svg path{stroke:#34211b
+     !important;...}.
+   Igual que el logo: esto solo debe quedar crema cuando el header ya esta
+   marron de verdad (scrolleado). PROBADO en vivo con getComputedStyle: con
+   ".js-head-main" repetido (sin distinguir el scroll) el fill/color quedaban
+   en crema TAMBIEN arriba de todo, contra la fila blanca del inline de
+   plataforma -- mismo problema de contraste que el logo. Se usa ".compress"
+   (clase real de scroll, confirmada en vivo) en vez de repetir la clase:
+   misma specificity (0,3,4: empata en 3 clases, gana por html/body/header/svg
+   contra 0-1 etiquetas del theme) pero solo cuando corresponde. Arriba de
+   todo no hay regla mia compitiendo y el theme deja los iconos en su color
+   oscuro original (correcto contra la fila blanca). */
+html body header.js-head-main.compress .container-fluid svg {
+  color: #f5f0e5 !important;
+  fill: #f5f0e5 !important;
+}
+html body header.js-head-main.compress .container-fluid svg path {
+  stroke: #f5f0e5 !important;
+}
+/* PROBADO en vivo (screenshot + getComputedStyle): con la regla de arriba
+   sola, el buscador/cuenta/hamburguesa (svg con clase .utilities-icon)
+   seguian en #34211b -- exactamente el mismo color que el fondo del header,
+   o sea INVISIBLES (se veian huecos en el screenshot movil) una vez
+   scrolleado. Causa (fetch() de dart-style-async-*.css): un grupo de
+   selectores con !important y 4 clases apunta puntualmente a .utilities-icon,
+   mas especifico que la regla generica de arriba:
+     .head-main.head-transparent-contrast .container-fluid .utilities-icon
+     {fill:#34211b!important;color:#34211b!important;stroke:none}
+   (specificity 0,4,0 vs 0,3,4 de mi regla generica: empata clases? no,
+   4 contra 3 -- ganaba el theme). Se agrega esta regla puntual con 4 clases
+   + html/body/header para llegar a (0,4,3) y ganar el empate por tipos --
+   pero, mismo motivo que el logo y el svg generico, con ".compress" en vez
+   de repetir ".js-head-main": PROBADO en vivo que sin ese scope el fill
+   quedaba crema tambien arriba de todo (contra la fila blanca, mismo
+   problema de contraste que el logo). Se busco ademas si el theme pinta
+   estos iconos por su <use>/<symbol> especificamente (se busco "use",
+   "symbol" y "#bars" en las 6 hojas del theme): lo unico que aparece es para el
+   selector de orden del listado y la flecha del menu hamburguesa, ninguno
+   de los dos es este icono, asi que el color realmente pintado es el que
+   informa getComputedStyle sobre el propio <svg class="utilities-icon">.
+   Confirmado en vivo: fill/color pasan a f5f0e5 solo al scrollear; arriba
+   de todo quedan en su oscuro de fabrica. */
+html body header.js-head-main.compress .container-fluid .utilities-icon {
+  color: #f5f0e5 !important;
+  fill: #f5f0e5 !important;
+}
+/* pastilla del contador del carrito: dorado con numero marron (el unico
+   uso de dorado como badge que pide la opcion E). Misma historia que los
+   iconos: dart-style-async-*.css (leido con fetch(), CORS se lo esconde a
+   document.styleSheets) tiene ".head-main .utilities-container
+   .js-cart-widget-amount.badge-amount{background:#34211b!important;...}"
+   con 4 clases -- le gana a una version de esta regla con menos clases.
+   Se repite .js-head-main para llegar a 4 clases + las etiquetas
+   html/body/header de mas, que ganan el empate. */
+html body header.js-head-main.js-head-main .js-cart-widget-amount.badge-amount {
+  background-color: #e8a33d !important;
+  color: #34211b !important;
+}
+/* #satine-topshadow (el degrade fijo detras del header, para contraste
+   contra el hero): se revisó en vivo y sigue teniendo sentido -- el
+   header opaco lo tapa en la franja que cubre y el resto sigue oscureciendo
+   el tope del hero como vinieta. No se toca. */
+
+/* ===================================================================
+   2. FOOTER (footer.sat-footer)
+   Diagnostico de por que hoy computa blanco (con document.styleSheets y
+   lectura de satine-v198-b.scss): hay DOS reglas viejas ".sat-footer"
+   (satine-v198-b.scss:4391 y :4831, ambas con !important) que quedaron
+   SUPERADAS por una tercera, mas abajo en el mismo archivo, que es la que
+   realmente gana porque agrega la etiqueta "footer" (mas especifica) y
+   ademas esta despues en el archivo:
+     satine-v198-b.scss:5323-5326
+     html body footer.sat-footer {
+       background-color: #ffffff !important;
+       background-image: linear-gradient(to bottom, #f6f5f5 0%, #f6f5f5 27%, #ffffff 100%) !important;
+     }
+   (confirmado en produccion: getComputedStyle da exactamente ese
+   degrade). Tambien existe una regla inline mas vieja en el html
+   (".sat-footer{background:rgb(250,247,242)}", sin !important) que
+   nunca gano nada. Para pisarla hace falta el mismo selector + !important
+   (no se puede sin !important porque la que manda ya lo usa) y que este
+   archivo cargue DESPUES de satine-v198-b en el layout.
+   =================================================================== */
+html body footer.sat-footer {
+  background-color: #34211b !important;
+  background-image: none !important;
+  color: #f5f0e5 !important;
+  border-top-color: rgba(245,240,229,.14) !important;
+}
+html body .sat-footer .satine-footer-wordmark {
+  color: #f5f0e5 !important;
+}
+html body .sat-footer .satine-footer-tagline {
+  color: rgba(245,240,229,.72) !important;
+}
+/* iconos sociales: se deja el circulo claro (buen contraste sobre marron,
+   el blanco es el color secundario de la opcion E); solo se adapta el
+   borde y el estado hover, pensados para un footer claro */
+html body .sat-footer .social-icon {
+  border-color: rgba(245,240,229,.18) !important;
+}
+html body .sat-footer .social-icon:hover {
+  background-color: #f5f0e5 !important;
+  border-color: #f5f0e5 !important;
+  color: #34211b !important;
+}
+/* legal (el elemento tiene las clases "js-footer-legal footer-legal" pero
+   el css de siempre pega sobre .footer-legal, asi que se sigue ese patron) */
+html body .sat-footer .footer-legal a {
+  color: rgba(245,240,229,.6) !important;
+  border-bottom-color: rgba(245,240,229,.25) !important;
+}
+html body .sat-footer .footer-legal a:hover {
+  color: #f5f0e5 !important;
+  border-bottom-color: #f5f0e5 !important;
+}
+/* nota: no existe la clase .footer-payments-shipping-logos en este footer
+   (se busco en el css, el js y el html renderizado: no aparece). Lo unico
+   parecido es .powered-by-logo (el sello de Tiendanube, opacity:.3), que
+   no se toco porque no estaba pedido y ya tiene contraste bajo a proposito. */
+
+/* ===================================================================
+   3. NEWSLETTER (div.js-newsletter.newsletter, vive DENTRO del footer;
+   mismo html en el inicio y en la ficha)
+   Hoy es una card clara (fondo ~#fbfaf9) con un boton "fantasma"
+   (confirmado en vivo: background:transparent, color:#34211b). Al pintar
+   el footer de marron ese boton quedaria invisible (texto marron sobre
+   fondo marron), por eso pasa a ser el UNICO lugar de la web con crema,
+   como boton.
+   =================================================================== */
+html body .sat-footer .js-newsletter {
+  background-color: #34211b !important;
+}
+html body .sat-footer .js-home-newsletter-title {
+  color: #f5f0e5 !important;
+}
+html body .sat-footer .newsletter-form > .form-group {
+  background-color: rgba(255,255,255,.12) !important;
+  border-color: rgba(245,240,229,.35) !important;
+}
+html body .sat-footer .newsletter-form input[type="email"] {
+  color: #f5f0e5 !important;
+}
+html body .sat-footer .newsletter-form input[type="email"]::placeholder {
+  color: rgba(245,240,229,.6) !important;
+}
+html body .sat-footer .newsletter-form input:-webkit-autofill {
+  -webkit-text-fill-color: #f5f0e5 !important;
+  -webkit-box-shadow: 0 0 0 1000px rgba(255,255,255,.12) inset !important;
+  transition: background-color 9999s ease-in-out 0s;
+}
+html body .sat-footer .newsletter-form .form-group > button.newsletter-btn,
+html body .sat-footer .newsletter-form .form-group > input[type="submit"] {
+  background: #faf6ee !important;
+  color: #34211b !important;
+}
+html body .sat-footer .newsletter-form .form-group > button.newsletter-btn:hover {
+  background: #f5f0e5 !important;
+  color: #34211b !important;
+}
+
+/* ===================================================================
+   4. ESTRELLAS Y KICKERS
+   Estrellas de las Google Reviews del inicio (las arma satine-v202-5b.js,
+   selector real .sh26-reviews .st): pasan a dorado. En la ficha,
+   #reviewsapp (el widget Revie) no llego a montar contenido en las
+   pruebas en vivo (0 hijos, sin iframe todavia) asi que no se le escribio
+   ninguna regla -- ver dudas en el informe.
+   =================================================================== */
+html body .sh26-reviews .st {
+  color: #e8a33d !important;
+}
+html body .sh26-reviews .kk {
+  color: rgba(52,33,27,.55) !important;
+}
+
+/* Hallazgo nuevo de esta sesion (diagnostico en vivo, ficha de producto):
+   ademas de #reviewsapp (que sigue vacio, sin uso) y de .sh26-reviews
+   (widget de Google Reviews del inicio que arma satine-v202-5b.js,
+   todavia no aparecio en las pruebas en vivo), en la ficha YA HAY
+   reviews reales funcionando hoy: acordeon "Reviews" con contenido de
+   la app Revie (revieListC / detail-star), verificado con clientes
+   reales ("Teo", "Pablo", "Gustavo", 5 estrellas). El marcado real es
+   <i data-starlist="N"></i> dentro de .detail-star: la capa llena
+   (::after) hoy computa rgb(66,40,23) (marron oscuro) -- pasa a
+   dorado. La capa vacia (::before) se deja intacta a proposito
+   (dorado solo en lo lleno, nunca de fondo). El resumen del mismo
+   widget (.srs-avg "4.89", .srs-count "18 opiniones", .srs-stars
+   bg/fg) vive en el DOM real pero con display:none en las pruebas de
+   esta sesion (no se pudo confirmar visualmente) -- se prepara igual
+   porque el selector es real y verificado, no inventado; .srs-count
+   ya computaba rgba(52,33,27,.55) sin necesidad de tocarlo. Kicker
+   real y visible: .satine-fecha-review (fecha de cada review, ej
+   "4 sep 2026"), hoy en rgba(52,33,27,.5) -- se ajusta a los .55
+   exactos del spec. OJO selector del kicker: probado en vivo,
+   ".satine-resenas-card .satine-fecha-review" (3 clases, sin ID) NO
+   le gana a la regla del propio theme (dart-satine-v198-b.css)
+   "body.template-product #satine-resenas-card .satine-fecha-review"
+   porque esa tiene un ID (#satine-resenas-card) y el ID pesa mas que
+   cualquier cantidad de clases, aunque las dos usen !important. Ese
+   mismo archivo del theme ya trae otra regla mas especifica por
+   clases apuntando a .55 (via ".detail-star .content-name-revie
+   .satine-fecha-review") pero tampoco le gana a la de ID -- son dos
+   reglas del theme que compiten entre si y gana la del ID con .5. La
+   unica forma de ganarle en vivo (confirmado con getComputedStyle)
+   es igualar esa misma especificidad repitiendo el selector real
+   con ID; por eso esta regla usa exactamente ese selector. */
+html body .detail-star i[data-starlist]::after {
+  color: #e8a33d !important;
+}
+html body .srs-right .srs-stars-fg {
+  color: #e8a33d !important;
+}
+body.template-product #satine-resenas-card .satine-fecha-review {
+  color: rgba(52,33,27,.55) !important;
+}
