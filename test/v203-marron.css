@@ -8,6 +8,19 @@
    #satine-topshadow, layout.tpl. El bloque de Mercado Libre lo resuelve
    otro agente con su propio CSS: aca no hay reglas para el. */
 
+/* v203.1 (28/09/2026, verificado en vivo con getComputedStyle en 375px):
+   - La pildora del header queda BLANCA arriba de todo con selectores de peso
+     (0,2,3): una regla del theme con 3 clases e !important le gana. Con
+     ".js-head-main.js-head-mutator.head-main" (0,3,3) gana la nuestra en los
+     dos estados de scroll (probado: 0,2,3 -> blanco; 0,3,3 -> rgb(52,33,27)).
+   - La fila del adbar NO la pinta la plataforma: la fuerza blanca nuestro
+     propio JS (satine-v192-2.js, bloque v127 "forzarAdbarBlanco"). Ese JS
+     ahora pinta #34211b (backup 078). Aca ademas se saca el blur para que
+     no dispare.
+   - Header marron SIEMPRE => logo, iconos y hamburguesa claros SIEMPRE: las
+     reglas que decian ".compress" ahora dicen ".head-main" (clase fija). Los
+     comentarios viejos que hablan de ".compress" / "limite de plataforma"
+     quedan como historia del diagnostico; manda esta nota. */
 /* ===================================================================
    1. HEADER (header.js-head-main)
    Diagnosticado en vivo en satinecases.com, mobile 375px, inicio y ficha,
@@ -38,8 +51,13 @@
    - El header flota SOBRE el hero pero no tapa contenido importante del
      slider (es una capsula chica arriba, no una barra que ocupe el ancho).
    =================================================================== */
-html body header.js-head-main .container-fluid {
+html body header.js-head-main.js-head-mutator.head-main > .container-fluid,
+html body header.js-head-main.js-head-mutator.head-main .satine-adbar-section > .container-fluid,
+html body header.js-head-main.js-head-mutator.head-main .section-adbar > .container-fluid {
   background-color: #34211b !important;
+  background: #34211b !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
 }
 /* fila del adbar (arriba): PROBADO en vivo (getComputedStyle + recorrida de
    document.styleSheets) que NO se puede pintar de marron por CSS. El propio
@@ -61,7 +79,7 @@ html body header.js-head-main .container-fluid {
    abajo (reemplaza el intento de hairline claro, pensado por error para un
    marron-sobre-marron que nunca sucede). Fix real: cambiar el color de header
    en el panel de Tiendanube, no por CSS -- queda anotado en el informe. */
-html body header.js-head-main .satine-adbar-section .container-fluid {
+html body header.js-head-main.js-head-mutator.head-main .satine-adbar-section > .container-fluid {
   border-bottom: 1px solid rgba(52,33,27,.12) !important;
 }
 /* logo: es una imagen (logo-img) con el icono y el nombre en oscuro sobre
@@ -87,7 +105,7 @@ html body header.js-head-main .satine-adbar-section .container-fluid {
    pero solo aplica cuando corresponde. Confirmado en vivo: al scrollear el
    logo sigue crema sobre marron igual que antes; arriba de todo vuelve solo
    a quedar version oscura de fabrica (visible sobre la fila blanca). */
-html body header.js-head-main.compress .logo-img {
+html body header.js-head-main.head-main .logo-img {
   filter: brightness(0) invert(1) !important;
   -webkit-filter: brightness(0) invert(1) !important;
   opacity: .92 !important;
@@ -113,11 +131,11 @@ html body header.js-head-main.compress .logo-img {
    contra 0-1 etiquetas del theme) pero solo cuando corresponde. Arriba de
    todo no hay regla mia compitiendo y el theme deja los iconos en su color
    oscuro original (correcto contra la fila blanca). */
-html body header.js-head-main.compress .container-fluid svg {
+html body header.js-head-main.head-main .container-fluid svg {
   color: #f5f0e5 !important;
   fill: #f5f0e5 !important;
 }
-html body header.js-head-main.compress .container-fluid svg path {
+html body header.js-head-main.head-main .container-fluid svg path {
   stroke: #f5f0e5 !important;
 }
 /* PROBADO en vivo (screenshot + getComputedStyle): con la regla de arriba
@@ -143,7 +161,7 @@ html body header.js-head-main.compress .container-fluid svg path {
    informa getComputedStyle sobre el propio <svg class="utilities-icon">.
    Confirmado en vivo: fill/color pasan a f5f0e5 solo al scrollear; arriba
    de todo quedan en su oscuro de fabrica. */
-html body header.js-head-main.compress .container-fluid .utilities-icon {
+html body header.js-head-main.head-main .container-fluid .utilities-icon {
   color: #f5f0e5 !important;
   fill: #f5f0e5 !important;
 }
