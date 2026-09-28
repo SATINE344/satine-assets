@@ -80,7 +80,7 @@ html body header.js-head-main.js-head-mutator.head-main .section-adbar > .contai
    marron-sobre-marron que nunca sucede). Fix real: cambiar el color de header
    en el panel de Tiendanube, no por CSS -- queda anotado en el informe. */
 html body header.js-head-main.js-head-mutator.head-main .satine-adbar-section > .container-fluid {
-  border-bottom: 1px solid rgba(52,33,27,.12) !important;
+  border-bottom: 1px solid rgba(245,240,229,.14) !important;
 }
 /* logo: es una imagen (logo-img) con el icono y el nombre en oscuro sobre
    fondo transparente; se invierte a claro para que se vea sobre marron --
