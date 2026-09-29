@@ -1,13 +1,13 @@
 {
- "actualizado": "2026-09-29T15:00:05.664Z",
+ "actualizado": "2026-09-29T21:00:31.182Z",
  "google": {
-  "rating": 4.5,
-  "count": 11,
-  "url": "https://www.google.com/maps?cid=13348124733494463638",
-  "place_id": null
+  "rating": 4.6,
+  "count": 13,
+  "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
+  "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk"
  },
  "ml": {
-  "ventas": 63087,
+  "ventas": 63212,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
