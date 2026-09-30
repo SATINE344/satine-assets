@@ -1,0 +1,127 @@
+{
+ "v": 3,
+ "banners": {
+  "2-slide-1784049031612-3061621125-c7e5d8eb30eb13ff151426f1f8cd5e261784049037": {
+   "w": 1080,
+   "h": 1600,
+   "x0": 10.5,
+   "x1": 89.5,
+   "y": 78.5,
+   "al": "c",
+   "url": "/fundas/",
+   "txt": "Explorar",
+   "fondo": "osc",
+   "cap": 1,
+   "alt": "Fundas de cuero Satine para iPhone 17 Series en negro, marron y azul"
+  },
+  "2-slide-1784049031612-3630899538-5e8eb2d722dbfd4fabb3e33f583040c71784049037": {
+   "w": 1080,
+   "h": 1600,
+   "x0": 11,
+   "x1": 81.5,
+   "y": 68,
+   "al": "i",
+   "url": "/productos/",
+   "txt": "Ver productos",
+   "fondo": "osc",
+   "alt": "Satine: accesorios de cuero para iPhone"
+  },
+  "2-slide-1784049031613-520265946-e663a148043a13675946b8334d8a76a21784049038": {
+   "w": 1080,
+   "h": 1600,
+   "x0": 13.5,
+   "x1": 86.5,
+   "y": 85.5,
+   "al": "c",
+   "url": "/fundas/",
+   "txt": "Explorar",
+   "fondo": "claro",
+   "cap": 1,
+   "alt": "Fundas de cuero Satine para Samsung Galaxy S26, S26 Plus y S26 Ultra"
+  },
+  "2-slide-1784561636910-3503730259-c9193200d7ffca5ec5e12ac9b384a33b1784561639": {
+   "w": 1920,
+   "h": 900,
+   "x0": 25.5,
+   "x1": 74.5,
+   "y": 82,
+   "al": "i",
+   "url": "/productos/",
+   "txt": "Ver productos",
+   "fondo": "claro",
+   "alt": "Instalacion perfecta con Magic Box, el aplicador Satine"
+  },
+  "2-slide-1784561636910-7536940687-49d18bd8458085d49bfefff6665892c01784561638": {
+   "w": 1920,
+   "h": 900,
+   "x0": 17,
+   "x1": 54,
+   "y": 70,
+   "al": "i",
+   "url": "/?combos=1",
+   "txt": "Armar combo",
+   "fondo": "osc",
+   "alt": "Combo Satine: arma el tuyo y ahorra hasta 10% OFF adicional"
+  },
+  "2-slide-1784561636910-780166119-5f652868f27b7ecb19d06560354e99751784561638": {
+   "w": 1920,
+   "h": 900,
+   "x0": 25.5,
+   "x1": 74.5,
+   "y": 84,
+   "al": "c",
+   "url": "/productos/",
+   "txt": "Ver productos",
+   "fondo": "osc",
+   "alt": "Financiacion Satine: 6 cuotas sin interes y 10% OFF por transferencia"
+  },
+  "2-slide-1785959905281-6262714286-20265ae053f1eaea204b37f6895146c91785959906": {
+   "w": 1580,
+   "h": 600,
+   "x0": 28.5,
+   "x1": 44,
+   "y": 77,
+   "al": "c",
+   "url": "/fundas/",
+   "txt": "Ver fundas",
+   "fondo": "claro",
+   "alt": "Fundas de cuero Satine, disenadas para tu estilo de vida"
+  },
+  "2-slide-1786117838439-7449406844-dcd77efb20eb8184ed5f08d903fee5c81786117840": {
+   "w": 1367,
+   "h": 2000,
+   "x0": 9,
+   "x1": 94,
+   "y": 84,
+   "al": "c",
+   "url": "/productos/",
+   "txt": "Ver fundas",
+   "fondo": "claro",
+   "alt": "Leather Case de cuero genuino y Urban Case antideslizante de Satine"
+  },
+  "2-slide-1790624282058-3993280121-316504a6cf35742f46a62d8a5fe0aa1e1790624283": {
+   "w": 1024,
+   "h": 1536,
+   "x0": 23,
+   "x1": 76,
+   "y": 32,
+   "al": "c",
+   "url": "/fundas/",
+   "txt": "Ver Cherry",
+   "fondo": "claro",
+   "alt": "Funda de cuero Cherry de Satine para iPhone 18 Pro y 18 Pro Max"
+  },
+  "2-slide-1790624403288-5077050398-3fe84686cf2a2c074f78177d614d07d11790624405": {
+   "w": 1920,
+   "h": 900,
+   "x0": 6.8,
+   "x1": 60,
+   "y": 70,
+   "al": "c",
+   "url": "/fundas/",
+   "txt": "Ver Cherry",
+   "fondo": "claro",
+   "alt": "Nueva funda de cuero Cherry de Satine para iPhone 18 Pro / Pro Max"
+  }
+ }
+}
