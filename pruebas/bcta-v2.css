@@ -1,0 +1,14 @@
+/* SATINE - boton dinamico de los banners del home (lo pinta satine-bcta-1.js)
+   Para pegar en satine-home-2026. Todo es compositor-only (opacity/transform):
+   no hay layout ni paint en el scroll. El boton es absolute -> CLS 0.
+   z-index 7 a proposito: queda sobre el ::after del slide (5) y sobre el
+   overlay sm67 de los "momentos" (6). */
+.sat-bcapa{position:absolute;left:0;right:0;top:0;bottom:0;z-index:4;display:block}
+.sat-bcta{position:absolute;z-index:7;display:inline-flex;align-items:center;gap:8px;padding:13px 24px;border-radius:100px;font-family:'Plus Jakarta Sans',system-ui,sans-serif;font-size:13px;font-weight:700;letter-spacing:.01em;text-decoration:none;white-space:nowrap;box-shadow:0 14px 30px -14px rgba(0,0,0,.65);opacity:0;transform:translateY(6px);transition:opacity .35s ease,transform .35s ease}
+.sat-bcta.is-in{opacity:1;transform:none}
+.sat-bcta--claro{background:#faf6ee;color:#34211b}
+.sat-bcta--osc{background:#34211b;color:#faf6ee}
+.sat-bcta svg{width:14px;height:14px;stroke:currentColor;fill:none;stroke-width:2.2}
+span.sat-bcta{pointer-events:none}
+@media (hover:hover){a.sat-bcta:hover{transform:translateX(3px)}}
+@media (max-width:767px){.sat-bcta{padding:11px 20px;font-size:12px}}
