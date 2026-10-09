@@ -1,12 +1,59 @@
 {
- "actualizado": "2026-10-09T22:58:24.501Z",
- "google_estado": "error 403 403 - \"{\\n \\\"error\\\": {\\n \\\"code\\\": 403,\\n \\\"message\\\": \\\"The caller does not have permiss",
- "google_ultimo_ok": null,
+ "actualizado": "2026-10-09T23:58:29.148Z",
+ "google_estado": "ok",
+ "google_ultimo_ok": "2026-10-09",
  "google": {
   "rating": 4.6,
-  "count": 13,
+  "count": 19,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
-  "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk"
+  "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
+  "resenas": [
+   {
+    "autor": "Ennio Castillo - Email Marketing",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjU03LybA2HQrkxtw5q0nwnWLI-CdCc5qVU7AH3cNr_u-wpwQwMH=s128-c0x00000000-cc-rp-mo-ba2",
+    "perfil": "https://www.google.com/maps/contrib/112607926826846472426/reviews",
+    "rating": 5,
+    "texto": "Tremendo el acabado de la funda. El tarjetero ajusta con firmeza y es del mismo color y textura de cuero. El cargador muy rápido en la carga. Recomendable",
+    "fecha": "2026-10-07T15:18:11.489945576Z",
+    "cuando": "en la última semana"
+   },
+   {
+    "autor": "Luciano Di Battista",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXXgl10xjQraATqpp1567ugIZGsfNBWHGaDgyreQ5qn7JC3xiw7rw=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/103921343982284245376/reviews",
+    "rating": 5,
+    "texto": "Segunda vez que compro. Son elegantes y de calidad. Lo valen.",
+    "fecha": "2026-10-06T21:16:24.600649977Z",
+    "cuando": "en la última semana"
+   },
+   {
+    "autor": "Eduardo Exequiel Tejerina",
+    "foto": "https://lh3.googleusercontent.com/a/ACg8ocL8vFNEI9QEF0i1ujIIMf4BBapO6ewj-Vd7o1TkFWFrCLRfkg=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/110502127122758590372/reviews",
+    "rating": 5,
+    "texto": "Unas fundas espectaculares y una buena variedad de productos",
+    "fecha": "2026-10-04T22:47:07.409885426Z",
+    "cuando": "en la última semana"
+   },
+   {
+    "autor": "Nicolas Marquez",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjUTUJug4JfjKpX-UI1MYWAlGWQj63mNQUjYNGL4FCTYAvMORwQy=s128-c0x00000000-cc-rp-mo-ba3",
+    "perfil": "https://www.google.com/maps/contrib/117237288336323062937/reviews",
+    "rating": 1,
+    "texto": "Problemas con su cargador! Lo use 4 veces! Mala calidad! Nadie me respondió cuando realice la queja!",
+    "fecha": "2026-10-01T13:30:28.606801492Z",
+    "cuando": "Hace una semana"
+   },
+   {
+    "autor": "Nicolas De Luca Proverbio",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjV2hn1dMPPQTimhJcjorl0k-JegDjDc_IeQYrJXyETWUC7z5b4=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/117083899338112365947/reviews",
+    "rating": 5,
+    "texto": "Excelente servicio! Muy linda la funda de cuero y la presentación",
+    "fecha": "2026-05-29T20:19:10.754956613Z",
+    "cuando": "Hace 4 meses"
+   }
+  ]
  },
  "ml": {
   "ventas": 64933,
