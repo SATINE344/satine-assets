@@ -1,5 +1,7 @@
 {
- "actualizado": "2026-10-09T22:57:55.457Z",
+ "actualizado": "2026-10-09T22:58:24.501Z",
+ "google_estado": "error 403 403 - \"{\\n \\\"error\\\": {\\n \\\"code\\\": 403,\\n \\\"message\\\": \\\"The caller does not have permiss",
+ "google_ultimo_ok": null,
  "google": {
   "rating": 4.6,
   "count": 13,
