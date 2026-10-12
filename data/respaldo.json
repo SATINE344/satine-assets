@@ -1,7 +1,7 @@
 {
- "actualizado": "2026-10-11T15:00:05.505Z",
+ "actualizado": "2026-10-12T03:00:06.015Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-11",
+ "google_ultimo_ok": "2026-10-12",
  "google": {
   "rating": 4.6,
   "count": 19,
@@ -33,7 +33,7 @@
     "rating": 5,
     "texto": "Unas fundas espectaculares y una buena variedad de productos",
     "fecha": "2026-10-04T22:47:07.409885426Z",
-    "cuando": "en la última semana"
+    "cuando": "Hace una semana"
    },
    {
     "autor": "Nicolas Marquez",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 65122,
+  "ventas": 65289,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
