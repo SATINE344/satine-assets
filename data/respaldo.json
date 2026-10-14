@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-10-13T15:00:06.386Z",
+ "actualizado": "2026-10-14T03:00:08.302Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-13",
+ "google_ultimo_ok": "2026-10-14",
  "google": {
-  "rating": 4.4,
-  "count": 20,
+  "rating": 4.5,
+  "count": 22,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -13,8 +13,26 @@
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWCSBYucM9j4dsPjjyOFEC_fUnPKDXyqTYkRNq32UVWgMIB2cE=s128-c0x00000000-cc-rp-mo-ba3",
     "perfil": "https://www.google.com/maps/contrib/113221970106395925144/reviews",
     "rating": 1,
-    "texto": "Un desastre, les reclamas lo que pagaste, que porque no llega a tiempo o porque te venden lo que no es , y cuando les hablas , ya no tienen WhatsApp, segundo me bloquearon de Instagram, unos sinvergüenzas , maleducados!!! No les compreen nada 👎",
-    "fecha": "2026-10-13T11:46:23.085582626Z",
+    "texto": "Un desastre, les reclamas lo que pagaste, que porque no llega a tiempo o porque te venden lo que no es , y cuando les hablas , ya no tienen WhatsApp, segundo me bloquearon de Instagram, unos sinvergüenzas , maleducados!!! No les compreen nada 👎 y hoy les volví a comprar y me volvieron a mentir!!! Pedí un protector 18 pro Max y me mandan un 17 pro Max y lo taparon con una etiqueta ahora pedí la devolución del dinero!!!",
+    "fecha": "2026-10-13T21:58:22.229388731Z",
+    "cuando": "en la última semana"
+   },
+   {
+    "autor": "Sebastian Villafañe",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXZcEjo4xE581DnLA7NWj5iv4Dr_iXscJaKNe2ME6q_l2p2ro_e=s128-c0x00000000-cc-rp-mo-ba2",
+    "perfil": "https://www.google.com/maps/contrib/106356327887249545138/reviews",
+    "rating": 5,
+    "texto": "Hermosa funda!! Muy bueno los detalles de los botones laterales",
+    "fecha": "2026-10-13T20:32:56.329225398Z",
+    "cuando": "en la última semana"
+   },
+   {
+    "autor": "Carla Pachado",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjUuSsSK96GNc7NcNjZJ8WUtXHM8jaOTyL0jkHSclX2hjYvE8tOE=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/107424386486761311942/reviews",
+    "rating": 5,
+    "texto": "Muy linda la calidad de las fundas y variedad de colores, volveria a comprar",
+    "fecha": "2026-10-13T17:08:28.857978588Z",
     "cuando": "en la última semana"
    },
    {
@@ -25,24 +43,6 @@
     "texto": "Tremendo el acabado de la funda. El tarjetero ajusta con firmeza y es del mismo color y textura de cuero. El cargador muy rápido en la carga. Recomendable",
     "fecha": "2026-10-07T15:18:11.489945576Z",
     "cuando": "en la última semana"
-   },
-   {
-    "autor": "Luciano Di Battista",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXXgl10xjQraATqpp1567ugIZGsfNBWHGaDgyreQ5qn7JC3xiw7rw=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/103921343982284245376/reviews",
-    "rating": 5,
-    "texto": "Segunda vez que compro. Son elegantes y de calidad. Lo valen.",
-    "fecha": "2026-10-06T21:16:24.600649977Z",
-    "cuando": "en la última semana"
-   },
-   {
-    "autor": "Eduardo Exequiel Tejerina",
-    "foto": "https://lh3.googleusercontent.com/a/ACg8ocL8vFNEI9QEF0i1ujIIMf4BBapO6ewj-Vd7o1TkFWFrCLRfkg=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/110502127122758590372/reviews",
-    "rating": 5,
-    "texto": "Unas fundas espectaculares y una buena variedad de productos",
-    "fecha": "2026-10-04T22:47:07.409885426Z",
-    "cuando": "Hace una semana"
    },
    {
     "autor": "Nicolas De Luca Proverbio",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 65460,
+  "ventas": 65761,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
