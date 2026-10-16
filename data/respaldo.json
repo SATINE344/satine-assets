@@ -1,13 +1,22 @@
 {
- "actualizado": "2026-10-15T15:00:14.400Z",
+ "actualizado": "2026-10-16T03:00:07.620Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-15",
+ "google_ultimo_ok": "2026-10-16",
  "google": {
   "rating": 4.5,
-  "count": 22,
+  "count": 23,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
+   {
+    "autor": "Gregorio Lopez Ogawa",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWcotfjeF28BlbMxqMBaBFJk9ShPSVg5SD4Rgat1n2JVqB-4n53LA=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/105007259164677751795/reviews",
+    "rating": 5,
+    "texto": "Increíble la calidad de las fundas, 10/10 la presentación de producto.",
+    "fecha": "2026-10-15T22:37:01.013481396Z",
+    "cuando": "en la última semana"
+   },
    {
     "autor": "Noe",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWCSBYucM9j4dsPjjyOFEC_fUnPKDXyqTYkRNq32UVWgMIB2cE=s128-c0x00000000-cc-rp-mo-ba3",
@@ -36,15 +45,6 @@
     "cuando": "en la última semana"
    },
    {
-    "autor": "Ennio Castillo - Email Marketing",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjU03LybA2HQrkxtw5q0nwnWLI-CdCc5qVU7AH3cNr_u-wpwQwMH=s128-c0x00000000-cc-rp-mo-ba2",
-    "perfil": "https://www.google.com/maps/contrib/112607926826846472426/reviews",
-    "rating": 5,
-    "texto": "Tremendo el acabado de la funda. El tarjetero ajusta con firmeza y es del mismo color y textura de cuero. El cargador muy rápido en la carga. Recomendable",
-    "fecha": "2026-10-07T15:18:11.489945576Z",
-    "cuando": "Hace una semana"
-   },
-   {
     "autor": "Nicolas De Luca Proverbio",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjV2hn1dMPPQTimhJcjorl0k-JegDjDc_IeQYrJXyETWUC7z5b4=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/117083899338112365947/reviews",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 66042,
+  "ventas": 66249,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
