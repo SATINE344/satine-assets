@@ -1,13 +1,22 @@
 {
- "actualizado": "2026-10-17T15:00:06.566Z",
+ "actualizado": "2026-10-18T03:00:06.347Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-17",
+ "google_ultimo_ok": "2026-10-18",
  "google": {
   "rating": 4.5,
-  "count": 23,
+  "count": 24,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
+   {
+    "autor": "Mariano Vecchi",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjU5DypZo_BsyOXmv-25GPQijmUaRoNEUmx4sarTd7Ij0-wDc_Y=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/109631792041088903161/reviews",
+    "rating": 4,
+    "texto": "Se nota de buena calidad, buen calce",
+    "fecha": "2026-10-17T16:01:31.290953017Z",
+    "cuando": "en la última semana"
+   },
    {
     "autor": "Gregorio Lopez Ogawa",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWcotfjeF28BlbMxqMBaBFJk9ShPSVg5SD4Rgat1n2JVqB-4n53LA=s128-c0x00000000-cc-rp-mo",
@@ -36,15 +45,6 @@
     "cuando": "en la última semana"
    },
    {
-    "autor": "Carla Pachado",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjUuSsSK96GNc7NcNjZJ8WUtXHM8jaOTyL0jkHSclX2hjYvE8tOE=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/107424386486761311942/reviews",
-    "rating": 5,
-    "texto": "Muy linda la calidad de las fundas y variedad de colores, volveria a comprar",
-    "fecha": "2026-10-13T17:08:28.857978588Z",
-    "cuando": "en la última semana"
-   },
-   {
     "autor": "Nicolas De Luca Proverbio",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjV2hn1dMPPQTimhJcjorl0k-JegDjDc_IeQYrJXyETWUC7z5b4=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/117083899338112365947/reviews",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 66378,
+  "ventas": 66553,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
