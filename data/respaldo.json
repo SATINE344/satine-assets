@@ -1,7 +1,7 @@
 {
- "actualizado": "2026-10-18T15:00:06.623Z",
+ "actualizado": "2026-10-19T03:00:06.692Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-18",
+ "google_ultimo_ok": "2026-10-19",
  "google": {
   "rating": 4.5,
   "count": 24,
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 66529,
+  "ventas": 66754,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
