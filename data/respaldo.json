@@ -1,13 +1,22 @@
 {
- "actualizado": "2026-10-19T15:02:36.965Z",
+ "actualizado": "2026-10-20T03:00:06.860Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-19",
+ "google_ultimo_ok": "2026-10-20",
  "google": {
   "rating": 4.5,
-  "count": 24,
+  "count": 25,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
+   {
+    "autor": "Elias Gonzalez",
+    "foto": "https://lh3.googleusercontent.com/a/ACg8ocK4LFIq8XGbvE7TTguIDXs68zvKF_yF03_p8pb9PtvLYVkSEqU=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/110330764690419469800/reviews",
+    "rating": 5,
+    "texto": "Muy buena funda y me llego a tiempo!",
+    "fecha": "2026-10-19T15:07:17.796884771Z",
+    "cuando": "en la última semana"
+   },
    {
     "autor": "Mariano Vecchi",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjU5DypZo_BsyOXmv-25GPQijmUaRoNEUmx4sarTd7Ij0-wDc_Y=s128-c0x00000000-cc-rp-mo",
@@ -36,15 +45,6 @@
     "cuando": "en la última semana"
    },
    {
-    "autor": "Sebastian Villafañe",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXZcEjo4xE581DnLA7NWj5iv4Dr_iXscJaKNe2ME6q_l2p2ro_e=s128-c0x00000000-cc-rp-mo-ba2",
-    "perfil": "https://www.google.com/maps/contrib/106356327887249545138/reviews",
-    "rating": 5,
-    "texto": "Hermosa funda!! Muy bueno los detalles de los botones laterales",
-    "fecha": "2026-10-13T20:32:56.329225398Z",
-    "cuando": "en la última semana"
-   },
-   {
     "autor": "Nicolas De Luca Proverbio",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjV2hn1dMPPQTimhJcjorl0k-JegDjDc_IeQYrJXyETWUC7z5b4=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/117083899338112365947/reviews",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 66808,
+  "ventas": 67155,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
