@@ -1,13 +1,22 @@
 {
- "actualizado": "2026-10-20T15:00:07.303Z",
+ "actualizado": "2026-10-21T03:00:10.014Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-20",
+ "google_ultimo_ok": "2026-10-21",
  "google": {
-  "rating": 4.5,
-  "count": 25,
+  "rating": 4.4,
+  "count": 26,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
+   {
+    "autor": "Emiliano Montini",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjW8TJegJWTSyo8kvUIRxLHrE7rhA2DELNfjHILRma3VXbYJBRM21g=s128-c0x00000000-cc-rp-mo-ba3",
+    "perfil": "https://www.google.com/maps/contrib/104696618783994064557/reviews",
+    "rating": 3,
+    "texto": "Compré para un iPhone 14 una de cuero. No quedó bien. Hice la devolución y me reintegraron el dinero sin problemas.",
+    "fecha": "2026-10-20T20:32:42.809638902Z",
+    "cuando": "en la última semana"
+   },
    {
     "autor": "Elias Gonzalez",
     "foto": "https://lh3.googleusercontent.com/a/ACg8ocK4LFIq8XGbvE7TTguIDXs68zvKF_yF03_p8pb9PtvLYVkSEqU=s128-c0x00000000-cc-rp-mo",
@@ -36,15 +45,6 @@
     "cuando": "en la última semana"
    },
    {
-    "autor": "Noe",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWCSBYucM9j4dsPjjyOFEC_fUnPKDXyqTYkRNq32UVWgMIB2cE=s128-c0x00000000-cc-rp-mo-ba3",
-    "perfil": "https://www.google.com/maps/contrib/113221970106395925144/reviews",
-    "rating": 1,
-    "texto": "Un desastre, les reclamas lo que pagaste, que porque no llega a tiempo o porque te venden lo que no es , y cuando les hablas , ya no tienen WhatsApp, segundo me bloquearon de Instagram, unos sinvergüenzas , maleducados!!! No les compreen nada 👎 y hoy les volví a comprar y me volvieron a mentir!!! Pedí un protector 18 pro Max y me mandan un 17 pro Max y lo taparon con una etiqueta ahora pedí la devolución del dinero!!!",
-    "fecha": "2026-10-13T21:58:22.229388731Z",
-    "cuando": "en la última semana"
-   },
-   {
     "autor": "Nicolas De Luca Proverbio",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjV2hn1dMPPQTimhJcjorl0k-JegDjDc_IeQYrJXyETWUC7z5b4=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/117083899338112365947/reviews",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 67194,
+  "ventas": 67483,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
