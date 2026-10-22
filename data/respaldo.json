@@ -1,13 +1,22 @@
 {
- "actualizado": "2026-10-21T15:00:10.582Z",
+ "actualizado": "2026-10-22T03:00:06.866Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-21",
+ "google_ultimo_ok": "2026-10-22",
  "google": {
   "rating": 4.4,
-  "count": 26,
+  "count": 27,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
+   {
+    "autor": "Valentina Olmedo",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWqD8qm_xqA8VS4cVPe90lw1h78B51jI0cvpjJlVE4ir31envw=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/109964453075758352807/reviews",
+    "rating": 5,
+    "texto": "Excelente calidad! Llegó súper rápido",
+    "fecha": "2026-10-22T00:35:53.714216847Z",
+    "cuando": "en la última semana"
+   },
    {
     "autor": "Emiliano Montini",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjW8TJegJWTSyo8kvUIRxLHrE7rhA2DELNfjHILRma3VXbYJBRM21g=s128-c0x00000000-cc-rp-mo-ba3",
@@ -36,15 +45,6 @@
     "cuando": "en la última semana"
    },
    {
-    "autor": "Gregorio Lopez Ogawa",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWcotfjeF28BlbMxqMBaBFJk9ShPSVg5SD4Rgat1n2JVqB-4n53LA=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/105007259164677751795/reviews",
-    "rating": 5,
-    "texto": "Increíble la calidad de las fundas, 10/10 la presentación de producto.",
-    "fecha": "2026-10-15T22:37:01.013481396Z",
-    "cuando": "en la última semana"
-   },
-   {
     "autor": "Nicolas De Luca Proverbio",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjV2hn1dMPPQTimhJcjorl0k-JegDjDc_IeQYrJXyETWUC7z5b4=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/117083899338112365947/reviews",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 67495,
+  "ventas": 67794,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
