@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-10-24T03:00:06.938Z",
+ "actualizado": "2026-10-24T15:00:06.795Z",
  "google_estado": "ok",
  "google_ultimo_ok": "2026-10-24",
  "google": {
-  "rating": 4.5,
-  "count": 28,
+  "rating": 4.4,
+  "count": 29,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -18,31 +18,31 @@
     "cuando": "en la última semana"
    },
    {
-    "autor": "Valentina Olmedo",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWqD8qm_xqA8VS4cVPe90lw1h78B51jI0cvpjJlVE4ir31envw=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/109964453075758352807/reviews",
+    "autor": "Agustín Centeno",
+    "foto": "https://lh3.googleusercontent.com/a/ACg8ocIMUnJQFrJHqB5ohSiTdG5xXyGVG2jkT_sG5DkrHEamA-06eQ=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/108240155579388900003/reviews",
     "rating": 5,
-    "texto": "Excelente calidad! Llegó súper rápido",
-    "fecha": "2026-10-22T00:35:53.714216847Z",
-    "cuando": "en la última semana"
+    "texto": "Tal como esperaba ✨",
+    "fecha": "2026-09-04T05:57:56.817106045Z",
+    "cuando": "Hace 1 mes"
    },
    {
-    "autor": "Emiliano Montini",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjW8TJegJWTSyo8kvUIRxLHrE7rhA2DELNfjHILRma3VXbYJBRM21g=s128-c0x00000000-cc-rp-mo-ba3",
-    "perfil": "https://www.google.com/maps/contrib/104696618783994064557/reviews",
-    "rating": 3,
-    "texto": "Compré para un iPhone 14 una de cuero. No quedó bien. Hice la devolución y me reintegraron el dinero sin problemas.",
-    "fecha": "2026-10-20T20:32:42.809638902Z",
-    "cuando": "en la última semana"
+    "autor": "Matías Casanova",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWQWtaxSzovPOE42AWeZ7ThsTFLLN51iP-_-Giw9Qytfqaj7q1Stg=s128-c0x00000000-cc-rp-mo-ba3",
+    "perfil": "https://www.google.com/maps/contrib/110635665750355620812/reviews",
+    "rating": 5,
+    "texto": "Excelente calidad y terminación",
+    "fecha": "2026-08-27T22:02:06.610991017Z",
+    "cuando": "Hace 1 mes"
    },
    {
-    "autor": "Elias Gonzalez",
-    "foto": "https://lh3.googleusercontent.com/a/ACg8ocK4LFIq8XGbvE7TTguIDXs68zvKF_yF03_p8pb9PtvLYVkSEqU=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/110330764690419469800/reviews",
+    "autor": "Katja Fekonja",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjVQeO0x0UvQKmKUjtnSltReoekrYKuAJw6vhxuwBk3_R9cKTRWE6w=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/105285223292143608338/reviews",
     "rating": 5,
-    "texto": "Muy buena funda y me llego a tiempo!",
-    "fecha": "2026-10-19T15:07:17.796884771Z",
-    "cuando": "en la última semana"
+    "texto": "Me compre la funda de cuero.\nTodo el paquete desde la caja en donde llega hasta los materiales de la funda al tacto demuestran muy buena calidad, ya quiero comprar otra.",
+    "fecha": "2026-08-26T15:17:36.131175043Z",
+    "cuando": "Hace 1 mes"
    },
    {
     "autor": "Nicolas De Luca Proverbio",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 68229,
+  "ventas": 68184,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
