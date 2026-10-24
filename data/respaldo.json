@@ -1,13 +1,22 @@
 {
- "actualizado": "2026-10-23T15:00:09.327Z",
+ "actualizado": "2026-10-24T03:00:06.938Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-23",
+ "google_ultimo_ok": "2026-10-24",
  "google": {
-  "rating": 4.4,
-  "count": 27,
+  "rating": 4.5,
+  "count": 28,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
+   {
+    "autor": "Oswaldo Bravo",
+    "foto": "https://lh3.googleusercontent.com/a/ACg8ocIavaEv0BKN4tQ8pISHr2vCotcoDtsPpBG8PBXkc4qk1B5Rlg=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/106900464920316483007/reviews",
+    "rating": 5,
+    "texto": "Excelente calidad y presentación",
+    "fecha": "2026-10-23T15:56:28.334062649Z",
+    "cuando": "en la última semana"
+   },
    {
     "autor": "Valentina Olmedo",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWqD8qm_xqA8VS4cVPe90lw1h78B51jI0cvpjJlVE4ir31envw=s128-c0x00000000-cc-rp-mo",
@@ -36,15 +45,6 @@
     "cuando": "en la última semana"
    },
    {
-    "autor": "Mariano Vecchi",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjU5DypZo_BsyOXmv-25GPQijmUaRoNEUmx4sarTd7Ij0-wDc_Y=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/109631792041088903161/reviews",
-    "rating": 4,
-    "texto": "Se nota de buena calidad, buen calce",
-    "fecha": "2026-10-17T16:01:31.290953017Z",
-    "cuando": "en la última semana"
-   },
-   {
     "autor": "Nicolas De Luca Proverbio",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjV2hn1dMPPQTimhJcjorl0k-JegDjDc_IeQYrJXyETWUC7z5b4=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/117083899338112365947/reviews",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 68017,
+  "ventas": 68229,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
