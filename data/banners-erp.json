@@ -1,6 +1,24 @@
 {
   "schema": 1,
-  "version": 1793047099,
-  "updated": "2026-10-26T17:38:19-03:00",
-  "slides": []
+  "version": 1793050009,
+  "updated": "2026-10-26T18:26:49-03:00",
+  "slides": [
+    {
+      "id": "96a47fd7-19c3-40ae-a050-69923df49c8f",
+      "modo": "sumar",
+      "pos": 5,
+      "d": "https://raw.githubusercontent.com/SATINE344/satine-assets/main/banners-erp/e34c2dea-96a47fd7-d.webp",
+      "m": "https://raw.githubusercontent.com/SATINE344/satine-assets/main/banners-erp/e34c2dea-96a47fd7-m.webp",
+      "alt": "Black Friday en SATINE",
+      "copy": {
+        "kicker": "BLACK FRIDAY",
+        "title": "Black Friday en SATINE",
+        "sub": "6 cuotas sin interés y 10% OFF por transferencia. Envío gratis desde $100.000.",
+        "cta": "Ver colección",
+        "href": "/en-oferta/"
+      },
+      "segundos": 6,
+      "tono": "claro"
+    }
+  ]
 }
