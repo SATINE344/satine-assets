@@ -1,6 +1,23 @@
 {
   "schema": 1,
-  "version": 1793047006,
-  "updated": "2026-10-26T17:36:46-03:00",
-  "slides": []
+  "version": 1793047059,
+  "updated": "2026-10-26T17:37:39-03:00",
+  "slides": [
+    {
+      "id": "447633d3-2c63-4f90-81e2-d028c5af7bdf",
+      "modo": "sumar",
+      "pos": 6,
+      "d": "https://raw.githubusercontent.com/SATINE344/satine-assets/main/banners-erp/7d087662-447633d3-d.webp",
+      "m": "https://raw.githubusercontent.com/SATINE344/satine-assets/main/banners-erp/7d087662-447633d3-m.webp",
+      "alt": "Leather Case Cacao",
+      "copy": {
+        "kicker": "Funda Leather Case",
+        "title": "Leather Case Cacao",
+        "sub": "Cuero que se pone mejor con el uso.",
+        "cta": "Ver más",
+        "href": "/productos/funda-de-cuero-leather-case-iphone-14-series-cacao-vezn4/"
+      },
+      "segundos": 6
+    }
+  ]
 }
