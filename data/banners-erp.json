@@ -1,6 +1,24 @@
 {
   "schema": 1,
-  "version": 1793055401,
-  "updated": "2026-10-26T19:56:41-03:00",
-  "slides": []
+  "version": 1793055632,
+  "updated": "2026-10-26T20:00:32-03:00",
+  "slides": [
+    {
+      "id": "10e69c36-185b-4bc8-a0de-8af0b2a82941",
+      "modo": "sumar",
+      "pos": 4,
+      "d": "https://raw.githubusercontent.com/SATINE344/satine-assets/main/banners-erp/fc2d1cd7-10e69c36-d.webp",
+      "m": "https://raw.githubusercontent.com/SATINE344/satine-assets/main/banners-erp/fc2d1cd7-10e69c36-m.webp",
+      "alt": "Cuero en tono Cherry",
+      "copy": {
+        "kicker": "NUEVA COLECCIÓN",
+        "title": "Cuero en tono Cherry",
+        "sub": "Un bordó profundo que suma carácter en mano y desarrolla pátina con el uso continuo.",
+        "cta": "Conocer Cherry",
+        "href": "/productos/funda-de-cuero-leather-case-iphone-18-series-cherry/"
+      },
+      "segundos": 7,
+      "tono": "oscuro"
+    }
+  ]
 }
