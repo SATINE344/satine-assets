@@ -1,38 +1,38 @@
 {
- "actualizado": "2026-10-26T03:00:08.470Z",
+ "actualizado": "2026-10-26T15:00:07.834Z",
  "google_estado": "ok",
  "google_ultimo_ok": "2026-10-26",
  "google": {
-  "rating": 4.4,
-  "count": 29,
+  "rating": 4.5,
+  "count": 30,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
    {
-    "autor": "gustavo ko",
-    "foto": "https://lh3.googleusercontent.com/a/ACg8ocLHK42J_bPuF5EiRCee68ghqzEvU6kpqgtGuRB60wxFDQ9MBw=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/105338274576978055518/reviews",
-    "rating": 4,
-    "texto": "Muy buen producto",
-    "fecha": "2026-10-24T13:26:29.256125654Z",
-    "cuando": "en la última semana"
+    "autor": "Gregorio Lopez Ogawa",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWcotfjeF28BlbMxqMBaBFJk9ShPSVg5SD4Rgat1n2JVqB-4n53LA=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/105007259164677751795/reviews",
+    "rating": 5,
+    "texto": "Increíble la calidad de las fundas, 10/10 la presentación de producto.",
+    "fecha": "2026-10-15T22:37:01.013481396Z",
+    "cuando": "Hace una semana"
    },
    {
-    "autor": "Agustín Centeno",
-    "foto": "https://lh3.googleusercontent.com/a/ACg8ocIMUnJQFrJHqB5ohSiTdG5xXyGVG2jkT_sG5DkrHEamA-06eQ=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/108240155579388900003/reviews",
+    "autor": "Ennio Castillo - Email Marketing",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjU03LybA2HQrkxtw5q0nwnWLI-CdCc5qVU7AH3cNr_u-wpwQwMH=s128-c0x00000000-cc-rp-mo-ba2",
+    "perfil": "https://www.google.com/maps/contrib/112607926826846472426/reviews",
     "rating": 5,
-    "texto": "Tal como esperaba ✨",
-    "fecha": "2026-09-04T05:57:56.817106045Z",
-    "cuando": "Hace 1 mes"
+    "texto": "Tremendo el acabado de la funda. El tarjetero ajusta con firmeza y es del mismo color y textura de cuero. El cargador muy rápido en la carga. Recomendable",
+    "fecha": "2026-10-07T15:18:11.489945576Z",
+    "cuando": "Hace 2 semanas"
    },
    {
-    "autor": "Matías Casanova",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWQWtaxSzovPOE42AWeZ7ThsTFLLN51iP-_-Giw9Qytfqaj7q1Stg=s128-c0x00000000-cc-rp-mo-ba3",
-    "perfil": "https://www.google.com/maps/contrib/110635665750355620812/reviews",
+    "autor": "Javier Lescano",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXqgmEUaPx8zPj4OGEVWn2nKNcAJuFj6wOfVIYzfCXCXmfKSrdyxg=s128-c0x00000000-cc-rp-mo-ba3",
+    "perfil": "https://www.google.com/maps/contrib/102962964600892434936/reviews",
     "rating": 5,
-    "texto": "Excelente calidad y terminación",
-    "fecha": "2026-08-27T22:02:06.610991017Z",
+    "texto": "Excelente producto, muy recomendable",
+    "fecha": "2026-09-19T20:36:03.695159462Z",
     "cuando": "Hace 1 mes"
    },
    {
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 68546,
+  "ventas": 68584,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
