@@ -1,7 +1,7 @@
 {
- "actualizado": "2026-10-25T15:00:06.566Z",
+ "actualizado": "2026-10-26T03:00:08.470Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-25",
+ "google_ultimo_ok": "2026-10-26",
  "google": {
   "rating": 4.4,
   "count": 29,
@@ -42,7 +42,7 @@
     "rating": 5,
     "texto": "Me compre la funda de cuero.\nTodo el paquete desde la caja en donde llega hasta los materiales de la funda al tacto demuestran muy buena calidad, ya quiero comprar otra.",
     "fecha": "2026-08-26T15:17:36.131175043Z",
-    "cuando": "Hace 1 mes"
+    "cuando": "Hace 2 meses"
    },
    {
     "autor": "Nicolas De Luca Proverbio",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 68337,
+  "ventas": 68546,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
