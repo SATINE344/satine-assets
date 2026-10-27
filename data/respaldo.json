@@ -1,5 +1,5 @@
 {
- "actualizado": "2026-10-27T03:00:12.530Z",
+ "actualizado": "2026-10-27T15:00:07.145Z",
  "google_estado": "ok",
  "google_ultimo_ok": "2026-10-27",
  "google": {
@@ -18,6 +18,24 @@
     "cuando": "Hace una semana"
    },
    {
+    "autor": "Noe",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWCSBYucM9j4dsPjjyOFEC_fUnPKDXyqTYkRNq32UVWgMIB2cE=s128-c0x00000000-cc-rp-mo-ba3",
+    "perfil": "https://www.google.com/maps/contrib/113221970106395925144/reviews",
+    "rating": 1,
+    "texto": "Un desastre, les reclamas lo que pagaste, que porque no llega a tiempo o porque te venden lo que no es , y cuando les hablas , ya no tienen WhatsApp, segundo me bloquearon de Instagram, unos sinvergüenzas , maleducados!!! No les compreen nada 👎 y hoy les volví a comprar y me volvieron a mentir!!! Pedí un protector 18 pro Max y me mandan un 17 pro Max y lo taparon con una etiqueta ahora pedí la devolución del dinero!!!",
+    "fecha": "2026-10-13T21:58:22.229388731Z",
+    "cuando": "Hace una semana"
+   },
+   {
+    "autor": "Carla Pachado",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjUuSsSK96GNc7NcNjZJ8WUtXHM8jaOTyL0jkHSclX2hjYvE8tOE=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/107424386486761311942/reviews",
+    "rating": 5,
+    "texto": "Muy linda la calidad de las fundas y variedad de colores, volveria a comprar",
+    "fecha": "2026-10-13T17:08:28.857978588Z",
+    "cuando": "Hace una semana"
+   },
+   {
     "autor": "Ennio Castillo - Email Marketing",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjU03LybA2HQrkxtw5q0nwnWLI-CdCc5qVU7AH3cNr_u-wpwQwMH=s128-c0x00000000-cc-rp-mo-ba2",
     "perfil": "https://www.google.com/maps/contrib/112607926826846472426/reviews",
@@ -27,15 +45,6 @@
     "cuando": "Hace 2 semanas"
    },
    {
-    "autor": "Javier Lescano",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXqgmEUaPx8zPj4OGEVWn2nKNcAJuFj6wOfVIYzfCXCXmfKSrdyxg=s128-c0x00000000-cc-rp-mo-ba3",
-    "perfil": "https://www.google.com/maps/contrib/102962964600892434936/reviews",
-    "rating": 5,
-    "texto": "Excelente producto, muy recomendable",
-    "fecha": "2026-09-19T20:36:03.695159462Z",
-    "cuando": "Hace 1 mes"
-   },
-   {
     "autor": "Katja Fekonja",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjVQeO0x0UvQKmKUjtnSltReoekrYKuAJw6vhxuwBk3_R9cKTRWE6w=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/105285223292143608338/reviews",
@@ -43,20 +52,11 @@
     "texto": "Me compre la funda de cuero.\nTodo el paquete desde la caja en donde llega hasta los materiales de la funda al tacto demuestran muy buena calidad, ya quiero comprar otra.",
     "fecha": "2026-08-26T15:17:36.131175043Z",
     "cuando": "Hace 2 meses"
-   },
-   {
-    "autor": "Nicolas De Luca Proverbio",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjV2hn1dMPPQTimhJcjorl0k-JegDjDc_IeQYrJXyETWUC7z5b4=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/117083899338112365947/reviews",
-    "rating": 5,
-    "texto": "Excelente servicio! Muy linda la funda de cuero y la presentación",
-    "fecha": "2026-05-29T20:19:10.754956613Z",
-    "cuando": "Hace 5 meses"
    }
   ]
  },
  "ml": {
-  "ventas": 68819,
+  "ventas": 68800,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
