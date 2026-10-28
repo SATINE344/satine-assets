@@ -1,7 +1,7 @@
 {
- "actualizado": "2026-10-27T15:00:07.145Z",
+ "actualizado": "2026-10-28T03:00:08.337Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-27",
+ "google_ultimo_ok": "2026-10-28",
  "google": {
   "rating": 4.5,
   "count": 31,
@@ -24,7 +24,7 @@
     "rating": 1,
     "texto": "Un desastre, les reclamas lo que pagaste, que porque no llega a tiempo o porque te venden lo que no es , y cuando les hablas , ya no tienen WhatsApp, segundo me bloquearon de Instagram, unos sinvergüenzas , maleducados!!! No les compreen nada 👎 y hoy les volví a comprar y me volvieron a mentir!!! Pedí un protector 18 pro Max y me mandan un 17 pro Max y lo taparon con una etiqueta ahora pedí la devolución del dinero!!!",
     "fecha": "2026-10-13T21:58:22.229388731Z",
-    "cuando": "Hace una semana"
+    "cuando": "Hace 2 semanas"
    },
    {
     "autor": "Carla Pachado",
@@ -33,7 +33,7 @@
     "rating": 5,
     "texto": "Muy linda la calidad de las fundas y variedad de colores, volveria a comprar",
     "fecha": "2026-10-13T17:08:28.857978588Z",
-    "cuando": "Hace una semana"
+    "cuando": "Hace 2 semanas"
    },
    {
     "autor": "Ennio Castillo - Email Marketing",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 68800,
+  "ventas": 69041,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
