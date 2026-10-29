@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-10-28T15:00:06.268Z",
+ "actualizado": "2026-10-29T03:00:10.514Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-28",
+ "google_ultimo_ok": "2026-10-29",
  "google": {
-  "rating": 4.5,
-  "count": 31,
+  "rating": 4.4,
+  "count": 32,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -42,7 +42,7 @@
     "rating": 5,
     "texto": "Tremendo el acabado de la funda. El tarjetero ajusta con firmeza y es del mismo color y textura de cuero. El cargador muy rápido en la carga. Recomendable",
     "fecha": "2026-10-07T15:18:11.489945576Z",
-    "cuando": "Hace 2 semanas"
+    "cuando": "Hace 3 semanas"
    },
    {
     "autor": "Katja Fekonja",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 68962,
+  "ventas": 69201,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
