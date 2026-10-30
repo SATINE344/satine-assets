@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-10-29T15:00:07.120Z",
+ "actualizado": "2026-10-30T03:00:09.437Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-10-29",
+ "google_ultimo_ok": "2026-10-30",
  "google": {
   "rating": 4.4,
-  "count": 32,
+  "count": 33,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -15,7 +15,7 @@
     "rating": 5,
     "texto": "Increíble la calidad de las fundas, 10/10 la presentación de producto.",
     "fecha": "2026-10-15T22:37:01.013481396Z",
-    "cuando": "Hace una semana"
+    "cuando": "Hace 2 semanas"
    },
    {
     "autor": "Noe",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 69160,
+  "ventas": 69438,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
