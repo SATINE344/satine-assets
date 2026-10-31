@@ -1,5 +1,5 @@
 {
- "actualizado": "2026-10-31T03:00:06.584Z",
+ "actualizado": "2026-10-31T15:00:08.303Z",
  "google_estado": "ok",
  "google_ultimo_ok": "2026-10-31",
  "google": {
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 69510,
+  "ventas": 69456,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
