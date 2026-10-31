@@ -1,4 +1,4 @@
-/* satine-cyber 1.5 (31/10/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
+/* satine-cyber 1.6 (31/10/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
    La baja y ejecuta satine-v257-cyber.js (layout de satinecases.com). Vive en SATINE344/satine-assets/cyber/cyber.js.
    NO cambia precios. El descuento real lo aplica Tienda Nube (promo "Descuento en el carrito" 1269900: fundas Leather + vidrios +
    tarjeteros; subtotal de esas categorias >= $95.000 -> -$18.000 (= vidrio al 50%); >= $130.000 -> -$28.500 (= + tarjetero al 30%);
@@ -12,7 +12,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.5',
+    version: '1.6',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -21,7 +21,7 @@
     precios: { funda: 59999, vidrio: 35999, tarjetero: 34999 },   /* de lista, solo para proyectar el descuento en el carrito */
     cuenta: { funda: /leather\s*case/i, fundaNo: /modern|flip|urban|silic/i, fundaSku: /^FUN-LEAT/i, vidrio: /vidrio/i, tarjetero: /tarjetero/i, tarjeteroNo: /billetera/i },
     urls: { fundas: '/fundas/', vidrios: '/vidrios-templados/', tarjeteros: '/tarjeteros/', carga: '/carga/', ofertas: '/en-oferta/' },
-    franja: false, home: true, ficha: true, carrito: true,   /* franja: Matias (31/10 15:15) pidio que la barra de arriba quede como esta */
+    franja: false, home: true, ficha: true, carrito: true, combos: true,   /* combos: pagina /?combos=1 (31/10 19:10). franja: Matias (31/10 15:15) pidio que la barra de arriba quede como esta */
     cashback: true, sorteo: false, setSatine: true          /* cashback = cupon 10% para el 27-29/11 que manda Matias por mail (nunca el codigo); sorteo apagado hasta que lo confirme; setSatine esconde la promo Set SATINE (apagada en TN durante el Cyber) */
   };
 
@@ -416,6 +416,140 @@
     carritoTimer = setInterval(function () { try { carrito(); } catch (e) {} }, 1200);   /* respaldo: la lista se re-renderiza entera */
   }
 
+  /* ---------- 6. pagina de combos (/?combos=1): de Set SATINE (%) a Combo Cyber ($) ---------- */
+  /* El armador vive en satine-v230-4.js (#satine-combos) y NO se toca. Durante el Cyber aca solo se cambian los textos de arriba,
+     los chips, una nota por seccion, el orden de las secciones y la cuenta de abajo (que pasa de "−5%/−10%" al descuento real en
+     pesos de la promo 1269900). Todo lo original se guarda y vuelve en apagar(). */
+  T.combos = {
+    kick: 'Combo Cyber · ' + CFG.fin,
+    h1: 'Armá tu combo Cyber',
+    sub: 'Con tu funda Leather, el vidrio te queda al 50%. Sumá un tarjetero y te queda al 30%. Se descuenta solo en el carrito.',
+    tiers: [['Funda + vidrio', CFG.desc1], ['+ tarjetero', CFG.desc2]],
+    rapidos: [['Combo básico', ['funda|0', 'vidrio|0']], ['Combo completo', ['funda|0', 'vidrio|0', 'tarj|0']], ['Completo + cable', ['funda|0', 'vidrio|0', 'tarj|0', 'carga|2']]],
+    notas: {
+      funda: ['si', 'Suma al combo Cyber'],
+      vidrio: ['si', 'Con tu funda, al 50%'],
+      tarj: ['si', 'En el combo completo, al 30%'],
+      carga: ['oro', '20% OFF ya aplicado en el precio'],
+      urban: ['no', 'No suma al combo Cyber'],
+      billetera: ['no', 'No suma al combo Cyber'],
+      extra: ['no', 'No suma al combo Cyber']
+    },
+    orden: ['funda', 'vidrio', 'tarj', 'carga', 'urban', 'billetera', 'extra']
+  };
+  CSS = (typeof CSS === 'string' ? CSS : CSS.join('')) + [
+    '#satine-combos .sc-cy-tier b{color:#2f8a55}',
+    '#satine-combos .sc-cy-nota{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 11px;border-radius:100px;',
+    'font-family:var(--cy-sans);font-size:11px;font-weight:700;letter-spacing:.01em;line-height:1.2}',
+    '#satine-combos .sc-cy-nota:before{content:"";width:6px;height:6px;border-radius:50%;background:currentColor;flex:none}',
+    '#satine-combos .sc-cy-nota.si{background:#eaf4ee;color:#2f7a4e}',
+    '#satine-combos .sc-cy-nota.oro{background:#fbf0dc;color:#8a5a12}',
+    '#satine-combos .sc-cy-nota.no{background:rgba(52,33,27,.05);color:rgba(52,33,27,.55)}'
+  ].join('');
+
+  var combosOrig = null, combosObs = null, combosEspera = null;
+  function combosGuardar(raiz) {
+    if (combosOrig) return;
+    combosOrig = { raiz: raiz, textos: [], rapidos: [], tiers: null };
+    ['.scb-kick', '.scb-h1', '.scb-sub'].forEach(function (s) { var el = q(s, raiz); if (el) combosOrig.textos.push([el, el.textContent]); });
+    qa('#scb-quick .scb-qchip', raiz).forEach(function (b) { combosOrig.rapidos.push([b, b.textContent, b.getAttribute('data-k')]); });
+  }
+  function combosCabeza(raiz) {
+    var C = T.combos;
+    [['.scb-kick', C.kick], ['.scb-h1', C.h1], ['.scb-sub', C.sub]].forEach(function (p) { var el = q(p[0], raiz); if (el && el.textContent !== p[1]) el.textContent = p[1]; });
+    var tiers = q('#scb-tiers', raiz);
+    if (tiers && !q('.sc-cy-tier', tiers)) {
+      if (combosOrig.tiers == null) combosOrig.tiers = tiers.innerHTML;
+      tiers.innerHTML = '';
+      C.tiers.forEach(function (t) { var s = h('span', { 'class': 'scb-tier sc-cy-tier' }); s.appendChild(document.createTextNode(t[0])); var b = document.createElement('b'); b.textContent = '−' + plata(t[1]); s.appendChild(b); tiers.appendChild(s); });
+    }
+    qa('#scb-quick .scb-qchip', raiz).forEach(function (b, i) {
+      var r = C.rapidos[i]; if (!r) return;
+      var k = JSON.stringify(r[1]);
+      if (b.textContent !== r[0]) b.textContent = r[0];
+      if (b.getAttribute('data-k') !== k) b.setAttribute('data-k', k);
+    });
+  }
+  function combosSecciones(raiz) {
+    var cont = q('#scb-secs', raiz); if (!cont) return;
+    var secs = qa('.scb-sec[data-sec]', cont);
+    secs.forEach(function (s, i) {
+      if (!s.hasAttribute('data-sc-i')) s.setAttribute('data-sc-i', String(i));
+      var id = s.getAttribute('data-sec'), nota = T.combos.notas[id], cab = q('.scb-sec-h', s);
+      if (nota && cab && !q('.sc-cy-nota', s)) despues(cab, h('div', { 'class': 'sc-cy-nota ' + nota[0] }, [nota[1]]));
+    });
+    var orden = T.combos.orden, pos = function (s) { var i = orden.indexOf(s.getAttribute('data-sec')); return i < 0 ? 99 : i; };
+    var quiero = secs.slice().sort(function (a, b) { return pos(a) - pos(b) || (+a.getAttribute('data-sc-i')) - (+b.getAttribute('data-sc-i')); });
+    var igual = quiero.every(function (s, i) { return s === secs[i]; });
+    if (!igual) quiero.forEach(function (s) { cont.appendChild(s); });
+  }
+  function combosCuenta(raiz) {
+    var keys = qa('#scbp-tray .scbp-chip[data-k]', raiz).map(function (c) { return c.getAttribute('data-k'); });
+    if (!keys.length) keys = qa('#scb-secs .scb-opt.on[data-k]', raiz).map(function (o) { return o.getAttribute('data-k'); });
+    var vistos = {}, sub = 0, total = 0, n = 0, tiene = {};
+    var resp = { funda: CFG.precios.funda, vidrio: CFG.precios.vidrio, tarj: CFG.precios.tarjetero };
+    keys.forEach(function (k) {
+      if (!k || vistos[k]) return; vistos[k] = 1;
+      var sec = k.split('|')[0], o = q('#scb-secs .scb-opt[data-k="' + k + '"]', raiz);
+      var p = (o && parseFloat(o.getAttribute('data-p'))) || resp[sec] || 0;
+      n++; total += p; tiene[sec] = (tiene[sec] || 0) + 1;
+      if (sec === 'funda' || sec === 'vidrio' || sec === 'tarj') sub += p;
+    });
+    var d = descuento(sub), fin = total - d;
+    var cnt = n ? n + ' producto' + (n > 1 ? 's' : '') + (d === CFG.desc2 ? ' · Combo completo' : d ? ' · Combo básico' : '') : 'Tu combo está vacío';
+    var lbl;
+    if (sub >= CFG.umbral2) lbl = 'Combo completo ✓ Ahorrás ' + plata(d);
+    else if (sub >= CFG.umbral1) lbl = tiene.tarj ? 'Sumá ' + plata(CFG.umbral2 - sub) + ' más y ahorrás ' + plata(CFG.desc2) : 'Sumá un tarjetero: te queda al 30%';
+    else if (!tiene.funda && !tiene.vidrio && !tiene.tarj) lbl = 'Empezá por tu funda Leather';
+    else if (tiene.funda && !tiene.vidrio) lbl = 'Sumá un vidrio y te queda al 50%';
+    else if (!tiene.funda) lbl = 'Sumá tu funda Leather';
+    else lbl = 'Sumá ' + plata(CFG.umbral1 - sub) + ' más y ahorrás ' + plata(CFG.desc1);
+    var poner = function (id, v) { var el = document.getElementById(id); if (el && el.textContent !== v) el.textContent = v; };
+    poner('scb-cnt', cnt); poner('scb-tot', n ? plata(fin) : '$0'); poner('scb-sv', d ? 'Ahorrás ' + plata(d) : ''); poner('scbp-lbl', lbl);
+    var fill = document.getElementById('scbp-fill'), w = Math.min(100, Math.round(sub / CFG.umbral2 * 100)) + '%';
+    if (fill && fill.style.width !== w) fill.style.width = w;
+    var ts = qa('#scb-tiers .scb-tier', raiz);
+    if (ts[0]) ts[0].classList.toggle('scbp-hit', sub >= CFG.umbral1);
+    if (ts[1]) ts[1].classList.toggle('scbp-hit', sub >= CFG.umbral2);
+  }
+  function combosAplicar() {
+    var raiz = q('#satine-combos'); if (!raiz || !prendido) return;
+    combosGuardar(raiz);
+    try { combosCabeza(raiz); } catch (e) {}
+    try { combosSecciones(raiz); } catch (e) {}
+    try { combosCuenta(raiz); } catch (e) {}
+  }
+  function esCombos() { return window.__satineCombos || /[?&]combos=1/.test(location.search) || /\/combos\/?$/.test(location.pathname); }
+  function combos() {
+    if (!esCombos()) return;
+    var vueltas = 0;
+    var mirar = function () {
+      var raiz = q('#satine-combos');
+      if (!raiz) { if (++vueltas < 120) combosEspera = setTimeout(mirar, 250); return; }
+      combosEspera = null;
+      combosAplicar();
+      if (!combosObs && window.MutationObserver) {
+        combosObs = new MutationObserver(function () { combosAplicar(); });
+        combosObs.observe(raiz, { childList: true, subtree: true, characterData: true });
+      }
+    };
+    mirar();
+  }
+  function combosVolver() {
+    if (combosEspera) { clearTimeout(combosEspera); combosEspera = null; }
+    if (combosObs) { combosObs.disconnect(); combosObs = null; }
+    if (!combosOrig) return;
+    var raiz = combosOrig.raiz;
+    combosOrig.textos.forEach(function (p) { p[0].textContent = p[1]; });
+    combosOrig.rapidos.forEach(function (p) { p[0].textContent = p[1]; if (p[2] == null) p[0].removeAttribute('data-k'); else p[0].setAttribute('data-k', p[2]); });
+    var tiers = q('#scb-tiers', raiz);
+    if (tiers && combosOrig.tiers != null && !q('.scb-tier:not(.sc-cy-tier)', tiers)) tiers.innerHTML = combosOrig.tiers;   /* el barrido de [data-sc] ya pudo sacar los chips Cyber */
+    var cont = q('#scb-secs', raiz);
+    if (cont) qa('.scb-sec[data-sc-i]', cont).sort(function (a, b) { return (+a.getAttribute('data-sc-i')) - (+b.getAttribute('data-sc-i')); })
+      .forEach(function (s) { cont.appendChild(s); s.removeAttribute('data-sc-i'); });
+    combosOrig = null;
+  }
+
   /* ---------- encendido / apagado ---------- */
   var prendido = false, estilo = null;
   function arrancar() {
@@ -424,7 +558,7 @@
     document.documentElement.setAttribute('data-satine-cyber', 'on');
     if (!q('#sc-css')) { estilo = document.createElement('style'); estilo.id = 'sc-css'; estilo.textContent = CSS; document.head.appendChild(estilo); }
     var correr = function () {
-      [['franja', franja], ['home', home], ['setSatine', setSatine], ['ficha', ficha], ['carrito', vigilarCarrito]].forEach(function (m) {
+      [['franja', franja], ['home', home], ['setSatine', setSatine], ['ficha', ficha], ['carrito', vigilarCarrito], ['combos', combos]].forEach(function (m) {
         if (!CFG[m[0]]) return;
         try { m[1](); } catch (e) { try { console.warn('satine-cyber', m[0], e); } catch (_) {} }
       });
@@ -442,6 +576,7 @@
     qa('[data-sc]').forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
     franjaVolver();
     setSatineVolver();
+    try { combosVolver(); } catch (e) {}
     if (estilo && estilo.parentNode) estilo.parentNode.removeChild(estilo);
     estilo = null;
     document.documentElement.removeAttribute('data-satine-cyber');
