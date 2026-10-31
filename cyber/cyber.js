@@ -1,4 +1,4 @@
-/* satine-cyber 1.6 (31/10/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
+/* satine-cyber 1.7 (31/10/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
    La baja y ejecuta satine-v257-cyber.js (layout de satinecases.com). Vive en SATINE344/satine-assets/cyber/cyber.js.
    NO cambia precios. El descuento real lo aplica Tienda Nube (promo "Descuento en el carrito" 1269900: fundas Leather + vidrios +
    tarjeteros; subtotal de esas categorias >= $95.000 -> -$18.000 (= vidrio al 50%); >= $130.000 -> -$28.500 (= + tarjetero al 30%);
@@ -12,7 +12,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.6',
+    version: '1.7',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -64,6 +64,11 @@
       otro: { kicker: 'Cyber SATINE', titulo: 'Combos con descuento en el carrito',
         texto: 'Funda Leather + vidrio: el vidrio queda al 50% ({d1} menos). Con el tarjetero, al 30% ({d2} menos). Y 20% off en cables y cargadores.',
         b1: ['Ver fundas Leather', 'fundas'], b2: ['Cables y cargadores', 'carga'], nota: '{fin}.' }
+    },
+    fcombo: {   /* 1.7: linea chica dentro de la caja de compra (31/10 19:40, Matias). carga y el resto: nada */
+      leather: 'Sumá el vidrio y te queda al 50%',
+      vidrio: 'Con tu funda Leather, este vidrio queda al 50%',
+      tarjetero: 'Con funda Leather + vidrio, el tarjetero queda al 30%'
     },
     carrito: {   /* el titulo/texto de 'tarjetero' se arma en codigo segun el descuento actual */
       vidrio: { titulo: 'Te falta el vidrio', texto: 'Sumalo y el carrito te descuenta {d1}.', boton: ['Agregar el vidrio', 'vidrios'] },
@@ -158,6 +163,11 @@
     '#sc-ficha h3{font:800 19px/1.15 var(--cy-serif);letter-spacing:-.5px;margin:12px 0 8px;color:var(--cy-tinta);text-wrap:balance}',
     '#sc-ficha .sc-acciones{display:flex;flex-wrap:wrap;gap:8px;margin:14px 0 0}',
     '#sc-ficha .sc-acciones .sc-btn{flex:1 1 150px}',
+    '#sc-fcombo{display:flex;align-items:center;gap:10px;margin:0 0 4px;padding:10px 12px;border-radius:12px;background:var(--cy-tinta);color:var(--cy-crema)!important;text-decoration:none!important;font:600 13px/1.3 var(--cy-sans);-webkit-tap-highlight-color:transparent;transition:transform .2s cubic-bezier(.22,1,.36,1)}',
+    '#sc-fcombo:active{transform:scale(.98)}',
+    '#sc-fcombo .sc-fcombo-tag{flex:none;font:800 9.5px/1 var(--cy-sans);letter-spacing:1.2px;text-transform:uppercase;padding:5px 8px 4px;border-radius:999px;background:linear-gradient(135deg,var(--cy-oro2),var(--cy-oro));color:var(--cy-tinta)}',
+    '#sc-fcombo .sc-fcombo-txt{flex:1 1 auto;min-width:0;text-wrap:balance}',
+    '#sc-fcombo .sc-fcombo-ir{flex:none;font:700 12px/1 var(--cy-sans);color:var(--cy-oro2);white-space:nowrap}',
     /* carrito (drawer y /comprar/) */
     '.sc-carrito{margin:12px 0 4px;background:var(--cy-crema);color:var(--cy-tinta);border-radius:14px;padding:14px 14px 13px;font-family:var(--cy-sans);display:flex;flex-direction:column;gap:9px;align-items:flex-start}',
     '.sc-carrito .sc-cab{display:flex;align-items:center;gap:10px;flex-wrap:wrap}',
@@ -317,22 +327,24 @@
     if (cat === 'vidrios' || cat === 'fundas') a.addEventListener('click', function () { a.setAttribute('href', urlCat(cat, modeloElegido(), serie)); });
     return a;
   }
-  function ficha() {
-    if (!((window.LS && LS.template === 'product') || q('#single-product')) || q('#sc-ficha')) return;
-    var tipo = tipoDe(), t = T.ficha[tipo] || T.ficha.otro;
-    var d = { serie: serieEn(window.LS && LS.product && LS.product.name) || 'iPhone', d1: plata(CFG.desc1), d2: plata(CFG.desc2), fin: CFG.fin };
-    var card = h('div', { id: 'sc-ficha', 'data-tipo': tipo, role: 'region', 'aria-label': 'Cyber SATINE' }, [
-      h('span', { 'class': 'sc-pill', text: t.kicker }),
-      h('h3', { text: rellenar(t.titulo, d) }),
-      h('p', { 'class': 'sc-texto', text: rellenar(t.texto, d) }),
-      h('div', { 'class': 'sc-acciones' }, [botonFicha(t.b1, 'sc-btn sc-btn--tinta'), t.b2 ? botonFicha(t.b2, 'sc-btn sc-btn--linea') : null]),
-      t.nota ? h('p', { 'class': 'sc-nota', text: rellenar(t.nota, d) }) : null
+  function ficha(vuelta) {   /* 1.7: sin la tarjeta grande (quedaba arriba del titulo); una linea chica dentro de la caja de compra */
+    if (!((window.LS && LS.template === 'product') || q('#single-product')) || q('#sc-fcombo')) return;
+    /* la caja #satine-buybox-card la arma otro script despues: esperarla (si no, la linea queda arriba del titulo) */
+    var caja = q('#satine-buybox-card'), fo = q('form#product_form');
+    if (!(caja && fo && caja.contains(fo)) && (vuelta || 0) < 60) { setTimeout(function () { if (activo()) ficha((vuelta || 0) + 1); }, 250); return; }
+    var tipo = tipoDe(), texto = T.fcombo[tipo];
+    if (!texto) return;
+    var linea = h('a', { id: 'sc-fcombo', 'data-tipo': tipo, href: '/?combos=1', 'aria-label': 'Combo Cyber: ' + texto }, [
+      h('span', { 'class': 'sc-fcombo-tag', text: 'Combo Cyber' }),
+      h('span', { 'class': 'sc-fcombo-txt', text: texto }),
+      h('span', { 'class': 'sc-fcombo-ir', text: 'Armar ›' })
     ]);
-    var trust = q('#satine-trust-card'), buybox = q('#satine-buybox-card'), form = q('form#product_form');
-    if (trust) { card.style.order = getComputedStyle(trust).order; antes(trust, card); }
-    else if (buybox) { card.style.order = getComputedStyle(buybox).order; despues(buybox, card); }
-    else if (form) despues(form, card);
+    var buybox = q('#satine-buybox-card'), form = q('form#product_form');
+    if (buybox && form && buybox.contains(form)) despues(form, linea);
+    else if (buybox) buybox.appendChild(linea);
+    else if (form) despues(form, linea);
   }
+
 
   /* ---------- 4. carrito: aviso entre la lista y el resumen (drawer #modal-cart y pagina /comprar/) ---------- */
   function clasificar(it) {
