@@ -1,87 +1,95 @@
 {
-  "v": 1,
-  "generado": "2026-11-02T19:40:00-03:00",
-  "nota": "Medidas de salida y cupos por bloque de satinecases.com. Lo mantiene la sesión del theme cuando cambia el diseño (cada lote que cambie el tamaño o la proporción de una foto actualiza este archivo); el ERP lo lee y cae a sus valores de hoy si falta. Menú v263 (02/11): en celu cada tile mide ~175×113 px (2 columnas, alto --th ≈ 3:2) y el theme pide la versión -480-0; en compu la foto es cuadrada de 196 px (a.smf-dfoto aspect-ratio 1/1).",
-  "lugares": {
-    "menu": {
-      "ordenable": false,
-      "cel": {
-        "ancho": 900,
-        "alto": 600,
-        "min": 480
-      },
-      "pc": {
-        "ancho": 800,
-        "alto": 800,
-        "min": 400
-      }
-    },
-    "compra-categoria": {
-      "ordenable": true,
-      "cupo": 5,
-      "unico": {
-        "ancho": 1000,
-        "alto": 1000,
-        "min": 500
-      }
-    },
-    "modelos": {
-      "ordenable": true,
-      "unico": {
-        "ancho": 720,
-        "alto": 720,
-        "min": 400
-      }
-    },
-    "historia": {
-      "ordenable": false,
-      "home": {
-        "ancho": 1920,
-        "alto": 1080,
-        "min": 1200
-      },
-      "hero": {
-        "ancho": 1600,
-        "alto": 900,
-        "min": 1000
-      },
-      "detalle": {
-        "ancho": 1000,
-        "alto": 1000,
-        "min": 600
-      }
-    },
-    "subcategorias": {
-      "ordenable": false,
-      "unico": {
-        "ancho": 600,
-        "alto": 480,
-        "min": 300
-      }
-    },
-    "blog": {
-      "portada": {
-        "ancho": 1500,
-        "alto": 1000,
-        "min": 900
-      },
-      "interior": {
-        "ancho": 1200,
-        "alto": 800,
-        "min": 700
-      }
-    },
-    "banners": {
-      "cupoEnVivo": 3,
-      "cupoEnLista": 6,
-      "pc": {
-        "ancho": 1920,
-        "alto": 1080
-      },
-      "cel": {
-        "ancho": 1080,
-        "alto": 1920
-      }
-    }
+ "v": 1,
+ "generado": "2026-11-02T19:05:00-03:00",
+ "nota": "Medidas de salida y cupos por bloque de satinecases.com. Lo mantiene la sesión del theme cuando cambia el diseño; el ERP lo lee y cae a sus valores de hoy si falta. Menú v264 (EN VIVO desde el 02/11 17:45, medido con Playwright): en celu TODAS las fotos del menú son cuadradas (52 px nivel 1, 74/56 px nivel 2, object-fit cover) → cel 1:1. En compu la categoría PRINCIPAL (nivel 1, el hero del desplegable) mide 227×284, 4:5 vertical → pcPrincipal; las subcategorías (nivel 2) miden 192×192 → pc 1:1. Regla: cada lote que cambie el tamaño o la proporción de una foto actualiza este archivo ANTES de subir el lote.",
+ "lugares": {
+  "menu": {
+   "ordenable": false,
+   "cel": {
+    "ancho": 720,
+    "alto": 720,
+    "min": 360,
+    "uso": "Foto cuadrada del menú del celular (todos los niveles)."
+   },
+   "pc": {
+    "ancho": 800,
+    "alto": 800,
+    "min": 400,
+    "uso": "Subcategoría (nivel 2) en el menú desplegable de la computadora, cuadrada."
+   },
+   "pcPrincipal": {
+    "ancho": 720,
+    "alto": 900,
+    "min": 400,
+    "uso": "Categoría principal (nivel 1) en el menú desplegable de la computadora, vertical 4:5."
+   }
+  },
+  "compra-categoria": {
+   "ordenable": true,
+   "cupo": 5,
+   "unico": {
+    "ancho": 1000,
+    "alto": 1000,
+    "min": 500
+   }
+  },
+  "modelos": {
+   "ordenable": true,
+   "unico": {
+    "ancho": 720,
+    "alto": 720,
+    "min": 400
+   }
+  },
+  "historia": {
+   "ordenable": false,
+   "home": {
+    "ancho": 1920,
+    "alto": 1080,
+    "min": 1200
+   },
+   "hero": {
+    "ancho": 1600,
+    "alto": 900,
+    "min": 1000
+   },
+   "detalle": {
+    "ancho": 1000,
+    "alto": 1000,
+    "min": 600
+   }
+  },
+  "subcategorias": {
+   "ordenable": false,
+   "unico": {
+    "ancho": 600,
+    "alto": 480,
+    "min": 300
+   }
+  },
+  "blog": {
+   "portada": {
+    "ancho": 1500,
+    "alto": 1000,
+    "min": 900
+   },
+   "interior": {
+    "ancho": 1200,
+    "alto": 800,
+    "min": 700
+   }
+  },
+  "banners": {
+   "cupoEnVivo": 3,
+   "cupoEnLista": 6,
+   "pc": {
+    "ancho": 1920,
+    "alto": 1080
+   },
+   "cel": {
+    "ancho": 1080,
+    "alto": 1920
+   }
   }
+ }
 }
