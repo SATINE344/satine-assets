@@ -6,7 +6,8 @@
    tarjeta de combo en la ficha y aviso en el carrito (drawer y /comprar/).
    1.8: los tramos del combo (umbrales y descuentos), los precios con que proyecta, los porcentajes de los textos y las fechas salen del
    ERP (GET /api/tienda/ofertas, regla combo_condicional prendida: condicion.tiers + grupos + campana.hasta). Se guardan en localStorage
-   para arrancar al instante y se refrescan en cada carga; si el ERP no responde, quedan los valores de CFG.
+   para arrancar al instante y se refrescan en cada carga; si el ERP no responde, quedan los valores de CFG. Si el ERP responde que no hay
+   campana activa (o la regla del combo esta apagada), la capa se apaga aunque CFG diga que sigue; ?cyber=1 (vista previa) la fuerza igual.
    Vista previa antes de hora: ?cyber=1 (queda guardada en ese navegador; ?cyber=0 la borra).
    Apagar todo: dejar este archivo vacio en el repo (el cargador no hace nada si no encuentra la marca 'satine-cyber'). */
 (function () {
@@ -126,7 +127,10 @@
   function descuento(sub) { return sub >= CFG.umbral2 ? CFG.desc2 : sub >= CFG.umbral1 ? CFG.desc1 : 0; }
 
   /* ---------- reloj y vista previa ---------- */
-  function activo(f) { var t = f ? new Date(f).getTime() : Date.now(); return t >= new Date(CFG.desde).getTime() && t < new Date(CFG.hasta).getTime(); }
+  function activo(f) {
+    if (f === undefined && apagadoPorErp) return false;   /* 1.8: el ERP manda */
+    var t = f ? new Date(f).getTime() : Date.now(); return t >= new Date(CFG.desde).getTime() && t < new Date(CFG.hasta).getTime();
+  }
   var vista = false;
   try {
     var mv = location.search.match(/[?&]cyber=(\d)/);
@@ -579,10 +583,12 @@
   /* ---------- contrato del ERP (Gestion de ofertas): tramos, precios, porcentajes y fechas reales ---------- */
   function extraerContrato(d) {
     try {
-      var c = d && d.campana; if (!c || c.estado !== 'activa') return null;
+      if (!d || typeof d !== 'object' || !('campana' in d)) return null;   /* respuesta rara: no decidir nada */
+      var c = d.campana; if (!c || c.estado !== 'activa') return { off: true };   /* el ERP dice que hoy no hay Cyber */
       var r = null;
       (c.reglas || []).forEach(function (x) { if (!r && x.tipo === 'combo_condicional' && x.tn && x.tn.estado === 'prendida' && x.condicion && x.condicion.tiers) r = x; });
-      if (!r || !r.condicion.tiers.length) return null;
+      if (!r) return { off: true };   /* campana activa pero la regla del combo esta apagada */
+      if (!r.condicion.tiers.length) return null;
       var ts = r.condicion.tiers.slice().sort(function (x, y) { return x.minimo - y.minimo; });
       var t2 = ts[1] || ts[0];
       var o = { umbral1: +ts[0].minimo, desc1: +ts[0].descuento, umbral2: +t2.minimo, desc2: +t2.descuento, precios: {}, pct: {} };
@@ -599,9 +605,11 @@
     } catch (e) { return null; }
   }
   function fotoCfg() { return JSON.stringify([CFG.umbral1, CFG.desc1, CFG.umbral2, CFG.desc2, CFG.precios, CFG.pct, CFG.desde, CFG.hasta, CFG.fin]); }
+  var apagadoPorErp = false;   /* true cuando el ERP dijo que no hay campana activa: activo() da false hasta que diga lo contrario */
   function aplicarContrato(o) {
     if (!o) return false;
-    var antes = fotoCfg(), k;
+    if (o.off) { var c0 = !apagadoPorErp; apagadoPorErp = true; return c0; }
+    var antes = fotoCfg(), k, volvio = apagadoPorErp; apagadoPorErp = false;
     CFG.umbral1 = o.umbral1; CFG.desc1 = o.desc1; CFG.umbral2 = o.umbral2; CFG.desc2 = o.desc2;
     for (k in o.precios) CFG.precios[k] = o.precios[k];
     for (k in o.pct) CFG.pct[k] = o.pct[k];
@@ -610,7 +618,7 @@
     if (o.fin) CFG.fin = o.fin;
     var cambio = antes !== fotoCfg();
     if (cambio) armarTextos();
-    return cambio;
+    return cambio || volvio;
   }
   function leerContratoGuardado() {
     try {
