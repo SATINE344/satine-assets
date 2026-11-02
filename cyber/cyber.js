@@ -1,9 +1,12 @@
-/* satine-cyber 1.7 (31/10/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
+/* satine-cyber 1.8 (02/11/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
    La baja y ejecuta satine-v257-cyber.js (layout de satinecases.com). Vive en SATINE344/satine-assets/cyber/cyber.js.
    NO cambia precios. El descuento real lo aplica Tienda Nube (promo "Descuento en el carrito" 1269900: fundas Leather + vidrios +
    tarjeteros; subtotal de esas categorias >= $95.000 -> -$18.000 (= vidrio al 50%); >= $130.000 -> -$28.500 (= + tarjetero al 30%);
    y 20% directo en cables y cargadores, promo 1267180). Esto solo muestra y guia: franja del header, tarjeta en el inicio,
    tarjeta de combo en la ficha y aviso en el carrito (drawer y /comprar/).
+   1.8: los tramos del combo (umbrales y descuentos), los precios con que proyecta, los porcentajes de los textos y las fechas salen del
+   ERP (GET /api/tienda/ofertas, regla combo_condicional prendida: condicion.tiers + grupos + campana.hasta). Se guardan en localStorage
+   para arrancar al instante y se refrescan en cada carga; si el ERP no responde, quedan los valores de CFG.
    Vista previa antes de hora: ?cyber=1 (queda guardada en ese navegador; ?cyber=0 la borra).
    Apagar todo: dejar este archivo vacio en el repo (el cargador no hace nada si no encuentra la marca 'satine-cyber'). */
 (function () {
@@ -12,13 +15,15 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.7',
+    version: '1.8',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
     umbral1: 95000, desc1: 18000,         /* promo 1269900 de Tienda Nube: subtotal fundas Leather + vidrios + tarjeteros */
     umbral2: 130000, desc2: 28500,
     precios: { funda: 59999, vidrio: 35999, tarjetero: 34999 },   /* de lista, solo para proyectar el descuento en el carrito */
+    pct: { vidrio: 50, tarjetero: 30 },   /* 'queda al X%' de los textos; lo pisa el contrato (grupos[].pct) */
+    contrato: 'https://mati-satine-software-ten.vercel.app/api/tienda/ofertas',   /* vacio = no consultar el ERP */
     cuenta: { funda: /leather\s*case/i, fundaNo: /modern|flip|urban|silic/i, fundaSku: /^FUN-LEAT/i, vidrio: /vidrio/i, tarjetero: /tarjetero/i, tarjeteroNo: /billetera/i },
     urls: { fundas: '/fundas/', vidrios: '/vidrios-templados/', tarjeteros: '/tarjeteros/', carga: '/carga/', ofertas: '/en-oferta/' },
     franja: false, home: true, ficha: true, carrito: true, combos: true,   /* combos: pagina /?combos=1 (31/10 19:10). franja: Matias (31/10 15:15) pidio que la barra de arriba quede como esta */
@@ -26,17 +31,20 @@
   };
 
   /* Textos (voz SATINE: directos, sin urgencia falsa). {serie} = "iPhone 17"; {d1}/{d2} = montos; {fin} = CFG.fin */
-  var T = {
+  var T = {};
+  function armarTextos() {   /* se arma con CFG.pct para que 'al 50%' siga al contrato del ERP */
+    var pv = CFG.pct.vidrio, pt = CFG.pct.tarjetero;
+    var N = {
     franja: [   /* reemplazan los 3 mensajes de la franja del header (9px mayusculas, max ~40 caracteres) */
-      ['CYBER SATINE · VIDRIO AL 50% CON TU FUNDA', 'fundas'],
-      ['COMBO COMPLETO · TARJETERO AL 30%', 'tarjeteros'],
+      ['CYBER SATINE · VIDRIO AL ' + pv + '% CON TU FUNDA', 'fundas'],
+      ['COMBO COMPLETO · TARJETERO AL ' + pt + '%', 'tarjeteros'],
       ['CABLES Y CARGADORES 20% OFF', 'carga']
     ],
     home: {
       kicker: 'Cyber SATINE · 31/10 al 4/11',
       titulo: 'Armá tu combo',
-      texto: 'Elegís tu funda Leather. Sumás el vidrio y te queda al 50%. Con el tarjetero, al 30%.',
-      chips: ['Vidrio al 50% con tu funda', 'Tarjetero al 30% en el combo', 'Cables y cargadores −20%'],
+      texto: 'Elegís tu funda Leather. Sumás el vidrio y te queda al ' + pv + '%. Con el tarjetero, al ' + pt + '%.',
+      chips: ['Vidrio al ' + pv + '% con tu funda', 'Tarjetero al ' + pt + '% en el combo', 'Cables y cargadores −20%'],
       boton: ['Empezar por la funda', 'fundas'],
       pie: 'El descuento se aplica en el carrito al sumar los productos.'
     },
@@ -44,31 +52,31 @@
       cashback: 'Comprando en el Cyber te llevás un 10% de descuento para usar del 27 al 29/11: te lo enviamos por mail después de tu compra.',
       sorteo: 'Cada día del Cyber sorteamos un cable entre los compradores.'
     },
-    trot: { k: 'Combo Cyber', h: 'Vidrio al 50% con tu funda', big: '50%', url: 'fundas' },   /* panel 'Arma tu set' de la franja rotativa del inicio (Set SATINE apagado en el Cyber) */
+    trot: { k: 'Combo Cyber', h: 'Vidrio al ' + pv + '% con tu funda', big: '' + pv + '%', url: 'fundas' },   /* panel 'Arma tu set' de la franja rotativa del inicio (Set SATINE apagado en el Cyber) */
     ficha: {
-      leather: { kicker: 'Combo Cyber', titulo: 'Sumá el vidrio: te queda al 50%',
-        texto: 'Con esta funda y el vidrio para tu {serie}, el carrito te descuenta {d1}. Si además sumás un tarjetero, el descuento sube a {d2}: el tarjetero al 30%.',
+      leather: { kicker: 'Combo Cyber', titulo: 'Sumá el vidrio: te queda al ' + pv + '%',
+        texto: 'Con esta funda y el vidrio para tu {serie}, el carrito te descuenta {d1}. Si además sumás un tarjetero, el descuento sube a {d2}: el tarjetero al ' + pt + '%.',
         b1: ['Elegir el vidrio', 'vidrios'], b2: ['Ver tarjeteros', 'tarjeteros'], nota: 'El descuento aparece en el carrito, no en el precio de la ficha. {fin}.' },
-      vidrio: { kicker: 'Combo Cyber', titulo: 'Con tu funda Leather, queda al 50%',
+      vidrio: { kicker: 'Combo Cyber', titulo: 'Con tu funda Leather, queda al ' + pv + '%',
         texto: 'Sumá la funda Leather de tu {serie} y el carrito te descuenta {d1}. Con un tarjetero además, {d2}.',
         b1: ['Elegir la funda', 'fundas'], b2: ['Ver tarjeteros', 'tarjeteros'], nota: 'El descuento aparece en el carrito, no en el precio de la ficha. {fin}.' },
-      tarjetero: { kicker: 'Combo Cyber', titulo: 'Completá el combo: tarjetero al 30%',
-        texto: 'Con la funda Leather y el vidrio en el carrito, el tarjetero queda al 30%: el descuento total es de {d2}.',
+      tarjetero: { kicker: 'Combo Cyber', titulo: 'Completá el combo: tarjetero al ' + pt + '%',
+        texto: 'Con la funda Leather y el vidrio en el carrito, el tarjetero queda al ' + pt + '%: el descuento total es de {d2}.',
         b1: ['Ver fundas Leather', 'fundas'], b2: ['Ver vidrios', 'vidrios'], nota: 'El descuento aparece en el carrito, no en el precio de la ficha. {fin}.' },
       carga: { kicker: 'Cyber SATINE', titulo: '20% off en cables y cargadores',
         texto: 'Ya está aplicado en el precio. {fin}.',
         b1: ['Ver cables y cargadores', 'carga'], b2: null, nota: null },
       funda: { kicker: 'Cyber SATINE', titulo: 'Combos con descuento en el carrito',
-        texto: 'Funda Leather + vidrio: el vidrio queda al 50% ({d1} menos). Con el tarjetero, al 30% ({d2} menos). Y 20% off en cables y cargadores.',
+        texto: 'Funda Leather + vidrio: el vidrio queda al ' + pv + '% ({d1} menos). Con el tarjetero, al ' + pt + '% ({d2} menos). Y 20% off en cables y cargadores.',
         b1: ['Ver fundas Leather', 'fundas'], b2: ['Cables y cargadores', 'carga'], nota: '{fin}.' },
       otro: { kicker: 'Cyber SATINE', titulo: 'Combos con descuento en el carrito',
-        texto: 'Funda Leather + vidrio: el vidrio queda al 50% ({d1} menos). Con el tarjetero, al 30% ({d2} menos). Y 20% off en cables y cargadores.',
+        texto: 'Funda Leather + vidrio: el vidrio queda al ' + pv + '% ({d1} menos). Con el tarjetero, al ' + pt + '% ({d2} menos). Y 20% off en cables y cargadores.',
         b1: ['Ver fundas Leather', 'fundas'], b2: ['Cables y cargadores', 'carga'], nota: '{fin}.' }
     },
     fcombo: {   /* 1.7: linea chica dentro de la caja de compra (31/10 19:40, Matias). carga y el resto: nada */
-      leather: 'Sumá el vidrio y te queda al 50%',
-      vidrio: 'Con tu funda Leather, este vidrio queda al 50%',
-      tarjetero: 'Con funda Leather + vidrio, el tarjetero queda al 30%'
+      leather: 'Sumá el vidrio y te queda al ' + pv + '%',
+      vidrio: 'Con tu funda Leather, este vidrio queda al ' + pv + '%',
+      tarjetero: 'Con funda Leather + vidrio, el tarjetero queda al ' + pt + '%'
     },
     carrito: {   /* el titulo/texto de 'tarjetero' se arma en codigo segun el descuento actual */
       vidrio: { titulo: 'Te falta el vidrio', texto: 'Sumalo y el carrito te descuenta {d1}.', boton: ['Agregar el vidrio', 'vidrios'] },
@@ -77,7 +85,10 @@
       listo: { titulo: 'Descuento Cyber: −{d0}', texto: 'Ya está aplicado en el total.', boton: ['Cables y cargadores −20%', 'carga'] },
       cyber: { titulo: 'Cyber SATINE · {fin}', texto: 'Funda Leather + vidrio: {desc1} menos. Con tarjetero: {desc2} menos.', boton: ['Armar mi combo', 'fundas'] }
     }
-  };
+    };
+    for (var k in N) T[k] = N[k];
+    armarTextosCombos();
+  }
 
   /* Mapa modelo -> categoria (de data/categorias.json del repo). Claves normalizadas: "iphone 17 pro max". */
   var MAPA = {"fundas":{"iphone 17":"/fundas/iphone-17-series1/iphone-17/","iphone 17 pro max":"/fundas/iphone-17-series1/iphone-17-pro-max/","iphone 17 pro":"/fundas/iphone-17-series1/iphone-17-pro/","iphone 17 air":"/fundas/iphone-17-series1/iphone-17-air/","iphone 16":"/fundas/iphone-16-series1/iphone-16/","iphone 16 pro max":"/fundas/iphone-16-series1/iphone-16-pro-max/","iphone 16 pro":"/fundas/iphone-16-series1/iphone-16-pro/","iphone 15":"/fundas/iphone-15-series1/iphone-15/","iphone 15 pro max":"/fundas/iphone-15-series1/iphone-15-pro-max/","iphone 15 pro":"/fundas/iphone-15-series1/iphone-15-pro/","iphone 14":"/fundas/iphone-14-series1/iphone-14/","iphone 14 pro max":"/fundas/iphone-14-series1/iphone-14-pro-max/","iphone 14 pro":"/fundas/iphone-14-series1/iphone-14-pro/","samsung s26":"/fundas/samsung-s26-series1/samsung-s26/","samsung s26 ultra":"/fundas/samsung-s26-series1/samsung-s26-ultra/","samsung s26 plus":"/fundas/samsung-s26-series1/samsung-s26-plus/","iphone 13":"/fundas/iphone-13-series/iphone-13/","iphone 13 pro max":"/fundas/iphone-13-series/iphone-13-pro-max/","iphone 13 pro":"/fundas/iphone-13-series/iphone-13-pro/","iphone 18":"/fundas/iphone-18-series1/","iphone 18 pro max":"/fundas/iphone-18-series1/iphone-18-pro-max/","iphone 18 pro":"/fundas/iphone-18-series1/iphone-18-pro/"},"vidrios":{"iphone 17":"/vidrios-templados/iphone-17-series2/iphone-171/","iphone 17 pro max":"/vidrios-templados/iphone-17-series2/iphone-17-pro-max1/","iphone 17 pro":"/vidrios-templados/iphone-17-series2/iphone-17-pro1/","iphone 16":"/vidrios-templados/iphone-16-series2/iphone-161/","iphone 16 pro max":"/vidrios-templados/iphone-16-series2/iphone-16-pro-max1/","iphone 16 pro":"/vidrios-templados/iphone-16-series2/iphone-16-pro1/","iphone 15":"/vidrios-templados/iphone-15-series2/iphone-151/","iphone 15 pro max":"/vidrios-templados/iphone-15-series2/iphone-15-pro-max1/","iphone 15 pro":"/vidrios-templados/iphone-15-series2/iphone-15-pro1/","iphone 14":"/vidrios-templados/iphone-14-series2/iphone-141/","iphone 14 pro max":"/vidrios-templados/iphone-14-series2/iphone-14-pro-max1/","iphone 14 pro":"/vidrios-templados/iphone-14-series2/iphone-14-pro1/","samsung s25":"/vidrios-templados/samsung-s25-series1/samsung-s25/","samsung s25 ultra":"/vidrios-templados/samsung-s25-series1/samsung-s25-ultra/","samsung s25 plus":"/vidrios-templados/samsung-s25-series1/samsung-s25-plus/","samsung s26":"/vidrios-templados/samsung-s26-series2/samsung-s261/","samsung s26 ultra":"/vidrios-templados/samsung-s26-series2/samsung-s26-ultra1/","samsung s26 plus":"/vidrios-templados/samsung-s26-series2/samsung-s26-plus1/","iphone 18":"/vidrios-templados/iphone-18-series3/","iphone 18 pro max":"/vidrios-templados/iphone-18-series3/iphone-18-pro-max2/","iphone 18 pro":"/vidrios-templados/iphone-18-series3/iphone-18-pro2/"}};
@@ -125,7 +136,7 @@
 
   var API = window.satineCyber = {
     cargado: true, marca: 'satine-cyber', version: CFG.version, cfg: CFG, textos: T, activo: activo, vista: vista,
-    prendido: false, prender: arrancar, apagar: apagar, urlCat: urlCat, tipoDe: tipoDe, descuento: descuento, estadoCarrito: null
+    prendido: false, prender: arrancar, apagar: apagar, urlCat: urlCat, tipoDe: tipoDe, descuento: descuento, estadoCarrito: null, contrato: null
   };
 
   /* ---------- estilos ---------- */
@@ -383,11 +394,11 @@
   function tarjetaCarrito(e) {
     var t = T.carrito[e.clave], d = { d0: plata(e.d0), d1: plata(e.d1), fin: CFG.fin, desc1: plata(CFG.desc1), desc2: plata(CFG.desc2) };
     var titulo = rellenar(t.titulo, d), texto = rellenar(t.texto, d);
-    if (e.clave === 'vidrio' && e.d0 === 0 && e.d1 === CFG.desc1) texto = texto.replace(/\.$/, '') + ': el vidrio queda al 50%.';
-    if (e.clave === 'funda' && e.d0 === 0 && e.d1 === CFG.desc1 && e.v && !e.t) texto = texto.replace(/\.$/, '') + ': el vidrio queda al 50%.';
+    if (e.clave === 'vidrio' && e.d0 === 0 && e.d1 === CFG.desc1) texto = texto.replace(/\.$/, '') + ': el vidrio queda al ' + CFG.pct.vidrio + '%.';
+    if (e.clave === 'funda' && e.d0 === 0 && e.d1 === CFG.desc1 && e.v && !e.t) texto = texto.replace(/\.$/, '') + ': el vidrio queda al ' + CFG.pct.vidrio + '%.';
     if (e.clave === 'tarjetero') {
       titulo = e.d0 > 0 ? 'Combo armado: −' + plata(e.d0) : 'Sumá un tarjetero';
-      texto = 'Con un tarjetero el descuento ' + (e.d0 > 0 ? 'sube a ' : 'es de ') + plata(e.d1) + (e.d0 === CFG.desc1 && e.d1 === CFG.desc2 ? ': queda al 30%.' : '.');
+      texto = 'Con un tarjetero el descuento ' + (e.d0 > 0 ? 'sube a ' : 'es de ') + plata(e.d1) + (e.d0 === CFG.desc1 && e.d1 === CFG.desc2 ? ': queda al ' + CFG.pct.tarjetero + '%.' : '.');
     }
     if (e.d0 > 0 && (e.total || e.sub) < 100000) texto += ' En el resumen figura junto con el costo de envío.';   /* sin envio gratis, el theme neta el envio en la linea del descuento */
     var extra = [];
@@ -432,23 +443,26 @@
   /* El armador vive en satine-v230-4.js (#satine-combos) y NO se toca. Durante el Cyber aca solo se cambian los textos de arriba,
      los chips, una nota por seccion, el orden de las secciones y la cuenta de abajo (que pasa de "−5%/−10%" al descuento real en
      pesos de la promo 1269900). Todo lo original se guarda y vuelve en apagar(). */
-  T.combos = {
+  function armarTextosCombos() {
+    var pv = CFG.pct.vidrio, pt = CFG.pct.tarjetero;
+    T.combos = {
     kick: 'Combo Cyber · ' + CFG.fin,
     h1: 'Armá tu combo Cyber',
-    sub: 'Con tu funda Leather, el vidrio te queda al 50%. Sumá un tarjetero y te queda al 30%. Se descuenta solo en el carrito.',
+    sub: 'Con tu funda Leather, el vidrio te queda al ' + pv + '%. Sumá un tarjetero y te queda al ' + pt + '%. Se descuenta solo en el carrito.',
     tiers: [['Funda + vidrio', CFG.desc1], ['+ tarjetero', CFG.desc2]],
     rapidos: [['Combo básico', ['funda|0', 'vidrio|0']], ['Combo completo', ['funda|0', 'vidrio|0', 'tarj|0']], ['Completo + cable', ['funda|0', 'vidrio|0', 'tarj|0', 'carga|2']]],
     notas: {
       funda: ['si', 'Suma al combo Cyber'],
-      vidrio: ['si', 'Con tu funda, al 50%'],
-      tarj: ['si', 'En el combo completo, al 30%'],
+      vidrio: ['si', 'Con tu funda, al ' + pv + '%'],
+      tarj: ['si', 'En el combo completo, al ' + pt + '%'],
       carga: ['oro', '20% OFF ya aplicado en el precio'],
       urban: ['no', 'No suma al combo Cyber'],
       billetera: ['no', 'No suma al combo Cyber'],
       extra: ['no', 'No suma al combo Cyber']
     },
     orden: ['funda', 'vidrio', 'tarj', 'carga', 'urban', 'billetera', 'extra']
-  };
+    };
+  }
   CSS = (typeof CSS === 'string' ? CSS : CSS.join('')) + [
     '#satine-combos .sc-cy-tier b{color:#2f8a55}',
     '#satine-combos .sc-cy-nota{display:inline-flex;align-items:center;gap:6px;margin-top:10px;padding:5px 11px;border-radius:100px;',
@@ -511,9 +525,9 @@
     var cnt = n ? n + ' producto' + (n > 1 ? 's' : '') + (d === CFG.desc2 ? ' · Combo completo' : d ? ' · Combo básico' : '') : 'Tu combo está vacío';
     var lbl;
     if (sub >= CFG.umbral2) lbl = 'Combo completo ✓ Ahorrás ' + plata(d);
-    else if (sub >= CFG.umbral1) lbl = tiene.tarj ? 'Sumá ' + plata(CFG.umbral2 - sub) + ' más y ahorrás ' + plata(CFG.desc2) : 'Sumá un tarjetero: te queda al 30%';
+    else if (sub >= CFG.umbral1) lbl = tiene.tarj ? 'Sumá ' + plata(CFG.umbral2 - sub) + ' más y ahorrás ' + plata(CFG.desc2) : 'Sumá un tarjetero: te queda al ' + CFG.pct.tarjetero + '%';
     else if (!tiene.funda && !tiene.vidrio && !tiene.tarj) lbl = 'Empezá por tu funda Leather';
-    else if (tiene.funda && !tiene.vidrio) lbl = 'Sumá un vidrio y te queda al 50%';
+    else if (tiene.funda && !tiene.vidrio) lbl = 'Sumá un vidrio y te queda al ' + CFG.pct.vidrio + '%';
     else if (!tiene.funda) lbl = 'Sumá tu funda Leather';
     else lbl = 'Sumá ' + plata(CFG.umbral1 - sub) + ' más y ahorrás ' + plata(CFG.desc1);
     var poner = function (id, v) { var el = document.getElementById(id); if (el && el.textContent !== v) el.textContent = v; };
@@ -562,8 +576,65 @@
     combosOrig = null;
   }
 
+  /* ---------- contrato del ERP (Gestion de ofertas): tramos, precios, porcentajes y fechas reales ---------- */
+  function extraerContrato(d) {
+    try {
+      var c = d && d.campana; if (!c || c.estado !== 'activa') return null;
+      var r = null;
+      (c.reglas || []).forEach(function (x) { if (!r && x.tipo === 'combo_condicional' && x.tn && x.tn.estado === 'prendida' && x.condicion && x.condicion.tiers) r = x; });
+      if (!r || !r.condicion.tiers.length) return null;
+      var ts = r.condicion.tiers.slice().sort(function (x, y) { return x.minimo - y.minimo; });
+      var t2 = ts[1] || ts[0];
+      var o = { umbral1: +ts[0].minimo, desc1: +ts[0].descuento, umbral2: +t2.minimo, desc2: +t2.descuento, precios: {}, pct: {} };
+      (r.grupos || []).forEach(function (g) {
+        if (!g || !g.nombre) return;
+        if (g.precio_solo > 0) o.precios[g.nombre] = Math.round(g.precio_solo);
+        if (g.pct > 0) o.pct[g.nombre] = Math.round(g.pct);
+      });
+      if (c.desde) o.desde = c.desde;
+      if (c.hasta) o.hasta = c.hasta;
+      if (c.fechas_texto && c.fechas_texto.fin) o.fin = c.fechas_texto.fin;
+      if (!(o.umbral1 > 0 && o.desc1 > 0 && o.umbral2 >= o.umbral1 && o.desc2 >= o.desc1)) return null;
+      return o;
+    } catch (e) { return null; }
+  }
+  function fotoCfg() { return JSON.stringify([CFG.umbral1, CFG.desc1, CFG.umbral2, CFG.desc2, CFG.precios, CFG.pct, CFG.desde, CFG.hasta, CFG.fin]); }
+  function aplicarContrato(o) {
+    if (!o) return false;
+    var antes = fotoCfg(), k;
+    CFG.umbral1 = o.umbral1; CFG.desc1 = o.desc1; CFG.umbral2 = o.umbral2; CFG.desc2 = o.desc2;
+    for (k in o.precios) CFG.precios[k] = o.precios[k];
+    for (k in o.pct) CFG.pct[k] = o.pct[k];
+    if (o.desde) CFG.desde = o.desde;
+    if (o.hasta) CFG.hasta = o.hasta;
+    if (o.fin) CFG.fin = o.fin;
+    var cambio = antes !== fotoCfg();
+    if (cambio) armarTextos();
+    return cambio;
+  }
+  function leerContratoGuardado() {
+    try {
+      var j = JSON.parse(localStorage.getItem('satineOfertas') || 'null');
+      if (j && j.v === 1 && j.o && Date.now() - j.t < 36 * 3600e3) return j.o;
+    } catch (e) {}
+    return null;
+  }
+  function sincronizarContrato() {
+    if (!CFG.contrato || typeof fetch !== 'function') return;
+    try {
+      fetch(CFG.contrato, { credentials: 'omit', cache: 'default' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+        var o = extraerContrato(d); if (!o) return;
+        try { localStorage.setItem('satineOfertas', JSON.stringify({ v: 1, t: Date.now(), o: o })); } catch (e) {}
+        var cambio = aplicarContrato(o);
+        API.contrato = o;
+        if (cambio && prendido) apagar();   /* se vuelve a armar con los numeros nuevos */
+        if (!prendido && (activo() || vista)) arrancar();
+      }).catch(function () {});
+    } catch (e) {}
+  }
+
   /* ---------- encendido / apagado ---------- */
-  var prendido = false, estilo = null;
+  var prendido = false, estilo = null, apagarTimer = null;
   function arrancar() {
     if (prendido) return;
     prendido = true; API.prendido = true;
@@ -577,7 +648,8 @@
     };
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', correr); else correr();
     var resta = new Date(CFG.hasta).getTime() - Date.now();
-    if (!vista && resta > 0 && resta < 6 * 3600e3) setTimeout(apagar, resta + 500);
+    if (apagarTimer) { clearTimeout(apagarTimer); apagarTimer = null; }
+    if (!vista && resta > 0 && resta < 6 * 3600e3) apagarTimer = setTimeout(apagar, resta + 500);
   }
   function apagar() {
     if (!prendido) return;
@@ -594,6 +666,9 @@
     document.documentElement.removeAttribute('data-satine-cyber');
   }
 
+  aplicarContrato(leerContratoGuardado());   /* lo ultimo que dijo el ERP, para arrancar sin esperar la red */
+  armarTextos();
+  sincronizarContrato();
   if (activo() || vista) arrancar();
   else { var falta = new Date(CFG.desde).getTime() - Date.now(); if (falta > 0 && falta < 4 * 3600e3) setTimeout(arrancar, falta + 500); }
 })();
