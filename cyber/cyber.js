@@ -1,9 +1,12 @@
-/* satine-cyber 1.8 (02/11/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
+/* satine-cyber 1.9 (02/11/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
    La baja y ejecuta satine-v257-cyber.js (layout de satinecases.com). Vive en SATINE344/satine-assets/cyber/cyber.js.
    NO cambia precios. El descuento real lo aplica Tienda Nube (promo "Descuento en el carrito" 1269900: fundas Leather + vidrios +
    tarjeteros; subtotal de esas categorias >= $95.000 -> -$18.000 (= vidrio al 50%); >= $130.000 -> -$28.500 (= + tarjetero al 30%);
    y 20% directo en cables y cargadores, promo 1267180). Esto solo muestra y guia: franja del header, tarjeta en el inicio,
    tarjeta de combo en la ficha y aviso en el carrito (drawer y /comprar/).
+   1.9: con el combo armado, el carrito (drawer y /comprar/) MUESTRA el vidrio al 50% (y el tarjetero al 30% si el subtotal llega al 2do tramo): precio nuevo,
+   lista tachada, badge, subtotal real; la tarjeta explica que el checkout lo muestra como una linea "Descuento". Solo se repinta si la cuenta cierra con el
+   descuento real de la promo (que es un monto fijo): si no cierra (ej. 2 vidrios), queda el aviso de antes. Todo vuelve solo al desarmar el combo y en apagar().
    1.8: los tramos del combo (umbrales y descuentos), los precios con que proyecta, los porcentajes de los textos y las fechas salen del
    ERP (GET /api/tienda/ofertas, regla combo_condicional prendida: condicion.tiers + grupos + campana.hasta). Se guardan en localStorage
    para arrancar al instante y se refrescan en cada carga; si el ERP no responde, quedan los valores de CFG. Si el ERP responde que no hay
@@ -16,7 +19,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.8',
+    version: '1.9',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -190,6 +193,9 @@
     '.sc-carrito .sc-texto{font-size:12.5px;color:#5e514c}',
     '.sc-carrito .sc-btn{min-height:40px;font-size:12px;padding:0 16px}',
     '.sc-carrito .sc-nota{margin:0;font-size:10.5px}',
+    /* 1.9: lineas del carrito con el combo armado */
+    '.sc-lbadge{display:inline-block;margin:5px 0 0;padding:3px 8px 2px;border-radius:999px;background:#c0392b;color:#fff!important;font:700 11px/1.2 var(--cy-sans);letter-spacing:.3px;text-transform:uppercase;white-space:nowrap}',
+    '[data-cyber-oculto]{display:none!important}',
     '@media (prefers-reduced-motion:reduce){.sc-btn{transition:none}}'
   ].join('\n');
 
@@ -370,11 +376,40 @@
     if (esLeather(n, it.sku)) return 'funda';
     return '';
   }
+  /* 1.9: texto original de un nodo que repintamos (si TN lo cambio en el lugar, vale el de TN) */
+  function textoOri(n) {
+    if (!n) return '';
+    var o = n.getAttribute('data-cyber-orig');
+    return (o != null && n.textContent === n.getAttribute('data-cyber-vis')) ? o : n.textContent;
+  }
+  function numeroDec(t) { var p = String(t || '').replace(/[^\d,]/g, '').split(','); var e = parseInt(p[0] || '0', 10) || 0; var d = p[1] ? (parseInt((p[1] + '00').slice(0, 2), 10) || 0) / 100 : 0; return e + d; }
+  function plata2(n) { var f = (Math.round(n * 100) / 100).toFixed(2).split('.'); return '$' + f[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ',' + f[1]; }   /* formato del theme: $25.199,30 */
+  function fijarTexto(n, nuevo) {   /* idempotente: guarda el original una sola vez */
+    var vis = n.getAttribute('data-cyber-vis');
+    if (n.getAttribute('data-cyber-orig') == null || n.textContent !== vis) n.setAttribute('data-cyber-orig', n.textContent);
+    if (n.textContent !== nuevo) n.textContent = nuevo;
+    n.setAttribute('data-cyber-vis', nuevo); n.setAttribute('data-cyber-linea', '1');
+  }
+  function devolverTexto(n) {
+    var o = n.getAttribute('data-cyber-orig');
+    if (o != null && n.textContent === n.getAttribute('data-cyber-vis')) n.textContent = o;
+    n.removeAttribute('data-cyber-orig'); n.removeAttribute('data-cyber-vis'); n.removeAttribute('data-cyber-linea');
+  }
+  function restaurar(raiz) {   /* deshace todo lo que la capa repinto en el carrito (lineas, subtotal, filas ocultas) */
+    qa('[data-cyber-linea],[data-cyber-oculto]', raiz).forEach(function (n) {
+      if (n.hasAttribute('data-cyber-badge')) { if (n.parentNode) n.parentNode.removeChild(n); return; }
+      if (n.hasAttribute('data-cyber-oculto')) { n.removeAttribute('data-cyber-oculto'); n.style.removeProperty('display'); }
+      if (n.hasAttribute('data-cyber-cmp')) { n.removeAttribute('data-satine-compare'); n.removeAttribute('data-cyber-cmp'); }
+      if (n.hasAttribute('data-cyber-linea')) devolverTexto(n);
+    });
+  }
   function leerItems(lista) {
     return qa('.js-cart-item[data-store^="cart-item-"]', lista).map(function (el) {
       var cant = parseInt((q('.js-cart-quantity-input', el) || {}).value, 10) || 1;
-      var sub = numero(txt(q('.js-cart-item-subtotal', el)));
-      return { nombre: txt(q('a[data-component="name.short-name"]', el)) || txt(q('.cart-item-name', el)) || txt(el), variante: txt(q('small[data-component="name.short-variant-name"]', el)), sku: '', precio: sub && cant ? sub / cant : 0, cant: cant };
+      var sp = q('.js-cart-item-subtotal', el), ot = textoOri(sp);
+      var sub = numero(ot), sub2 = numeroDec(ot);
+      var c = q('.satine-cart-compare', el), lista0 = c ? (numeroDec(c.textContent) || (parseFloat(c.getAttribute('data-unit')) / 100) || 0) : 0;
+      return { el: el, sp: sp, nombre: txt(q('a[data-component="name.short-name"]', el)) || txt(q('.cart-item-name', el)) || txt(el), variante: txt(q('small[data-component="name.short-variant-name"]', el)), sku: '', precio: sub && cant ? sub / cant : 0, p2: sub2 && cant ? sub2 / cant : 0, lista: lista0, cant: cant };
     });
   }
   function estadoDe(items) {
@@ -395,6 +430,51 @@
     if (d0 > 0) e.clave = 'listo';
     return e;
   }
+  /* 1.9: que lineas se repintan. La promo de TN es un MONTO fijo (desc1/desc2): solo se muestra el 50%/30% si la rebaja de las lineas
+     (precio de hoy - precio con el %) suma ese monto (+-1,5). Si no cierra (2 vidrios, 2 fundas...), no se toca nada. */
+  function planLineas(items, e) {
+    if (!(e.f > 0 && e.d0 > 0)) return null;
+    var conT = e.sub >= CFG.umbral2, plan = [], rebaja = 0;
+    items.forEach(function (it) {
+      var k = clasificar(it);
+      if (!it.sp || !(it.p2 > 0) || (k !== 'vidrio' && !(k === 'tarjetero' && conT))) return;
+      var pct = CFG.pct[k], lista = it.lista || it.p2, nuevo = lista * (1 - pct / 100);
+      if (!(pct > 0) || nuevo >= it.p2) return;
+      plan.push({ it: it, k: k, pct: pct, lista: lista, nuevo: nuevo }); rebaja += (it.p2 - nuevo) * it.cant;
+    });
+    return plan.length && Math.abs(rebaja - e.d0) <= 1.5 ? plan : null;
+  }
+  function pintarLinea(pl) {
+    var it = pl.it, sp = it.sp;
+    fijarTexto(sp, plata2(pl.nuevo * it.cant));
+    if (!sp.hasAttribute('data-satine-compare')) { sp.setAttribute('data-satine-compare', plata2(pl.lista * it.cant)); sp.setAttribute('data-cyber-cmp', '1'); }   /* el tachado lo dibuja el CSS del layout */
+    var up = q('.js-cart-item-unit-price', it.el); if (up) fijarTexto(up, plata2(pl.nuevo));
+    var bd = q('[data-cyber-badge]', it.el), tx = '\u2212' + pl.pct + '%';
+    if (!bd) {
+      var ref = q('small[data-component="name.short-variant-name"]', it.el) || q('[data-component="line-item.name"]', it.el);
+      if (ref && ref.parentNode) { bd = h('span', { 'class': 'sc-lbadge', 'data-cyber-badge': '1', 'data-cyber-linea': '1' }); ref.parentNode.insertBefore(bd, ref.nextSibling); }
+    }
+    if (bd && bd.textContent !== tx) bd.textContent = tx;
+  }
+  function aplicarLineas(items, plan) {
+    items.forEach(function (it) {
+      var pl = null; if (plan) for (var i = 0; i < plan.length; i++) if (plan[i].it === it) pl = plan[i];
+      if (pl) pintarLinea(pl); else restaurar(it.el);
+    });
+  }
+  function ocultar(f, si) {   /* inline !important: gana a las reglas !important del theme */
+    if (si) { f.setAttribute('data-cyber-oculto', '1'); f.style.setProperty('display', 'none', 'important'); }
+    else if (f.hasAttribute('data-cyber-oculto')) { f.removeAttribute('data-cyber-oculto'); f.style.removeProperty('display'); }
+  }
+  /* subtotal del resumen = lo que cobra el checkout antes del envio; la fila "Descuento" y el detalle de TN se ocultan (ya esta en las lineas) */
+  function ajustarResumen(raiz, e, pinta) {
+    qa('.satine-resumen .rl', raiz).forEach(function (f) {
+      var t = txt(f);
+      if (/^subtotal/i.test(t)) { var b = q('b', f); if (!b) return; if (pinta) fijarTexto(b, plata(e.neto)); else if (b.hasAttribute('data-cyber-linea')) devolverTexto(b); }
+      else if (/^descuento/i.test(t)) ocultar(f, pinta);
+    });
+    qa('.js-total-promotions-detail-row', raiz).forEach(function (f) { ocultar(f, pinta); });
+  }
   function tarjetaCarrito(e) {
     var t = T.carrito[e.clave], d = { d0: plata(e.d0), d1: plata(e.d1), fin: CFG.fin, desc1: plata(CFG.desc1), desc2: plata(CFG.desc2) };
     var titulo = rellenar(t.titulo, d), texto = rellenar(t.texto, d);
@@ -404,7 +484,12 @@
       titulo = e.d0 > 0 ? 'Combo armado: −' + plata(e.d0) : 'Sumá un tarjetero';
       texto = 'Con un tarjetero el descuento ' + (e.d0 > 0 ? 'sube a ' : 'es de ') + plata(e.d1) + (e.d0 === CFG.desc1 && e.d1 === CFG.desc2 ? ': queda al ' + CFG.pct.tarjetero + '%.' : '.');
     }
-    if (e.d0 > 0 && (e.total || e.sub) < 100000) texto += ' En el resumen figura junto con el costo de envío.';   /* sin envio gratis, el theme neta el envio en la linea del descuento */
+    var nota = null;
+    if (e.pinta) {   /* 1.9: las lineas ya muestran el vidrio al 50% (y el tarjetero al 30%): la tarjeta lo dice y explica la linea Descuento del checkout */
+      if (e.clave === 'tarjetero' || e.clave === 'listo') titulo = 'Combo armado: el vidrio queda al ' + CFG.pct.vidrio + '%' + (e.pt ? ' y el tarjetero al ' + CFG.pct.tarjetero + '%' : '');
+      if (e.clave === 'listo') texto = 'Ya figura en los precios de arriba y en el total.';
+      nota = 'En el checkout lo vas a ver como una línea «Descuento» de −' + plata(e.d0) + ((e.total || e.sub) < 100000 ? ', junto con el costo de envío' : '') + '.';
+    } else if (e.d0 > 0 && (e.total || e.sub) < 100000) texto += ' En el resumen figura junto con el costo de envío.';   /* sin envio gratis, el theme neta el envio en la linea del descuento */
     var extra = [];
     if (CFG.cashback) extra.push(T.extra.cashback);
     if (CFG.sorteo && (e.clave === 'listo' || e.clave === 'cyber')) extra.push(T.extra.sorteo);
@@ -413,6 +498,7 @@
       h('div', { 'class': 'sc-cab' }, [h('span', { 'class': 'sc-pill', text: 'Cyber' }), h('h4', { text: titulo })]),
       h('p', { 'class': 'sc-texto', text: texto }),
       t.boton ? h('a', { 'class': 'sc-btn sc-btn--tinta', href: href, text: t.boton[0] }) : null,
+      nota ? h('p', { 'class': 'sc-nota', text: nota }) : null,
       extra.length ? h('p', { 'class': 'sc-nota', text: extra.join(' ') }) : null
     ]);
   }
@@ -420,10 +506,15 @@
   function carrito() {
     qa('.js-ajax-cart-list').forEach(function (lista) {
       var cont = lista.parentNode; if (!cont) return;
+      var raiz = (lista.closest && lista.closest('#modal-cart, #shoppingCartPage')) || document;
       var previas = qa('.sc-carrito', cont).filter(function (c) { return c.parentNode === cont; });
       var items = leerItems(lista);
-      if (!items.length) { previas.forEach(function (c) { c.parentNode.removeChild(c); }); return; }
-      var e = estadoDe(items); e.total = items.reduce(function (a, it) { return a + (it.precio || 0) * (it.cant || 1); }, 0); e.firma = [e.clave, e.d0, e.d1, e.modelo, e.n].join('|');
+      if (!items.length) { previas.forEach(function (c) { c.parentNode.removeChild(c); }); ajustarResumen(raiz, null, false); return; }
+      var e = estadoDe(items); e.total = items.reduce(function (a, it) { return a + (it.precio || 0) * (it.cant || 1); }, 0);
+      var plan = planLineas(items, e); e.pinta = !!plan; e.pt = !!plan && plan.some(function (p) { return p.k === 'tarjetero'; });
+      e.neto = items.reduce(function (a, it) { return a + (it.p2 || it.precio || 0) * (it.cant || 1); }, 0) - e.d0;   /* lo que cobra el checkout antes del envio */
+      aplicarLineas(items, plan); ajustarResumen(raiz, e, e.pinta);   /* se re-aplica en cada pasada: es idempotente */
+      e.firma = [e.clave, e.d0, e.d1, e.modelo, e.n, e.pinta ? 1 : 0, e.pt ? 1 : 0].join('|');
       API.estadoCarrito = e;
       if (previas.length === 1 && previas[0].getAttribute('data-firma') === e.firma && previas[0].previousElementSibling === lista) return;
       previas.forEach(function (c) { c.parentNode.removeChild(c); });
@@ -666,6 +757,7 @@
     if (homeObs) { homeObs.disconnect(); homeObs = null; }
     if (carritoTimer) { clearInterval(carritoTimer); carritoTimer = null; }
     if (apagarTimer) { clearTimeout(apagarTimer); apagarTimer = null; }
+    try { restaurar(document); } catch (e) {}   /* 1.9: lineas, subtotal y filas del carrito vuelven a como las dejo TN */
     qa('[data-sc], .sc-carrito, #sc-fcombo').forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });   /* 1.8: tambien la tarjeta del carrito y la linea de la ficha */
     franjaVolver();
     setSatineVolver();
