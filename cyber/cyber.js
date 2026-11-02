@@ -665,7 +665,8 @@
     if (carritoObs) { carritoObs.disconnect(); carritoObs = null; }
     if (homeObs) { homeObs.disconnect(); homeObs = null; }
     if (carritoTimer) { clearInterval(carritoTimer); carritoTimer = null; }
-    qa('[data-sc]').forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+    if (apagarTimer) { clearTimeout(apagarTimer); apagarTimer = null; }
+    qa('[data-sc], .sc-carrito, #sc-fcombo').forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });   /* 1.8: tambien la tarjeta del carrito y la linea de la ficha */
     franjaVolver();
     setSatineVolver();
     try { combosVolver(); } catch (e) {}
