@@ -1,22 +1,13 @@
 {
- "actualizado": "2026-11-01T15:00:06.404Z",
+ "actualizado": "2026-11-02T03:00:06.801Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-01",
+ "google_ultimo_ok": "2026-11-02",
  "google": {
   "rating": 4.4,
   "count": 33,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
-   {
-    "autor": "Gregorio Lopez Ogawa",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWcotfjeF28BlbMxqMBaBFJk9ShPSVg5SD4Rgat1n2JVqB-4n53LA=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/105007259164677751795/reviews",
-    "rating": 5,
-    "texto": "Increíble la calidad de las fundas, 10/10 la presentación de producto.",
-    "fecha": "2026-10-15T22:37:01.013481396Z",
-    "cuando": "Hace 2 semanas"
-   },
    {
     "autor": "Noe",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWCSBYucM9j4dsPjjyOFEC_fUnPKDXyqTYkRNq32UVWgMIB2cE=s128-c0x00000000-cc-rp-mo-ba3",
@@ -45,6 +36,15 @@
     "cuando": "Hace 3 semanas"
    },
    {
+    "autor": "Leonel Gonzalez",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXFzAm05RoC5cJaGatlXQ7UoNGIconwQVsJw6G7XWV8By7PXxyX=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/114868970455463947630/reviews",
+    "rating": 5,
+    "texto": "La calidad de las fundas un 10, lo único que el osean Blue que pedí en la página no llegó, llegó la verde que se ve en la foto , igual me la voy a dejar porque está linda , después Andreani se demoró mucho , una semana en traer mi compra, pero eso no corre por Satine.",
+    "fecha": "2026-09-30T21:38:38.151323662Z",
+    "cuando": "Hace 1 mes"
+   },
+   {
     "autor": "Katja Fekonja",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjVQeO0x0UvQKmKUjtnSltReoekrYKuAJw6vhxuwBk3_R9cKTRWE6w=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/105285223292143608338/reviews",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 69580,
+  "ventas": 69790,
   "nivel": null,
   "level_id": "5_green",
   "desde": 2011
