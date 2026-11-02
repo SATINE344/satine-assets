@@ -11,37 +11,89 @@
     "desde": "2026-10-31T18:55:00-03:00",
     "hasta": "2026-11-05T00:00:00-03:00",
     "estado": "activa",
-    "fechas_texto": { "kicker": "31/10 al 4/11", "fin": "Hasta el 4/11" },
+    "fechas_texto": {
+      "kicker": "31/10 al 4/11",
+      "fin": "Hasta el 4/11"
+    },
     "visual": {
-      "modulos": { "barra": true, "home": true, "ficha": true, "carrito": true, "combos": true },
-      "estilo": { "tinta": "#34211b", "crema": "#f5f0e5", "acento": "#E8A33D", "acento2": "#F4C06A", "oferta": "#c0392b" },
+      "modulos": {
+        "barra": true,
+        "home": true,
+        "ficha": true,
+        "carrito": true,
+        "combos": true
+      },
+      "estilo": {
+        "tinta": "#34211b",
+        "crema": "#f5f0e5",
+        "acento": "#E8A33D",
+        "acento2": "#F4C06A",
+        "oferta": "#c0392b"
+      },
       "barra": {
         "mensajes": [
-          { "texto": "CYBER SATINE · VIDRIO AL 50% CON TU FUNDA", "destino": "fundas" },
-          { "texto": "COMBO COMPLETO · TARJETERO AL 30%", "destino": "tarjeteros" },
-          { "texto": "CABLES Y CARGADORES 20% OFF", "destino": "carga" }
+          {
+            "texto": "CYBER SATINE · VIDRIO AL 50% CON TU FUNDA",
+            "destino": "fundas"
+          },
+          {
+            "texto": "COMBO COMPLETO · TARJETERO AL 30%",
+            "destino": "tarjeteros"
+          },
+          {
+            "texto": "CABLES Y CARGADORES 20% OFF",
+            "destino": "carga"
+          }
         ]
       },
       "home": {
         "kicker": "Cyber SATINE · {kicker}",
         "titulo": "Armá tu combo",
         "texto": "Elegís tu funda Leather. Sumás el vidrio y te queda al 50%. Con el tarjetero, al 30%.",
-        "chips": ["Vidrio al 50% con tu funda", "Tarjetero al 30% en el combo", "Cables y cargadores −20%"],
-        "boton": { "texto": "Empezar por la funda", "destino": "fundas" },
+        "chips": [
+          "Vidrio al 50% con tu funda",
+          "Tarjetero al 30% en el combo",
+          "Cables y cargadores −20%"
+        ],
+        "boton": {
+          "texto": "Empezar por la funda",
+          "destino": "fundas"
+        },
         "pie": "El descuento se aplica en el carrito al sumar los productos."
       },
       "ficha": {
         "por_grupo": {
           "funda": "Sumá el vidrio y te queda al 50%",
-          "vidrio": "Con tu funda Leather, este vidrio queda al 50%",
+          "vidrio": "Llevalo con tu funda Leather y queda al 50%",
           "tarjetero": "Con funda Leather + vidrio, el tarjetero queda al 30%"
         }
       },
       "carrito": {
         "estados": {
-          "falta": { "titulo": "Te falta: {falta}", "texto": "Sumalo y completás el combo. {fin}.", "boton": { "texto": "Elegir", "destino": "fundas" } },
-          "listo": { "titulo": "Combo armado", "texto": "El descuento ya está aplicado en el total. {fin}.", "boton": { "texto": "Cables y cargadores −20%", "destino": "carga" } },
-          "generico": { "titulo": "Cyber SATINE · {fin}", "texto": "Funda Leather + vidrio: el vidrio queda al 50%. Con tarjetero, al 30%.", "boton": { "texto": "Armar mi combo", "destino": "fundas" } }
+          "falta": {
+            "titulo": "Te falta: {falta}",
+            "texto": "Sumalo y completás el combo. {fin}.",
+            "boton": {
+              "texto": "Elegir",
+              "destino": "fundas"
+            }
+          },
+          "listo": {
+            "titulo": "Combo armado",
+            "texto": "El descuento ya está aplicado en el total. {fin}.",
+            "boton": {
+              "texto": "Cables y cargadores −20%",
+              "destino": "carga"
+            }
+          },
+          "generico": {
+            "titulo": "Cyber SATINE · {fin}",
+            "texto": "Funda Leather + vidrio: el vidrio queda al 50%. Con tarjetero, al 30%.",
+            "boton": {
+              "texto": "Armar mi combo",
+              "destino": "fundas"
+            }
+          }
         }
       },
       "combos": {
@@ -49,24 +101,80 @@
         "titulo": "Armá tu combo Cyber",
         "sub": "Con tu funda Leather, el vidrio te queda al 50%. Sumá un tarjetero y te queda al 30%. Se descuenta solo en el carrito.",
         "chips": [
-          { "texto": "Funda + vidrio", "descuento": 18000 },
-          { "texto": "+ tarjetero", "descuento": 28500 }
+          {
+            "texto": "Funda + vidrio",
+            "descuento": 18000
+          },
+          {
+            "texto": "+ tarjetero",
+            "descuento": 28500
+          }
         ],
         "rapidos": [
-          { "nombre": "Combo básico", "grupos": ["funda|0", "vidrio|0"] },
-          { "nombre": "Combo completo", "grupos": ["funda|0", "vidrio|0", "tarj|0"] },
-          { "nombre": "Completo + cable", "grupos": ["funda|0", "vidrio|0", "tarj|0", "carga|2"] }
+          {
+            "nombre": "Combo básico",
+            "grupos": [
+              "funda|0",
+              "vidrio|0"
+            ]
+          },
+          {
+            "nombre": "Combo completo",
+            "grupos": [
+              "funda|0",
+              "vidrio|0",
+              "tarj|0"
+            ]
+          },
+          {
+            "nombre": "Completo + cable",
+            "grupos": [
+              "funda|0",
+              "vidrio|0",
+              "tarj|0",
+              "carga|2"
+            ]
+          }
         ],
         "notas": {
-          "funda": { "tono": "si", "texto": "Suma al combo Cyber" },
-          "vidrio": { "tono": "si", "texto": "Con tu funda, al 50%" },
-          "tarj": { "tono": "si", "texto": "En el combo completo, al 30%" },
-          "carga": { "tono": "oro", "texto": "20% OFF ya aplicado en el precio" },
-          "urban": { "tono": "no", "texto": "No suma al combo Cyber" },
-          "billetera": { "tono": "no", "texto": "No suma al combo Cyber" },
-          "extra": { "tono": "no", "texto": "No suma al combo Cyber" }
+          "funda": {
+            "tono": "si",
+            "texto": "Suma al combo Cyber"
+          },
+          "vidrio": {
+            "tono": "si",
+            "texto": "Con tu funda, al 50%"
+          },
+          "tarj": {
+            "tono": "si",
+            "texto": "En el combo completo, al 30%"
+          },
+          "carga": {
+            "tono": "oro",
+            "texto": "20% OFF ya aplicado en el precio"
+          },
+          "urban": {
+            "tono": "no",
+            "texto": "No suma al combo Cyber"
+          },
+          "billetera": {
+            "tono": "no",
+            "texto": "No suma al combo Cyber"
+          },
+          "extra": {
+            "tono": "no",
+            "texto": "No suma al combo Cyber"
+          }
         },
-        "orden": ["funda", "vidrio", "tarj", "carga", "urban", "billetera", "extra"]
+        "orden": [
+          "funda",
+          "vidrio",
+          "tarj",
+          "carga",
+          "urban",
+          "billetera",
+          "extra"
+        ]
       },
       "cashback": {
         "pct": 10,
@@ -83,16 +191,75 @@
         "tipo": "combo_condicional",
         "ejecucion": "panel_tn",
         "orden": 1,
-        "alcance": { "productos_resueltos": [1001, 1002, 2001, 2002, 3001] },
+        "alcance": {
+          "productos_resueltos": [
+            1001,
+            1002,
+            2001,
+            2002,
+            3001
+          ]
+        },
         "grupos": [
-          { "nombre": "funda", "alcance": { "productos_resueltos": [1001, 1002] }, "precio_lista": 59999 },
-          { "nombre": "vidrio", "alcance": { "productos_resueltos": [2001, 2002] }, "precio_lista": 35999, "pct": 50 },
-          { "nombre": "tarjetero", "alcance": { "productos_resueltos": [3001] }, "precio_lista": 34999, "pct": 30 }
+          {
+            "nombre": "funda",
+            "alcance": {
+              "productos_resueltos": [
+                1001,
+                1002
+              ]
+            },
+            "precio_lista": 59999,
+            "pct_solo": null
+          },
+          {
+            "nombre": "vidrio",
+            "alcance": {
+              "productos_resueltos": [
+                2001,
+                2002
+              ]
+            },
+            "precio_lista": 35999,
+            "pct": 50,
+            "pct_solo": 30
+          },
+          {
+            "nombre": "tarjetero",
+            "alcance": {
+              "productos_resueltos": [
+                3001
+              ]
+            },
+            "precio_lista": 34999,
+            "pct": 30,
+            "pct_solo": null
+          }
         ],
-        "condicion": { "tiers": [{ "minimo": 95000, "descuento": 18000 }, { "minimo": 130000, "descuento": 28500 }] },
-        "beneficio": { "tipo": "descuento_carrito" },
-        "textos": { "destino_funda": "/fundas/", "destino_vidrio": "/vidrios-templados/", "destino_tarjetero": "/tarjeteros/" },
-        "tn": { "promo_tn_id": 1269900, "estado": "prendida" }
+        "condicion": {
+          "tiers": [
+            {
+              "minimo": 85000,
+              "descuento": 7200
+            },
+            {
+              "minimo": 120000,
+              "descuento": 17700
+            }
+          ]
+        },
+        "beneficio": {
+          "tipo": "descuento_carrito"
+        },
+        "textos": {
+          "destino_funda": "/fundas/",
+          "destino_vidrio": "/vidrios-templados/",
+          "destino_tarjetero": "/tarjeteros/"
+        },
+        "tn": {
+          "promo_tn_id": 1269900,
+          "estado": "prendida"
+        }
       },
       {
         "id": "00000000-0000-4000-8000-0000000000a2",
@@ -100,15 +267,54 @@
         "tipo": "porcentaje",
         "ejecucion": "api_precio_promocional",
         "orden": 2,
-        "alcance": { "productos_resueltos": [4001, 4002] },
+        "alcance": {
+          "productos_resueltos": [
+            4001,
+            4002
+          ]
+        },
         "condicion": {},
-        "beneficio": { "pct": 20 },
-        "textos": { "ficha": "20% off en cables y cargadores, ya aplicado en el precio" },
+        "beneficio": {
+          "pct": 20
+        },
+        "textos": {
+          "ficha": "20% off en cables y cargadores, ya aplicado en el precio"
+        },
+        "tn": {},
+        "en_combo_pct": null
+      },
+      {
+        "id": "00000000-0000-4000-8000-0000000000a4",
+        "nombre": "Vidrio templado solo",
+        "tipo": "porcentaje",
+        "ejecucion": "api_precio_promocional",
+        "orden": 4,
+        "alcance": {
+          "productos_resueltos": [
+            2001,
+            2002
+          ]
+        },
+        "condicion": {},
+        "beneficio": {
+          "pct": 30,
+          "precio_tachado": true
+        },
+        "textos": {
+          "ficha": "30% off en vidrios templados, ya aplicado en el precio. Con tu funda Leather queda al 50%"
+        },
+        "en_combo_pct": 50,
         "tn": {}
       }
     ]
   },
   "permanentes": [],
-  "proxima": { "slug": "black-2026", "nombre": "Black SATINE", "desde": "2026-11-27T00:00:00-03:00" },
-  "tienda": { "envio_gratis_desde": 100000 }
+  "proxima": {
+    "slug": "black-2026",
+    "nombre": "Black SATINE",
+    "desde": "2026-11-27T00:00:00-03:00"
+  },
+  "tienda": {
+    "envio_gratis_desde": 100000
+  }
 }

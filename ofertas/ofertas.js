@@ -1,4 +1,4 @@
-/* satine-ofertas v1.0 — capa visual genérica, lee el JSON del ERP */
+/* satine-ofertas v1.1 — capa visual genérica, lee el JSON del ERP */
 /* Capa visual de ofertas de satinecases.com (Tienda Nube, theme Rio). NO cambia precios: el descuento real lo aplica Tienda Nube
    (cupones, precio promocional o promo del panel). Esto solo muestra y guía, leyendo GET {URL_BASE}/api/tienda/ofertas.
    Módulos (los enciende visual.modulos del JSON): barra, home, ficha, carrito, combos; cashback y sorteo se muestran como nota
@@ -265,10 +265,10 @@
     var pg = {}, por = (c.vis.ficha && c.vis.ficha.por_grupo) || {};
     for (var k in por) pg[clave(k)] = por[k];
     for (var i = 0; i < c.reglas.length; i++) {
-      var r = c.reglas[i], tx = r.textos || {}, t = '';
-      (r.grupos || []).forEach(function (g) { if (!t && incluye(g.alcance, id)) t = pg[clave(g.nombre)] || tx['ficha_' + clave(g.nombre)] || tx.ficha || ''; });
+      var r = c.reglas[i], tx = r.textos || {}, t = '', solo = 0;
+      (r.grupos || []).forEach(function (g) { if (!t && incluye(g.alcance, id)) { t = pg[clave(g.nombre)] || tx['ficha_' + clave(g.nombre)] || tx.ficha || ''; if (t) solo = +g.pct_solo || 0; } });
       if (!t && incluye(r.alcance, id)) t = tx.ficha || '';
-      if (t) return { texto: t, regla: r };
+      if (t) return { texto: t, regla: r, solo: solo };   /* solo = % que esa parte ya tiene sola (cartel «30% off» + la línea del combo al 50%) */
     }
     return null;
   }
@@ -280,7 +280,7 @@
     var caja = q('#satine-buybox-card'), fo = q('form#product_form');
     if (!(caja && fo && caja.contains(fo)) && (vuelta || 0) < 60) { esperar(function () { ficha(c, (vuelta || 0) + 1); }, 250); return; }
     var d = datos(c, lin.regla), texto = rellenar(lin.texto, d), vf = c.vis.ficha || {};
-    var tag = rellenar(vf.etiqueta || (c.camp && c.camp.nombre) || '', d);
+    var tag = lin.solo > 0 ? lin.solo + '% off' : rellenar(vf.etiqueta || (c.camp && c.camp.nombre) || '', d);   /* parte con precio solo rebajado: el cartel es el % suelto y la línea cuenta el combo */
     var enlace = c.mods.combos;   /* si hay página de combos, la línea lleva ahí; si no, es solo informativa */
     var hijos = [tag ? h('span', { 'class': 'of-ficha-tag', text: tag }) : null, h('span', { 'class': 'of-ficha-txt', text: texto }), enlace ? h('span', { 'class': 'of-ficha-ir', text: vf.cta || 'Ver ›' }) : null];
     var el = enlace ? h('a', { 'class': 'of-ficha', href: url((c.vis.combos && c.vis.combos.url) || URL_COMBOS), 'aria-label': (tag ? tag + ': ' : '') + texto }, hijos, 'ficha')
