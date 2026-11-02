@@ -19,7 +19,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.9',
+    version: '1.9.1',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -474,6 +474,18 @@
       else if (/^descuento/i.test(t)) ocultar(f, pinta);
     });
     qa('.js-total-promotions-detail-row', raiz).forEach(function (f) { ocultar(f, pinta); });
+    /* 1.9.1: cuando TN ya conoce la direccion del cliente (logueado), .js-cart-total trae el envio adentro y el
+       Resumen del theme lo muestra en el Total sin ninguna fila que lo explique (Subtotal $77.998 / Total $85.245).
+       Si el Total supera lo que suman las lineas, la diferencia es el envio: se agrega la fila "Envío" para que cierre. */
+    qa('.satine-resumen', raiz).forEach(function (res) {
+      var fila = q('[data-cyber-envio]', res), rtv = q('.rtv', res), hr = q('.rhr', res);
+      var cont = (res.closest && res.closest('#modal-cart, #shoppingCartPage')) || document, jt = q('.js-cart-total', cont);
+      var tot = (jt && /\$/.test(txt(jt))) ? numeroDec(txt(jt)) : (rtv ? numeroDec(txt(rtv)) : 0), dif = (pinta && e && tot) ? Math.round((tot - e.neto) * 100) / 100 : 0;
+      if (dif >= 1 && hr) {
+        if (!fila) { fila = h('div', { 'class': 'rl', 'data-cyber-envio': '1', 'data-cyber-badge': '1', 'data-cyber-linea': '1' }, ['Env\u00edo ', h('b')]); res.insertBefore(fila, hr); }
+        var b = q('b', fila), v = plata(dif); if (b && b.textContent !== v) b.textContent = v;
+      } else if (fila && fila.parentNode) fila.parentNode.removeChild(fila);
+    });
   }
   function tarjetaCarrito(e) {
     var t = T.carrito[e.clave], d = { d0: plata(e.d0), d1: plata(e.d1), fin: CFG.fin, desc1: plata(CFG.desc1), desc2: plata(CFG.desc2) };
