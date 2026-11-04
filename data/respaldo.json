@@ -1,5 +1,5 @@
 {
- "actualizado": "2026-11-04T03:00:11.168Z",
+ "actualizado": "2026-11-04T15:00:10.943Z",
  "google_estado": "ok",
  "google_ultimo_ok": "2026-11-04",
  "google": {
@@ -36,15 +36,6 @@
     "cuando": "Hace 3 semanas"
    },
    {
-    "autor": "Ennio Castillo - Email Marketing",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjU03LybA2HQrkxtw5q0nwnWLI-CdCc5qVU7AH3cNr_u-wpwQwMH=s128-c0x00000000-cc-rp-mo-ba2",
-    "perfil": "https://www.google.com/maps/contrib/112607926826846472426/reviews",
-    "rating": 5,
-    "texto": "Tremendo el acabado de la funda. El tarjetero ajusta con firmeza y es del mismo color y textura de cuero. El cargador muy rápido en la carga. Recomendable",
-    "fecha": "2026-10-07T15:18:11.489945576Z",
-    "cuando": "Hace 3 semanas"
-   },
-   {
     "autor": "Leonel Gonzalez",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXFzAm05RoC5cJaGatlXQ7UoNGIconwQVsJw6G7XWV8By7PXxyX=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/114868970455463947630/reviews",
@@ -52,11 +43,20 @@
     "texto": "La calidad de las fundas un 10, lo único que el osean Blue que pedí en la página no llegó, llegó la verde que se ve en la foto , igual me la voy a dejar porque está linda , después Andreani se demoró mucho , una semana en traer mi compra, pero eso no corre por Satine.",
     "fecha": "2026-09-30T21:38:38.151323662Z",
     "cuando": "Hace 1 mes"
+   },
+   {
+    "autor": "Katja Fekonja",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjVQeO0x0UvQKmKUjtnSltReoekrYKuAJw6vhxuwBk3_R9cKTRWE6w=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/105285223292143608338/reviews",
+    "rating": 5,
+    "texto": "Me compre la funda de cuero.\nTodo el paquete desde la caja en donde llega hasta los materiales de la funda al tacto demuestran muy buena calidad, ya quiero comprar otra.",
+    "fecha": "2026-08-26T15:17:36.131175043Z",
+    "cuando": "Hace 2 meses"
    }
   ]
  },
  "ml": {
-  "ventas": 70703,
+  "ventas": 70690,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
