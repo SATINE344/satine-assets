@@ -1,7 +1,7 @@
 {
- "actualizado": "2026-11-03T15:00:13.586Z",
+ "actualizado": "2026-11-04T03:00:11.168Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-03",
+ "google_ultimo_ok": "2026-11-04",
  "google": {
   "rating": 4.4,
   "count": 35,
@@ -9,13 +9,22 @@
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
    {
+    "autor": "marie La mejor",
+    "foto": "https://lh3.googleusercontent.com/a/ACg8ocIVnnCzzB_Sjg322jSmoXHUmmwgYXnSooxy3xH4W42my6tyxQ=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/106775795236219544561/reviews",
+    "rating": 5,
+    "texto": "Es impresionante la amé. !!!\nExcelente calidad 🫶🏻",
+    "fecha": "2026-10-26T23:23:32.070082381Z",
+    "cuando": "Hace una semana"
+   },
+   {
     "autor": "Noe",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWCSBYucM9j4dsPjjyOFEC_fUnPKDXyqTYkRNq32UVWgMIB2cE=s128-c0x00000000-cc-rp-mo-ba3",
     "perfil": "https://www.google.com/maps/contrib/113221970106395925144/reviews",
     "rating": 1,
     "texto": "Un desastre, les reclamas lo que pagaste, que porque no llega a tiempo o porque te venden lo que no es , y cuando les hablas , ya no tienen WhatsApp, segundo me bloquearon de Instagram, unos sinvergüenzas , maleducados!!! No les compreen nada 👎 y hoy les volví a comprar y me volvieron a mentir!!! Pedí un protector 18 pro Max y me mandan un 17 pro Max y lo taparon con una etiqueta ahora pedí la devolución del dinero!!!",
     "fecha": "2026-10-13T21:58:22.229388731Z",
-    "cuando": "Hace 2 semanas"
+    "cuando": "Hace 3 semanas"
    },
    {
     "autor": "Carla Pachado",
@@ -24,7 +33,7 @@
     "rating": 5,
     "texto": "Muy linda la calidad de las fundas y variedad de colores, volveria a comprar",
     "fecha": "2026-10-13T17:08:28.857978588Z",
-    "cuando": "Hace 2 semanas"
+    "cuando": "Hace 3 semanas"
    },
    {
     "autor": "Ennio Castillo - Email Marketing",
@@ -43,20 +52,11 @@
     "texto": "La calidad de las fundas un 10, lo único que el osean Blue que pedí en la página no llegó, llegó la verde que se ve en la foto , igual me la voy a dejar porque está linda , después Andreani se demoró mucho , una semana en traer mi compra, pero eso no corre por Satine.",
     "fecha": "2026-09-30T21:38:38.151323662Z",
     "cuando": "Hace 1 mes"
-   },
-   {
-    "autor": "Katja Fekonja",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjVQeO0x0UvQKmKUjtnSltReoekrYKuAJw6vhxuwBk3_R9cKTRWE6w=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/105285223292143608338/reviews",
-    "rating": 5,
-    "texto": "Me compre la funda de cuero.\nTodo el paquete desde la caja en donde llega hasta los materiales de la funda al tacto demuestran muy buena calidad, ya quiero comprar otra.",
-    "fecha": "2026-08-26T15:17:36.131175043Z",
-    "cuando": "Hace 2 meses"
    }
   ]
  },
  "ml": {
-  "ventas": 70307,
+  "ventas": 70703,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
