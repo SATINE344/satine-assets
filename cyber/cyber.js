@@ -727,9 +727,11 @@
       var ids = r.alcance && r.alcance.productos_resueltos;
       if (r.etiqueta && ids && ids.indexOf(+pid) >= 0 && (+r.etiqueta_peso || 0) > peso) { mejor = r.etiqueta; peso = +r.etiqueta_peso || 0; }
     });
-    var o = String(txt).replace(/\{etiqueta\}/g, mejor || '').replace(/\{fin\}/g, c.hasta ? esteFinAR(c.hasta) : '');
-    if (!mejor) o = o.replace(/\s*(?:[\u00b7|]|\s[-\u2013]\s)\s*(?=(?:[\u00b7|]|\s[-\u2013]\s)|$)/g, '').replace(/^\s*(?:[\u00b7|]|[-\u2013]\s)\s*/, '');
-    if (!mejor) o = o.replace(/([:\u00b7|])\s*[\u00b7|]\s*/g, '$1 ');
+    var o = String(txt);
+    if (!c.hasta) o = o.replace(/\s*(?:,\s*)?(?:hasta\s+(?:el\s+)?)?\{fin\}\.?/gi, '');   /* sin fecha de fin se va la frase entera: no queda 'hasta .' */
+    o = o.replace(/\{etiqueta\}/g, mejor || '').replace(/\{fin\}/g, c.hasta ? esteFinAR(c.hasta) : '');
+    if (!mejor || !c.hasta) o = o.replace(/\s*(?:[\u00b7|]|\s[-\u2013]\s)\s*(?=(?:[\u00b7|]|\s[-\u2013]\s)|$)/g, ' ').replace(/^\s*(?:[\u00b7|]|[-\u2013]\s)\s*/, '')
+      .replace(/([:\u00b7|])\s*[\u00b7|]\s*/g, '$1 ');
     return o.replace(/\s{2,}/g, ' ').trim();
   }
   function esteTiempo(hasta) {
@@ -853,8 +855,9 @@
       if (!dentro) return false;
       var fo = q('form#product_form'), pr = q('.js-price-display') || fo;
       var col = (e.paleta && e.paleta[e.acento]) || { fondo: '#34211b', texto: '#f5f0e5' };
-      if (fi.texto && pr && pr.parentNode) {
-        var l = esteEl('div', 'sc-est-ficha', esteMarcas(fi.texto, c, pid)); l.setAttribute('data-sc-est', '1'); l.style.background = col.fondo; l.style.color = col.texto;
+      var fiTx = fi.texto ? esteMarcas(fi.texto, c, pid) : '';   /* si las marcas lo dejan vacio, no se pinta una franja vacia */
+      if (fiTx && pr && pr.parentNode) {
+        var l = esteEl('div', 'sc-est-ficha', fiTx); l.setAttribute('data-sc-est', '1'); l.style.background = col.fondo; l.style.color = col.texto;
         var ancla = fo && fo.parentNode ? fo : pr; ancla.parentNode.insertBefore(l, ancla);
       }
       return true;
@@ -900,8 +903,8 @@
       if (obs) { obs.disconnect(); obs = null; }
       document.removeEventListener('DOMContentLoaded', forzar);
       if (!esteCachePend) return;   /* el fetch llego antes y ya decidio */
-      esteCachePend = false; esteSig = sig;
-      try { estePintar(camps); } catch (e) { try { esteLimpiar(); } catch (_) {} }
+      esteCachePend = false;
+      try { estePintar(camps); esteSig = sig; } catch (e) { try { esteLimpiar(); } catch (_) {} }
     };
     var forzar = function () { pintar(); };
     try {
@@ -914,6 +917,7 @@
   function esteAplicar(d, deVista) {
     try {
       if (estePrev && deVista !== true) return;   /* en vista previa manda la promocion pedida, no la activa */
+      if (!d || typeof d !== 'object' || !('campana' in d)) return;   /* respuesta rara o HTTP con error: se conserva lo ultimo bueno */
       esteCachePend = false;   /* llego el contrato: manda el fetch, no la cache */
       var camps = ((d && typeof d === 'object') ? esteCampanas(d) : []).map(esteMin);
       if (d && typeof d === 'object' && 'campana' in d) esteGuardar(camps);   /* campana null o sin estetica: se borra */
@@ -1031,7 +1035,7 @@
     document.documentElement.removeAttribute('data-satine-cyber');
   }
 
-  esteDesdeCache();   /* 1.10: estetica desde la cache chica, lo antes posible */
+  try { esteDesdeCache(); } catch (e) {}   /* 1.10: estetica desde la cache chica, lo antes posible */
   aplicarContrato(leerContratoGuardado());   /* lo ultimo que dijo el ERP, para arrancar sin esperar la red */
   armarTextos();
   sincronizarContrato();
