@@ -861,11 +861,63 @@
     });
   }
   var estePrev = /[?&]satine_preview=/.test(location.search);
+  /* cache chica SOLO de la estetica (sessionStorage, clave sc_est_v1): lo minimo para pintar de entrada y no empujar la pagina cuando llega el fetch.
+     No toca la cache del objeto Cyber (localStorage satineOfertas). Con vista previa no se lee ni se escribe. */
+  var EST_CLAVE = 'sc_est_v1', esteCachePend = false;
+  function esteMin(c) {   /* solo lo que usa estePintar */
+    return { slug: c.slug, estado: c.estado, desde: c.desde, hasta: c.hasta, visual: { estetica: c.visual.estetica },
+      reglas: (c.reglas || []).filter(function (r) { var ids = r && r.alcance && r.alcance.productos_resueltos; return ids && ids.length; })
+        .map(function (r) { return { etiqueta: r.etiqueta, etiqueta_peso: r.etiqueta_peso, alcance: { productos_resueltos: r.alcance.productos_resueltos } }; }) };
+  }
+  function esteSigDe(camps) { return JSON.stringify(camps.map(function (c) { return [c.slug, c.visual.estetica, c.hasta, c.reglas.map(function (r) { return [r.etiqueta, r.etiqueta_peso, r.alcance.productos_resueltos]; })]; })); }
+  function esteGuardar(camps) {
+    if (estePrev) return;
+    try { if (camps.length) sessionStorage.setItem(EST_CLAVE, JSON.stringify({ v: 1, t: Date.now(), c: camps })); else sessionStorage.removeItem(EST_CLAVE); } catch (e) {}
+  }
+  function esteLeerCache() {
+    if (estePrev) return null;
+    try {
+      var j = JSON.parse(sessionStorage.getItem(EST_CLAVE) || 'null'), ahora = Date.now();
+      if (!j || j.v !== 1 || !(ahora - j.t < 600e3) || !j.c || !j.c.length) return null;
+      var l = j.c.filter(function (c) {
+        return c && c.visual && c.visual.estetica && c.visual.estetica.activa === true && c.reglas
+          && !(c.desde && ahora < new Date(c.desde).getTime()) && !(c.hasta && ahora >= new Date(c.hasta).getTime());
+      });
+      return l.length ? l : null;
+    } catch (e) { return null; }
+  }
+  function esteDesdeCache() {
+    var camps = esteLeerCache(); if (!camps) return;
+    var sig = esteSigDe(camps), fin = false, obs = null;
+    esteCachePend = true;
+    var listo = function () {
+      if (!esteCachePend || fin || !document.body) return false;
+      var pid = window.LS && LS.product && LS.product.id;
+      return !!(q('section.js-adbar') && (q('.js-product-table') || q('#category-page') || q('main')) && (!pid || q('form#product_form')));
+    };
+    var pintar = function () {
+      if (fin) return; fin = true;
+      if (obs) { obs.disconnect(); obs = null; }
+      document.removeEventListener('DOMContentLoaded', forzar);
+      if (!esteCachePend) return;   /* el fetch llego antes y ya decidio */
+      esteCachePend = false; esteSig = sig;
+      try { estePintar(camps); } catch (e) { try { esteLimpiar(); } catch (_) {} }
+    };
+    var forzar = function () { pintar(); };
+    try {
+      if (listo()) { pintar(); return; }
+      if (document.readyState !== 'loading') { pintar(); return; }
+      document.addEventListener('DOMContentLoaded', forzar);
+      if (typeof MutationObserver === 'function') { obs = new MutationObserver(function () { if (listo()) pintar(); }); obs.observe(document.documentElement, { childList: true, subtree: true }); }
+    } catch (e) {}
+  }
   function esteAplicar(d, deVista) {
     try {
       if (estePrev && deVista !== true) return;   /* en vista previa manda la promocion pedida, no la activa */
-      var camps = (d && typeof d === 'object') ? esteCampanas(d) : [];
-      var sig = JSON.stringify(camps.map(function (c) { return [c.slug, c.visual.estetica, c.hasta, c.reglas && c.reglas.map(function (r) { return [r.etiqueta, r.etiqueta_peso, r.alcance && r.alcance.productos_resueltos]; })]; }));
+      esteCachePend = false;   /* llego el contrato: manda el fetch, no la cache */
+      var camps = ((d && typeof d === 'object') ? esteCampanas(d) : []).map(esteMin);
+      if (d && typeof d === 'object' && 'campana' in d) esteGuardar(camps);   /* campana null o sin estetica: se borra */
+      var sig = esteSigDe(camps);
       if (sig === esteSig) return;
       esteSig = sig;
       var go = function () { try { estePintar(camps); esteSig = sig; } catch (e) { try { esteLimpiar(); } catch (_) {} } };
@@ -979,6 +1031,7 @@
     document.documentElement.removeAttribute('data-satine-cyber');
   }
 
+  esteDesdeCache();   /* 1.10: estetica desde la cache chica, lo antes posible */
   aplicarContrato(leerContratoGuardado());   /* lo ultimo que dijo el ERP, para arrancar sin esperar la red */
   armarTextos();
   sincronizarContrato();
