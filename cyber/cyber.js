@@ -849,7 +849,7 @@
     OF_VARS.forEach(function (v) { H.style.removeProperty('--' + v); });
     if (!H.getAttribute('style')) H.removeAttribute('style');
     if (H.getAttribute('class') === '') H.removeAttribute('class');
-    qa('.sc-of-card').forEach(function (n) { n.classList.remove('sc-of-card'); if (n.getAttribute('class') === '') n.removeAttribute('class'); });
+    qa('.sc-of-card,.sc-of-fr').forEach(function (n) { n.classList.remove('sc-of-card'); n.classList.remove('sc-of-fr'); if (n.getAttribute('class') === '') n.removeAttribute('class'); });
     esteSig = '';
   }
   function esteFinAR(hasta) {   /* "dom 16/11" en hora Argentina; si cae a las 00:00 AR, el dia anterior (igual que textoFinAR del ERP) */
@@ -991,7 +991,8 @@
       'html.scm-b .sat-tk-of::before,html.scm-b .sat-tk-of::after{background:none!important}',
       'html.scm-b .sat-tk-of,html.scm-b .sat-tk-of *{color:var(--of-tx)!important;stroke:var(--of-tx)}',
       'html.scm-b #nav-hamburger a.rowl.of{color:var(--of-ink)!important;font-weight:700!important}',
-      'html.scm-b body .js-item-product.sc-of-card{border:1.5px solid rgba(var(--of-rgb),.7)!important;box-sizing:border-box}',
+      'html.scm-b body .sc-of-fr{position:relative}',
+      'html.scm-b body .sc-of-fr::after{content:"";position:absolute;inset:0;border:1.5px solid rgba(var(--of-rgb),.7);border-radius:inherit;pointer-events:none;z-index:1000;box-sizing:border-box}',
       'html.scm-b .js-item-product.sc-of-card .js-item-description.item-description::after{background:var(--of)!important}',
       /* total: la pagina entera toma un tinte del color */
       'html.scm-c{background-color:var(--of-fondo)!important}',
@@ -1180,6 +1181,8 @@
           }
           if (!rg) return;
           if (!it.classList.contains('sc-of-card')) it.classList.add('sc-of-card');
+          var pc = it.querySelector('.js-product-container'), fr = pc && parseFloat(getComputedStyle(pc).borderTopLeftRadius) > 0 ? pc : it;
+          if (!fr.classList.contains('sc-of-fr')) fr.classList.add('sc-of-fr');
           ponerLinea(it, rg);
         });
         fichaAhorro(); pestana(); menuChip(); carroPintar();
