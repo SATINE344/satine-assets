@@ -729,6 +729,7 @@
       var o = {};
       if (!txt) { o.c = { r: asp.c }; o.p = { r: asp.p }; return o; }
       if (previo && previo[otra] && previo[otra].h > 0) o[otra] = { h: previo[otra].h };
+      if (previo && previo[k] && previo[k].h > 0) o[k] = { h: previo[k].h };   /* en una pagina donde este banner no esta, se conserva lo medido antes */
       if (medida > 0) o[k] = { h: medida };
       return o;
     };
@@ -766,7 +767,7 @@
   }
   function esteEl(tag, cls, txt) { var n = document.createElement(tag); if (cls) n.className = cls; if (txt) n.textContent = txt; return n; }
   function esteSeguro(u) { return typeof u === 'string' && (/^\/(?![\/\\])[^\\\s\x00-\x1f]*$/.test(u) || /^https:\/\/(www\.)?satinecases\.com(\/|$)/i.test(u)) ? u : ''; }
-  function esteImg(u) { return typeof u === 'string' && /^https:\/\//i.test(u) ? u : ''; }
+  function esteImg(u) { return typeof u === 'string' && /^https:\/\/[^\s,]+$/i.test(u) ? u : ''; }   /* https y sin espacios ni comas (srcset las toma como otro candidato) */
   function esteCampanas(d) {
     var l = [], ahora = Date.now();
     try {
@@ -960,6 +961,10 @@
           if (htx.childNodes.length) hel.appendChild(htx);
         } else { hel.style.background = hcol.fondo; hel.style.color = hcol.texto; hel.appendChild(htx); }
         hero.parentNode.insertBefore(hel, hero.nextSibling);
+        try {   /* fetchpriority=high solo si la foto arranca dentro de la primera pantalla; si no, compite con la foto del hero (LCP) */
+          var himg = q('img', hel);
+          if (himg && hel.getBoundingClientRect().top > (window.innerHeight || 800) * 0.9) { himg.removeAttribute('fetchpriority'); himg.setAttribute('loading', 'lazy'); }
+        } catch (e) {}
         if (!(hm.im.pc || hm.im.cel)) medidas.push({ k: 'home', h: Math.round(hel.getBoundingClientRect().height + (parseFloat(getComputedStyle(hel).marginBottom) || 0)) });
       }
     }
