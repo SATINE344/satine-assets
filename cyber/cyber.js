@@ -1,4 +1,5 @@
-/* 1.12.1 (10/11/2026): pulido de la estetica de promociones: la barra va ADENTRO de la capsula de la franja (redondeada y unida al menu, con la letra de la franja); el banner de portada se separa del hero; el banner de categoria se alinea con las cards (antes tocaba los bordes de la pantalla).
+/* 1.13.0 (10/11/2026): MODO OFERTA. La estetica de promociones gana intensidad (sobrio / destacado / total), acabado (liso / onda con cuero y grano), color a medida (paleta.medida), linea de ahorro en las cards con el precio real y la regla, bloque de ahorro en la ficha, pestana en la barra fija, tile y menu de Ofertas y avisos en el carrito (chips por producto y aviso de la promocion, sin numeros inventados). Sin promocion activa no queda ni un nodo, clase ni variable.
+   1.12.1 (10/11/2026): pulido de la estetica de promociones: la barra va ADENTRO de la capsula de la franja (redondeada y unida al menu, con la letra de la franja); el banner de portada se separa del hero; el banner de categoria se alinea con las cards (antes tocaba los bordes de la pantalla).
    1.12.0 (10/11/2026): (1) guardia PARA SIEMPRE «sin descuento»: si el cartel de oferta dice 0% o el precio tachado no es mayor que el precio, no se muestran (Tienda Nube los des-oculta con una promocion del panel prendida). (2) El acento de la promocion llega a todo: linea «-X% en combo», carteles nativos de oferta/promocion, precio SOLO si esta rebajado de verdad (antes pintaba todos los precios del sitio) y banner de portada sin imagen. */
 /* 1.11.0 (09/11/2026): banners de portada (estetica.home) y de ficha (estetica.ficha.banner) + registro de reserva sc_est_reserva en localStorage para que el head del theme
    reserve el hueco antes del primer pintado (sin salto de pagina). Con la estetica apagada no hace nada nuevo. Ver seccion 1.11 mas abajo.
@@ -23,7 +24,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.12.1',
+    version: '1.13.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -784,6 +785,56 @@
     } catch (e) { return []; }
     return l;
   }
+  /* ---------- 1.13: modo oferta (tonos calculados en JS, mecanica de la regla, linea de ahorro) ----------
+     Sin color-mix() ni :has() (iOS 15): los tonos se mezclan aca y se pasan como variables CSS al elemento que los usa. */
+  var OF_VARS = ['of', 'of-tx', 'of-osc', 'of-cla', 'of-ink', 'of-t10', 'of-t18', 'of-rgb', 'of-osc-rgb', 'of-tx-rgb', 'of-fondo'];
+  var OF_CLASES = ['scm', 'scm-b', 'scm-c', 'scm-liso'];
+  var OF_CUERO = 'radial-gradient(130% 100% at 8% -10%,rgba(255,215,185,.34),rgba(255,215,185,0) 52%),radial-gradient(90% 90% at 105% 112%,rgba(20,4,2,.42),rgba(20,4,2,0) 60%),linear-gradient(135deg,var(--of-osc) 0%,var(--of) 55%,var(--of-cla) 100%)';
+  var OF_PILDORA = 'linear-gradient(135deg,var(--of-osc),var(--of) 50%,var(--of-cla))';
+  var OF_GRANO = 'url("data:image/svg+xml;utf8,<svg xmlns=\'http://www.w3.org/2000/svg\' width=\'160\' height=\'160\'><filter id=\'n\'><feTurbulence type=\'fractalNoise\' baseFrequency=\'.9\' numOctaves=\'2\' stitchTiles=\'stitch\'/><feColorMatrix values=\'0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 .55 0\'/></filter><rect width=\'100%25\' height=\'100%25\' filter=\'url(%23n)\'/></svg>")';
+  var ofCache = {};
+  function mezHex(a, b, t) {   /* t = parte de a (0..1) */
+    var A = esteRgb(a).split(','), B = esteRgb(b).split(','), o = '#', i, v;
+    for (i = 0; i < 3; i++) { v = Math.round(A[i] * t + B[i] * (1 - t)); o += ('0' + Math.max(0, Math.min(255, v)).toString(16)).slice(-2); }
+    return o;
+  }
+  function ofTonos(col) {   /* {fondo, texto} -> todos los tonos que usa el CSS del modo oferta. Color invalido: rojo SATINE. */
+    var f = col && esteHex(col.fondo) ? col.fondo : '#c0392b', x = col && esteHex(col.texto) ? col.texto : '#ffffff', k = f + x;
+    if (ofCache[k]) return ofCache[k];
+    var cl = esteClaro(f), p = esteRgb(f).split(','), rojo = +p[0] > 1.3 * +p[1] && +p[0] > 1.3 * +p[2];
+    var t = { of: f, tx: x, osc: cl ? mezHex(f, '#7a4a08', .8) : mezHex(f, '#140402', .58), cla: cl ? mezHex(f, '#fff3cf', .7) : mezHex(f, rojo ? '#ffb89a' : '#ffffff', rojo ? .78 : .8),
+      ink: cl ? mezHex(f, '#34211b', .62) : mezHex(f, '#000000', .85), t10: mezHex(f, '#ffffff', .1), t18: mezHex('#ffffff', f, .82), fondo: mezHex('#E8E6E3', f, .78) };
+    t.rgb = esteRgb(t.of); t.oscRgb = esteRgb(t.osc); t.txRgb = esteRgb(x);
+    ofCache[k] = t; return t;
+  }
+  function ofPonerVars(n, t, global) {
+    var s = n.style;
+    s.setProperty('--of', t.of); s.setProperty('--of-tx', t.tx); s.setProperty('--of-osc', t.osc); s.setProperty('--of-cla', t.cla); s.setProperty('--of-ink', t.ink);
+    s.setProperty('--of-t10', t.t10); s.setProperty('--of-t18', t.t18); s.setProperty('--of-rgb', t.rgb); s.setProperty('--of-osc-rgb', t.oscRgb); s.setProperty('--of-tx-rgb', t.txRgb);
+    if (global) s.setProperty('--of-fondo', t.fondo);
+  }
+  function ofMec(r) {   /* que hace la regla: 2.a unidad con % ('seg'), NxM ('nxm') o cualquier otra cosa ('otro': sin linea de ahorro) */
+    if (!r) return { k: 'otro' };
+    var et = String(r.etiqueta || ''), c = r.condicion || {}, tiers = (c.tiers || []).slice().sort(function (a, b) { return a.minimo - b.minimo; });
+    if (/2\.?\s*ª?\s*unidad/i.test(et)) {
+      var pct = r.tipo === 'progresivo' && tiers.length && +tiers[0].minimo === 2 && +tiers[0].pct > 0 ? +tiers[0].pct : 0;
+      if (!pct) { var m = et.match(/(\d{1,2})(?:[.,]\d+)?\s*%/); pct = m ? +m[1] : 0; }
+      if (pct > 0 && pct < 100) return { k: 'seg', pct: pct, n: 2 };
+    }
+    if (r.tipo === 'nxm' && +c.lleva > +c.paga && +c.paga > 0) return { k: 'nxm', l: +c.lleva, p: +c.paga, n: +c.lleva };
+    return { k: 'otro' };
+  }
+  function ofLinea(mec, p) {   /* texto de ahorro con el precio REAL: solo si la regla lo permite; si no, null (nunca un 0 % ni un numero inventado) */
+    if (!mec || !(p > 0)) return null;
+    if (mec.k === 'seg') {
+      var s = Math.round(p * (1 - mec.pct / 100)); if (!(s > 0 && s < p)) return null;
+      return { pre: '2.ª unidad a ', b: plata(s), ficha: 'Llevando 2 ahorrás ' + plata(p - s) + ': la 2.ª unidad queda a ' + plata(s) + '.' };
+    }
+    if (mec.k === 'nxm') {
+      var t = p * mec.p; return { pre: 'Llevás ' + mec.l + ' y pagás ', b: plata(t), ficha: 'Llevando ' + mec.l + ' pagás ' + plata(t) + ': ahorrás ' + plata(p * (mec.l - mec.p)) + '.' };
+    }
+    return null;
+  }
   function esteLimpiar() {
     if (esteObs) { esteObs.disconnect(); esteObs = null; }
     if (esteCuentaTimer) { clearInterval(esteCuentaTimer); esteCuentaTimer = null; }
@@ -793,6 +844,12 @@
     qa('[data-sc-est-pos]').forEach(function (n) { n.style.position = ''; n.removeAttribute('data-sc-est-pos'); });
     var e = document.getElementById('sc-est-css'); if (e && e.parentNode) e.parentNode.removeChild(e);
     document.documentElement.removeAttribute('data-sc-est');
+    var H = document.documentElement;   /* 1.13: clases y variables del modo oferta, y las clases que se le pusieron a cards del theme */
+    OF_CLASES.forEach(function (c) { H.classList.remove(c); });
+    OF_VARS.forEach(function (v) { H.style.removeProperty('--' + v); });
+    if (!H.getAttribute('style')) H.removeAttribute('style');
+    if (H.getAttribute('class') === '') H.removeAttribute('class');
+    qa('.sc-of-card').forEach(function (n) { n.classList.remove('sc-of-card'); if (n.getAttribute('class') === '') n.removeAttribute('class'); });
     esteSig = '';
   }
   function esteFinAR(hasta) {   /* "dom 16/11" en hora Argentina; si cae a las 00:00 AR, el dia anterior (igual que textoFinAR del ERP) */
@@ -834,6 +891,14 @@
     var medidas = [];
     var pri = camps[0], E0 = pri.visual.estetica, P = E0.paleta || {}, css = [];
     document.documentElement.setAttribute('data-sc-est', '1');
+    /* 1.13: intensidad, acabado y color base salen de la primera campana con acento valido (si no hay: rojo SATINE, destacado, onda) */
+    var base = null;
+    camps.some(function (c) { var E = c.visual.estetica, a = E.acento && E.paleta && E.paleta[E.acento]; if (a && esteHex(a.fondo) && esteHex(a.texto)) { base = { E: E, col: a }; return true; } return false; });
+    if (!base) base = { E: E0, col: { fondo: '#c0392b', texto: '#ffffff' } };
+    var niv = base.E.intensidad === 'sobrio' || base.E.intensidad === 'total' ? base.E.intensidad : 'destacado', liso = base.E.acabado === 'liso';
+    var Hh = document.documentElement; Hh.classList.add('scm'); if (niv !== 'sobrio') Hh.classList.add('scm-b'); if (niv === 'total') Hh.classList.add('scm-c'); if (liso) Hh.classList.add('scm-liso');
+    ofPonerVars(Hh, ofTonos(base.col), true);
+    var pid = window.LS && LS.product && LS.product.id;
     /* acento: el de la primera campana que lo define */
     camps.some(function (c) {
       var k = c.visual.estetica.acento, a = k && c.visual.estetica.paleta && c.visual.estetica.paleta[k];
@@ -880,6 +945,60 @@
       '.sc-est-fbn{display:block;margin:12px 0 0;border-radius:12px;overflow:hidden;text-decoration:none;aspect-ratio:4/1;background:rgba(0,0,0,.04)}@media(min-width:768px){.sc-est-fbn{aspect-ratio:5/1}}',
       '.sc-est-fbn picture,.sc-est-fbn img{display:block;width:100%;height:100%;object-fit:cover}'
     );
+    /* 1.13: modo oferta. Todo cuelga de html.scm (lo pone esta funcion) y se va con esteLimpiar. Los tonos llegan como variables (--of, --of-osc, ...) puestas en cada pieza con SU color. */
+    var O = 'html.scm:not(.scm-liso) ', FJ = '"Plus Jakarta Sans",system-ui,sans-serif', AM = '"Arca Majora 3","Arca Majora",system-ui,sans-serif';
+    css.push(
+      /* comun a los dos acabados: estructura, linea de ahorro, avisos, fichas chicas */
+      'html.scm .sc-est-ficha{display:flex;align-items:center;gap:10px;padding:12px 14px;border-radius:14px;position:relative;isolation:isolate;overflow:hidden}',
+      'html.scm .sc-est-ficha::before{content:"%";flex:none;width:26px;height:26px;border-radius:50%;background:rgba(var(--of-tx-rgb),.2);display:grid;place-items:center;font:700 13px/1 system-ui,sans-serif;position:relative;z-index:1}',
+      'html.scm .sc-est-ficha>span{position:relative;z-index:1;display:flex;flex-direction:column;gap:2px}',
+      'html.scm .sc-est-ficha>span small{font:500 12px/1.3 ' + FJ + ';opacity:.92}',
+      'html.scm .sc-est-linea{font:600 12px/1.3 ' + FJ + ';color:var(--of-ink);margin:5px 0 0}',
+      'html.scm .sc-est-linea b{font-weight:800}',
+      'html.scm .sc-of-carro{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:10px;margin:12px 0 6px;padding:12px 14px;border-radius:16px;background:var(--of);color:var(--of-tx);font-family:' + FJ + ';text-align:left}',
+      'html.scm .sc-of-carro>i{flex:none;width:28px;height:28px;border-radius:50%;background:rgba(var(--of-tx-rgb),.2);display:grid;place-items:center;font:700 13px/1 system-ui,sans-serif;font-style:normal}',
+      'html.scm .sc-of-carro>span{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px;position:relative;z-index:1}',
+      'html.scm .sc-of-carro b{font:700 13.5px/1.25 ' + FJ + ';color:inherit}',
+      'html.scm .sc-of-carro small{font:500 11.5px/1.3 ' + FJ + ';opacity:.9;color:inherit}',
+      'html.scm .sc-of-carro em{display:block;height:4px;border-radius:99px;background:rgba(var(--of-tx-rgb),.25);margin-top:6px;overflow:hidden}',
+      'html.scm .sc-of-carro em u{display:block;height:100%;border-radius:99px;background:var(--of-tx);transition:width .3s}',
+      'html.scm .sc-of-carro .sc-of-mas{flex:none;position:relative;z-index:1;background:var(--of-tx);color:var(--of)!important;font:700 12px/1 ' + FJ + ';padding:9px 13px;border-radius:999px;text-decoration:none}',
+      'html.scm .sc-of-tag{display:inline-block;margin-top:5px;font:700 10.5px/1 ' + FJ + ';letter-spacing:.02em;color:var(--of-ink);background:var(--of-t10);padding:4px 8px;border-radius:999px}',
+      'html.scm .sc-of-chip{margin-left:auto;margin-right:8px;font:700 10.5px/1 ' + FJ + ';color:var(--of-tx);background:var(--of);padding:5px 9px;border-radius:999px;white-space:nowrap}',
+      'html.scm #nav-hamburger a.rowl.of .sc-of-chip+*{margin-left:0!important}',
+      'html.scm .sc-of-pest{position:absolute;left:18px;bottom:100%;font:700 10.5px/1 ' + FJ + ';color:var(--of-tx);background:var(--of);padding:6px 10px 5px;border-radius:10px 10px 0 0;white-space:nowrap}',
+      /* onda: cuero + grano + % gigante */
+      O + '.sc-est-barra{background:linear-gradient(90deg,var(--of-osc),var(--of) 32%,var(--of-cla) 50%,var(--of) 68%,var(--of-osc))!important;color:var(--of-tx)!important}',
+      O + '.sc-est-home:not(.sc-est-home-img),' + O + '.sc-est-banner:not(.sc-est-banner-img),' + O + '.sc-est-ficha{background:' + OF_CUERO + '!important;color:var(--of-tx)!important;position:relative;overflow:hidden;isolation:isolate}',
+      O + '.sc-est-home:not(.sc-est-home-img)::before,' + O + '.sc-est-banner:not(.sc-est-banner-img)::before,' + O + '.sc-est-ficha::after,' + O + '.sc-of-carro::after{content:"";position:absolute;top:0;right:0;bottom:0;left:0;background:' + OF_GRANO + ';opacity:.3;mix-blend-mode:overlay;pointer-events:none;z-index:0}',
+      O + '.sc-est-home:not(.sc-est-home-img)::after,' + O + '.sc-est-banner:not(.sc-est-banner-img)::after{content:"%";position:absolute;right:-14px;bottom:-66px;font:700 240px/1 ' + AM + ';color:rgba(255,255,255,.11);transform:rotate(-10deg);pointer-events:none;z-index:0}',
+      O + '.sc-est-banner:not(.sc-est-banner-img)::after{font-size:170px;bottom:-48px}',
+      O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx,' + O + '.sc-est-banner:not(.sc-est-banner-img) .sc-est-banner-txt{position:relative;z-index:1}',
+      O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx{padding:26px 22px 24px;gap:8px}',
+      O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx small{border:1px solid rgba(var(--of-tx-rgb),.5);padding:4px 10px;border-radius:999px;opacity:1;font-size:10px;letter-spacing:.14em;margin-bottom:4px}',
+      O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx b{font:700 31px/1.02 ' + AM + '!important;letter-spacing:-.01em;max-width:9.5em;text-wrap:balance}',
+      O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx span{font-size:14px;opacity:.92;max-width:15em}',
+      O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx i{margin-top:8px;box-shadow:0 8px 18px -8px rgba(var(--of-osc-rgb),.7)}',
+      O + '.sc-est-banner:not(.sc-est-banner-img) .sc-est-banner-txt b{font:700 24px/1.05 ' + AM + '!important;max-width:10em;text-wrap:balance}',
+      O + '.sc-est-ficha{box-shadow:0 10px 22px -12px rgba(var(--of-osc-rgb),.75)}',
+      O + '.sc-of-carro{background:' + OF_CUERO + ';box-shadow:0 10px 22px -12px rgba(var(--of-osc-rgb),.75)}',
+      O + '.sc-of-chip,' + O + '.sc-of-pest{background:' + OF_PILDORA + '}',
+      /* destacado y total: ambiente arriba, tile de Ofertas, menu, marco y linea de color en las cards de la promo */
+      'html.scm-b::before{content:"";position:absolute;left:0;right:0;top:0;height:560px;z-index:-1;pointer-events:none;background:radial-gradient(120% 70% at 50% 0%,rgba(var(--of-rgb),.17),rgba(var(--of-rgb),0) 74%)}',
+      'html.scm-b .sat-tk-of{border-color:transparent!important;box-shadow:0 14px 26px -14px rgba(var(--of-osc-rgb),.8)!important}',
+      'html.scm-b:not(.scm-liso) .sat-tk-of{background:' + OF_PILDORA + '!important}',
+      'html.scm-b.scm-liso .sat-tk-of{background:var(--of)!important}',
+      'html.scm-b .sat-tk-of::before,html.scm-b .sat-tk-of::after{background:none!important}',
+      'html.scm-b .sat-tk-of,html.scm-b .sat-tk-of *{color:var(--of-tx)!important;stroke:var(--of-tx)}',
+      'html.scm-b #nav-hamburger a.rowl.of{color:var(--of-ink)!important;font-weight:700!important}',
+      'html.scm-b body .js-item-product.sc-of-card{border:1.5px solid rgba(var(--of-rgb),.7)!important;box-sizing:border-box}',
+      'html.scm-b .js-item-product.sc-of-card .js-item-description.item-description::after{background:var(--of)!important}',
+      /* total: la pagina entera toma un tinte del color */
+      'html.scm-c{background-color:var(--of-fondo)!important}',
+      'html.scm-c::before{height:1200px;background:radial-gradient(130% 60% at 50% 10%,rgba(var(--of-rgb),.3),rgba(var(--of-rgb),0) 75%)}',
+      'html.scm-c .js-item-product.sc-of-card .js-item-description.item-description{background:linear-gradient(#fff 0,var(--of-t18) 100%)!important}',
+      '@media (prefers-reduced-motion:reduce){html.scm .sc-of-carro em u{transition:none}}'
+    );
     var st = esteEl('style'); st.id = 'sc-est-css'; st.setAttribute('data-sc-est', '1'); st.textContent = css.join('\n'); document.head.appendChild(st);
 
     /* barra: encima de la franja existente (sin mover nada de la pagina) */
@@ -890,7 +1009,7 @@
       /* 1.12.1: la barra va ADENTRO de la capsula de la franja (misma forma redondeada, unida al menu) y con la letra de la franja; antes cubria todo el ancho con esquinas rectas y rompia la capsula flotante */
       var host = q('.container-fluid', ad) || ad, msj = q('.satine-adbar-message,.adbar-message', ad);
       if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-sc-est-pos', '1'); }
-      var b = esteEl('div', 'sc-est-barra'); b.setAttribute('data-sc-est', '1'); b.style.background = col.fondo; b.style.setProperty('color', col.texto, 'important');   /* 1.12.1: con important: una regla del theme pisaba el color y el dorado salia con letra clara */
+      var b = esteEl('div', 'sc-est-barra'); b.setAttribute('data-sc-est', '1'); b.style.background = col.fondo; b.style.setProperty('color', col.texto, 'important'); ofPonerVars(b, ofTonos(col));   /* 1.12.1: con important: una regla del theme pisaba el color y el dorado salia con letra clara */
       if (msj) { try { var mcs = getComputedStyle(msj); b.style.fontFamily = mcs.fontFamily; b.style.fontSize = mcs.fontSize; b.style.letterSpacing = mcs.letterSpacing; b.style.textTransform = mcs.textTransform; } catch (e) {} }
       var dest = esteSeguro(e.barra.destino), cont = esteEl(dest ? 'a' : 'div'); if (dest) cont.href = dest;
       cont.appendChild(esteEl('span', '', e.barra.mensaje));
@@ -910,32 +1029,156 @@
     });
 
     /* etiquetas en las fotos: una por producto, gana el mayor descuento */
-    var mapa = {};
+    var mapa = {}, reg = {};   /* reg (1.13): producto -> regla que gana (con o sin etiqueta en la foto): de ahi salen marco, linea de ahorro, pestana y avisos del carrito */
     camps.forEach(function (c) {
-      var e = c.visual.estetica; if (!(e.etiqueta && e.etiqueta.activa)) return;
+      var e = c.visual.estetica;
       (c.reglas || []).forEach(function (r) {
-        var txt = (e.etiqueta.texto || r.etiqueta || '').slice(0, 24); if (!txt) return;
         var peso = +r.etiqueta_peso || 0, ids = r.alcance && r.alcance.productos_resueltos;
         if (!ids || !ids.length) return;
+        var et = String(r.etiqueta || (e.etiqueta && e.etiqueta.texto) || c.nombre || '').slice(0, 40), mec = ofMec(r);
+        ids.forEach(function (id) { if (!reg[id] || reg[id].peso < peso) reg[id] = { c: c, r: r, peso: peso, et: et, mec: mec }; });
+        if (!(e.etiqueta && e.etiqueta.activa)) return;
+        var txt = (e.etiqueta.texto || r.etiqueta || '').slice(0, 24); if (!txt) return;
         var col = (e.acento && e.paleta && e.paleta[e.acento]) || (e.paleta && e.paleta.rojo) || { fondo: '#c0392b', texto: '#fff' };
         ids.forEach(function (id) { if (!mapa[id] || mapa[id].peso < peso) mapa[id] = { txt: txt, peso: peso, col: col }; });
       });
     });
-    var hayEt = false; for (var k0 in mapa) { hayEt = true; break; }
+    var hayReg = false, etMenu = '', pesoMenu = -1; for (var k0 in reg) { hayReg = true; if (reg[k0].et && reg[k0].peso > pesoMenu) { pesoMenu = reg[k0].peso; etMenu = reg[k0].et; } }
+    etMenu = etMenu.slice(0, 26);
+    var ponerLinea = function (it, rg) {   /* linea de ahorro de la card: justo despues del precio, antes de transferencia y cuotas */
+      var pr = q('.js-price-display', it); if (!pr) return;
+      var precio = numero(txt(pr)), ln = ofLinea(rg.mec, precio), ex = q('.sc-est-linea', it);
+      if (!ln) { if (ex && ex.parentNode) ex.parentNode.removeChild(ex); return; }
+      if (ex) { if (ex.getAttribute('data-p') === String(precio)) return; while (ex.firstChild) ex.removeChild(ex.firstChild); }
+      var l = ex || esteEl('div', 'sc-est-linea');
+      l.setAttribute('data-sc-est', '1'); l.setAttribute('data-p', String(precio));
+      l.appendChild(document.createTextNode(ln.pre)); l.appendChild(esteEl('b', '', ln.b));
+      if (!ex) pr.insertAdjacentElement('afterend', l);
+    };
+    var fichaAhorro = function () {   /* ficha: el ahorro concreto, con el precio de la ficha en este momento (cambia con la variante) */
+      if (!pid) return;
+      var l = q('.sc-est-ficha'), m = reg[pid]; if (!l || !m) return;
+      var sp = l.firstChild, pr = q('#price_display') || q('.js-price-display'), ln = ofLinea(m.mec, pr ? numero(txt(pr)) : 0), sm = q('small', l);
+      if (!ln) { if (sm && sm.parentNode) sm.parentNode.removeChild(sm); return; }
+      if (!sm) { sm = esteEl('small'); if (sp && sp.nodeType === 1) sp.appendChild(sm); else l.appendChild(sm); }
+      if (sm.textContent !== ln.ficha) sm.textContent = ln.ficha;
+    };
+    var pestana = function () {   /* barra fija de compra: pestana con la promo, solo si el producto de la ficha esta en ella */
+      var st = q('#satine-sticky-cta'); if (!st || !pid) return;
+      var m = reg[pid], ex = q('.sc-of-pest', st);
+      if (!m) { if (ex && ex.parentNode) ex.parentNode.removeChild(ex); return; }
+      if (ex) { if (ex.textContent !== m.et) ex.textContent = m.et; return; }
+      if (getComputedStyle(st).position === 'static') { st.style.position = 'relative'; st.setAttribute('data-sc-est-pos', '1'); }
+      var t = esteEl('span', 'sc-of-pest', m.et); t.setAttribute('data-sc-est', '1'); st.appendChild(t);
+    };
+    var menuChip = function () {   /* menu del celular: chip con la promo antes de la flechita (que es lo ultimo de la fila) */
+      var a = q('#nav-hamburger a.rowl.of'); if (!a || !etMenu) return;
+      var ch = q('.sc-of-chip', a); if (ch) { if (ch.textContent !== etMenu) ch.textContent = etMenu; return; }
+      ch = esteEl('span', 'sc-of-chip', etMenu); ch.setAttribute('data-sc-est', '1');
+      var ult = a.lastElementChild; if (ult && txt(ult).length < 3) a.insertBefore(ch, ult); else a.appendChild(ch);
+    };
+    /* carrito (cajon y pagina): chip bajo cada producto en promo y un aviso. NO se tocan cantidades, subtotales ni totales, y no se agrega fila de descuento propia. */
+    var carroOcupado = false;
+    var carroLeer = function (raiz, lista) {
+      var grupos = {}, hay = false;
+      qa('.js-cart-item', lista).forEach(function (it) {
+        var pidI = String(it.getAttribute('data-store') || '').replace(/^cart-item-/, ''), rg = reg[pidI]; if (!rg) return;
+        var inp = q('.js-cart-quantity-input', it), cant = inp ? parseInt(inp.value, 10) : 1; if (!(cant > 0)) cant = 1;
+        var sub = q('.js-cart-item-subtotal', it), unit = sub ? numero(txt(sub)) / cant : 0;
+        var g = grupos[pidI] || (grupos[pidI] = { rg: rg, cant: 0, unit: unit, items: [] });
+        g.cant += cant; g.items.push({ el: it, cant: cant }); hay = true;
+      });
+      return hay ? grupos : null;
+    };
+    var carroDescuentoReal = function (raiz) {   /* descuento que de verdad aplico el carrito (promocion de Tienda Nube); 0 si no se puede leer */
+      var e = q('.js-cart-discount[data-priceraw]', raiz) || q('.js-cart-discount[data-priceraw]'), v = e ? parseFloat(e.getAttribute('data-priceraw')) : 0;
+      if (!(v > 0)) { var f = q('.js-total-promotions-detail-row [data-priceraw]', raiz); v = f ? parseFloat(f.getAttribute('data-priceraw')) : 0; }
+      return v > 0 ? v : 0;
+    };
+    var carroPintar = function () {
+      ['#modal-cart', '#shoppingCartPage'].forEach(function (sel) {
+        var raiz = q(sel); if (!raiz) return;
+        var lista = q('.js-ajax-cart-list', raiz), grupos = lista ? carroLeer(raiz, lista) : null, previos = qa('.sc-of-carro', raiz);
+        if (!grupos) {   /* carrito vacio o sin productos de la promo: no queda nada nuestro */
+          previos.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+          qa('.sc-of-tag', raiz).forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+          return;
+        }
+        qa('.js-cart-item', lista).forEach(function (it) {
+          var pidI = String(it.getAttribute('data-store') || '').replace(/^cart-item-/, ''), rg = reg[pidI], ex = q('.sc-of-tag', it);
+          if (!rg) { if (ex && ex.parentNode) ex.parentNode.removeChild(ex); return; }
+          if (ex) { if (ex.textContent !== rg.et) ex.textContent = rg.et; return; }
+          var nm = q('.cart-item-name', it) || qa('a', it).filter(function (a) { return !a.querySelector('img') && txt(a).length > 8; })[0];
+          if (!nm || !nm.parentNode) return;
+          var tg = esteEl('span', 'sc-of-tag', rg.et); tg.setAttribute('data-sc-est', '1'); nm.insertAdjacentElement('afterend', tg);
+        });
+        /* el aviso: se arma segun lo que hay en el carrito y la regla de la promo */
+        var gs = Object.keys(grupos).map(function (k) { return grupos[k]; }), cond = gs.filter(function (g) { return g.rg.mec.n; });
+        var prim = gs[0], falta = 0, cumple = false;
+        if (cond.length) {
+          cumple = cond.some(function (g) { return g.cant >= g.rg.mec.n; });
+          if (!cumple) { prim = cond.slice().sort(function (a, b) { return b.cant / b.rg.mec.n - a.cant / a.rg.mec.n; })[0]; falta = prim.rg.mec.n - prim.cant; }
+          else prim = cond.filter(function (g) { return g.cant >= g.rg.mec.n; })[0];
+        }
+        var mec = prim.rg.mec, tit, sub = prim.rg.et, icono = '%', pasos = 0, boton = null;
+        if (cond.length && !cumple) {
+          tit = mec.k === 'seg' ? 'Sumá ' + falta + ' más y la 2.ª unidad te sale ' + mec.pct + ' % OFF' : 'Sumá ' + falta + ' más: llevás ' + mec.l + ' y pagás ' + mec.p;
+          sub = 'Promoción SATINE: ' + prim.rg.et; pasos = Math.round(prim.cant / mec.n * 100);
+          var mejor = prim.items.slice().sort(function (a, b) { return b.cant - a.cant; })[0];
+          if (mejor && q('[data-component="quantity.plus"]', mejor.el)) boton = mejor.el;
+        } else {
+          tit = 'Promoción SATINE';
+          if (cond.length && cumple) {   /* "aplicada" solo si el carrito real descuenta lo que la regla dice (mismo criterio que Cyber, +-1,5) */
+            var real = carroDescuentoReal(raiz), esp = 0;
+            cond.forEach(function (g) {
+              if (g.cant < g.rg.mec.n) return;
+              esp += g.rg.mec.k === 'seg' ? Math.floor(g.cant / 2) * g.unit * g.rg.mec.pct / 100 : Math.floor(g.cant / g.rg.mec.l) * g.unit * (g.rg.mec.l - g.rg.mec.p);
+            });
+            if (real > 0 && esp > 0 && Math.abs(real - esp) <= 1.5) { tit = 'Promoción aplicada: ahorrás ' + plata(real); icono = '✓'; }
+          }
+        }
+        var sig = [tit, sub, pasos, boton ? 1 : 0].join('|');
+        if (previos.length === 1 && previos[0].getAttribute('data-sig') === sig && previos[0].nextElementSibling === lista) return;
+        previos.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+        var av = esteEl('div', 'sc-of-carro'); av.setAttribute('data-sc-est', '1'); av.setAttribute('data-sig', sig);
+        av.appendChild(esteEl('i', '', icono));
+        var sp = esteEl('span'); sp.appendChild(esteEl('b', '', tit)); sp.appendChild(esteEl('small', '', sub));
+        if (pasos) { var em = esteEl('em'), u = esteEl('u'); u.style.width = pasos + '%'; em.appendChild(u); sp.appendChild(em); }
+        av.appendChild(sp);
+        if (boton) {
+          var bt = esteEl('a', 'sc-of-mas', 'Sumar'); bt.href = '#'; bt.setAttribute('role', 'button');
+          bt.addEventListener('click', function (ev) {   /* usa el control real de cantidad del carrito: no inventa nada */
+            ev.preventDefault(); if (carroOcupado) return; carroOcupado = true; setTimeout(function () { carroOcupado = false; }, 1500);
+            var mas = q('[data-component="quantity.plus"]', boton); if (mas) mas.click();
+          });
+          av.appendChild(bt);
+        }
+        lista.parentNode.insertBefore(av, lista);
+      });
+    };
     var poner = function () {
       try {
         qa('.js-item-product[data-product-id]').forEach(function (it) {
-          if (it.querySelector('.sc-est-pill')) return;
-          var m = mapa[it.getAttribute('data-product-id')]; if (!m) return;
-          var img = it.querySelector('.item-image, .js-item-image-container, picture, img'); var host = img && (img.tagName === 'IMG' ? img.parentNode : img); if (!host) return;
-          if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-sc-est-pos', '1'); }
-          var p = esteEl('span', 'sc-est-pill', m.txt); p.setAttribute('data-sc-est', '1');
-          p.style.setProperty('background', m.col.fondo, 'important'); p.style.setProperty('color', m.col.texto, 'important');   /* 1.12: con important, porque la portada deja transparente todo lo que va sobre la foto */
-          host.appendChild(p);
+          var id = it.getAttribute('data-product-id'), m = mapa[id], rg = reg[id];
+          if (m && !it.querySelector('.sc-est-pill')) {
+            var img = it.querySelector('.item-image, .js-item-image-container, picture, img'); var host = img && (img.tagName === 'IMG' ? img.parentNode : img);
+            if (host) {
+              if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-sc-est-pos', '1'); }
+              var p = esteEl('span', 'sc-est-pill', m.txt); p.setAttribute('data-sc-est', '1');
+              var tp = ofTonos(m.col); ofPonerVars(p, tp);
+              p.style.setProperty('background', liso ? m.col.fondo : OF_PILDORA, 'important'); p.style.setProperty('color', m.col.texto, 'important');   /* con important, porque la portada deja transparente todo lo que va sobre la foto */
+              if (!liso) { p.style.boxShadow = '0 6px 12px -4px rgba(' + tp.oscRgb + ',.6),inset 0 1px 0 rgba(255,255,255,.25)'; p.style.padding = '4px 10px'; }
+              host.appendChild(p);
+            }
+          }
+          if (!rg) return;
+          if (!it.classList.contains('sc-of-card')) it.classList.add('sc-of-card');
+          ponerLinea(it, rg);
         });
+        fichaAhorro(); pestana(); menuChip(); carroPintar();
       } catch (e) {}
     };
-    if (hayEt) {
+    if (hayReg) {
       poner();
       if (typeof MutationObserver === 'function' && document.body) {
         esteObs = new MutationObserver(function () { if (esteTimer) return; esteTimer = setTimeout(function () { esteTimer = null; poner(); }, 200); });
@@ -955,7 +1198,7 @@
         b.className += ' sc-est-banner-img';
         b.appendChild(esteFoto(pc, cel, ca.titulo, { pw: 1200, ph: 300, cw: 800, ch: 400, alta: true }));
       } else {
-        b.style.background = col.fondo; b.style.color = col.texto;
+        b.style.background = col.fondo; b.style.color = col.texto; ofPonerVars(b, ofTonos(col));
         var t = esteEl('div', 'sc-est-banner-txt'); if (ca.titulo) t.appendChild(esteEl('b', '', ca.titulo)); if (ca.texto) t.appendChild(esteEl('span', '', ca.texto));
         if (ca.boton && ca.boton.texto) t.appendChild(esteEl('i', '', ca.boton.texto)); b.appendChild(t);
       }
@@ -979,12 +1222,12 @@
         if (typeof vh.texto === 'string' && vh.texto) htx.appendChild(esteEl('span', '', vh.texto));
         if (typeof hb.texto === 'string' && hb.texto) htx.appendChild(esteEl('i', '', hb.texto));
         var hac = hm.e.acento && hm.e.paleta && hm.e.paleta[hm.e.acento];   /* 1.12: sin imagen, el bloque toma el acento (si es oscuro: el boton de adentro es crema) */
-        var hcol = (hac && esteHex(hac.fondo) && esteHex(hac.texto) && !esteClaro(hac.fondo) && hac) || (hm.e.paleta && hm.e.paleta.marron) || { fondo: '#34211b', texto: '#f5f0e5' };
+        var hcol = (hac && esteHex(hac.fondo) && esteHex(hac.texto) && (!esteClaro(hac.fondo) || !liso) && hac) || (hm.e.paleta && hm.e.paleta.marron) || { fondo: '#34211b', texto: '#f5f0e5' };   /* 1.13: en onda un acento claro (dorado) tambien vale: el texto es el que define la paleta */
         if (hm.im.pc || hm.im.cel) {
           hel.className += ' sc-est-home-img';
           hel.appendChild(esteFoto(hm.im.pc, hm.im.cel, vh.titulo, { pw: 1200, ph: 400, cw: 800, ch: 600, alta: true }));
           if (htx.childNodes.length) hel.appendChild(htx);
-        } else { hel.style.background = hcol.fondo; hel.style.color = hcol.texto; hel.appendChild(htx); }
+        } else { hel.style.background = hcol.fondo; hel.style.color = hcol.texto; ofPonerVars(hel, ofTonos(hcol)); hel.appendChild(htx); }
         hero.parentNode.insertBefore(hel, hero.nextSibling);
         try {   /* fetchpriority=high solo si la foto arranca dentro de la primera pantalla; si no, compite con la foto del hero (LCP) */
           var himg = q('img', hel);
@@ -1015,8 +1258,9 @@
       var col = (e.paleta && e.paleta[e.acento]) || { fondo: '#34211b', texto: '#f5f0e5' };
       var fiTx = fi.texto ? esteMarcas(fi.texto, c, pid) : '';   /* si las marcas lo dejan vacio, no se pinta una franja vacia */
       if (fiTx && pr && pr.parentNode) {
-        var l = esteEl('div', 'sc-est-ficha', fiTx); l.setAttribute('data-sc-est', '1'); l.style.background = col.fondo; l.style.color = col.texto;
+        var l = esteEl('div', 'sc-est-ficha'); l.appendChild(esteEl('span', '', fiTx)); l.setAttribute('data-sc-est', '1'); l.style.background = col.fondo; l.style.color = col.texto; ofPonerVars(l, ofTonos(col));
         var ancla = fo && fo.parentNode ? fo : pr; ancla.parentNode.insertBefore(l, ancla);
+        fichaAhorro();
       }
       return true;
     });
@@ -1033,20 +1277,23 @@
     return { kicker: h.kicker, titulo: h.titulo, texto: h.texto, boton: { texto: b.texto, destino: b.destino } };
   }
   function esteMin(c) {   /* solo lo que usa estePintar */
-    return { slug: c.slug, estado: c.estado, desde: c.desde, hasta: c.hasta, visual: { estetica: c.visual.estetica, home: esteHomeMin(c.visual.home) },
+    return { slug: c.slug, nombre: c.nombre, estado: c.estado, desde: c.desde, hasta: c.hasta, visual: { estetica: c.visual.estetica, home: esteHomeMin(c.visual.home) },
       reglas: (c.reglas || []).filter(function (r) { var ids = r && r.alcance && r.alcance.productos_resueltos; return ids && ids.length; })
-        .map(function (r) { return { etiqueta: r.etiqueta, etiqueta_peso: r.etiqueta_peso, alcance: { productos_resueltos: r.alcance.productos_resueltos } }; }) };
+        .map(function (r) {
+          var cd = r.condicion || {};
+          return { etiqueta: r.etiqueta, etiqueta_peso: r.etiqueta_peso, tipo: r.tipo, condicion: { lleva: cd.lleva, paga: cd.paga, tiers: (cd.tiers || []).map(function (t) { return { minimo: t.minimo, pct: t.pct }; }) }, alcance: { productos_resueltos: r.alcance.productos_resueltos } };
+        }) };
   }
-  function esteSigDe(camps) { return JSON.stringify(camps.map(function (c) { return [c.slug, c.visual.estetica, c.visual.home, c.hasta, c.reglas.map(function (r) { return [r.etiqueta, r.etiqueta_peso, r.alcance.productos_resueltos]; })]; })); }
+  function esteSigDe(camps) { return JSON.stringify(camps.map(function (c) { return [c.slug, c.nombre, c.visual.estetica, c.visual.home, c.hasta, c.reglas.map(function (r) { return [r.etiqueta, r.etiqueta_peso, r.tipo, r.condicion, r.alcance.productos_resueltos]; })]; })); }
   function esteGuardar(camps) {
     if (estePrev) return;
-    try { if (camps.length) sessionStorage.setItem(EST_CLAVE, JSON.stringify({ v: 1, t: Date.now(), c: camps })); else sessionStorage.removeItem(EST_CLAVE); } catch (e) {}
+    try { if (camps.length) sessionStorage.setItem(EST_CLAVE, JSON.stringify({ v: 2, t: Date.now(), c: camps })); else sessionStorage.removeItem(EST_CLAVE); } catch (e) {}
   }
   function esteLeerCache() {
     if (estePrev) return null;
     try {
       var j = JSON.parse(sessionStorage.getItem(EST_CLAVE) || 'null'), ahora = Date.now();
-      if (!j || j.v !== 1 || !(ahora - j.t < 600e3) || !j.c || !j.c.length) return null;
+      if (!j || j.v !== 2 || !(ahora - j.t < 600e3) || !j.c || !j.c.length) return null;
       var l = j.c.filter(function (c) {
         return c && c.visual && c.visual.estetica && c.visual.estetica.activa === true && c.reglas
           && !(c.desde && ahora < new Date(c.desde).getTime()) && !(c.hasta && ahora >= new Date(c.hasta).getTime());
