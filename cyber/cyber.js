@@ -19,7 +19,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.9.1',
+    version: '1.10.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -683,6 +683,179 @@
     combosOrig = null;
   }
 
+  /* ---------- 1.10: estetica temporal de la web desde Promociones (barra, acento, etiquetas, banner, ficha) ----------
+     Lee campana.visual.estetica del contrato (y otras[]). Sin contrato o con algo raro, no pinta nada. No depende de Cyber. */
+  var esteBloques = [], esteObs = null, esteTimer = null, esteCuentaTimer = null, esteSig = '';
+  function esteEl(tag, cls, txt) { var n = document.createElement(tag); if (cls) n.className = cls; if (txt) n.textContent = txt; return n; }
+  function esteSeguro(u) { return typeof u === 'string' && (/^\/(?!\/)/.test(u) || /^https:\/\/(www\.)?satinecases\.com(\/|$)/i.test(u)) ? u : ''; }
+  function esteImg(u) { return typeof u === 'string' && /^https:\/\//i.test(u) ? u : ''; }
+  function esteCampanas(d) {
+    var l = [], ahora = Date.now();
+    try {
+      [d.campana].concat(d.otras || []).forEach(function (c) {
+        if (!c || typeof c !== 'object' || !c.visual || !c.visual.estetica || c.visual.estetica.activa !== true) return;
+        if (c.estado !== 'vista_previa') {
+          if (c.desde && ahora < new Date(c.desde).getTime()) return;
+          if (c.hasta && ahora >= new Date(c.hasta).getTime()) return;
+        }
+        l.push(c);
+      });
+    } catch (e) { return []; }
+    return l;
+  }
+  function esteLimpiar() {
+    if (esteObs) { esteObs.disconnect(); esteObs = null; }
+    if (esteCuentaTimer) { clearInterval(esteCuentaTimer); esteCuentaTimer = null; }
+    if (esteTimer) { clearTimeout(esteTimer); esteTimer = null; }
+    qa('[data-sc-est]').forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+    qa('[data-sc-est-pos]').forEach(function (n) { n.style.position = ''; n.removeAttribute('data-sc-est-pos'); });
+    var e = document.getElementById('sc-est-css'); if (e && e.parentNode) e.parentNode.removeChild(e);
+    document.documentElement.removeAttribute('data-sc-est');
+    esteSig = '';
+  }
+  function esteTiempo(hasta) {
+    var s = Math.max(0, Math.floor((new Date(hasta).getTime() - Date.now()) / 1000));
+    var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    return (d ? d + 'd ' : '') + (h < 10 ? '0' : '') + h + 'h ' + (m < 10 ? '0' : '') + m + 'm';
+  }
+  function esteCol(c, p, clave, defecto) { var k = c.visual.estetica[clave] || defecto; return (p && p[k]) || (p && p[defecto]) || { fondo: '#34211b', texto: '#f5f0e5' }; }
+  function estePintar(camps) {
+    esteLimpiar();
+    if (!camps.length) return;
+    var pri = camps[0], E0 = pri.visual.estetica, P = E0.paleta || {}, css = [];
+    document.documentElement.setAttribute('data-sc-est', '1');
+    /* acento: el de la primera campana que lo define */
+    camps.some(function (c) {
+      var k = c.visual.estetica.acento, a = k && c.visual.estetica.paleta && c.visual.estetica.paleta[k];
+      if (!a) return false;
+      css.push('html[data-sc-est] .js-addtocart.btn-primary,html[data-sc-est] .btn-primary.js-addtocart{background:' + a.fondo + '!important;border-color:' + a.fondo + '!important;color:' + a.texto + '!important}',
+        'html[data-sc-est] .js-price-display{color:' + a.fondo + '!important}');
+      return true;
+    });
+    css.push(
+      '.sc-est-barra{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:10px;z-index:10001;font:700 11px/1.2 var(--cy-sans,system-ui,sans-serif);letter-spacing:.04em;text-transform:uppercase;text-align:center;padding:0 12px;overflow:hidden;white-space:nowrap}',
+      '.sc-est-barra a{color:inherit;text-decoration:none;display:flex;gap:10px;align-items:center;max-width:100%}',
+      '.sc-est-barra span{overflow:hidden;text-overflow:ellipsis}',
+      '.sc-est-cuenta{font-variant-numeric:tabular-nums;opacity:.85}',
+      '.sc-est-pill{position:absolute;left:8px;top:8px;z-index:3;padding:3px 9px;border-radius:999px;font:700 11px/1.3 var(--cy-sans,system-ui,sans-serif);pointer-events:none;letter-spacing:.02em}',
+      '.sc-est-banner{display:block;margin:0 0 16px;border-radius:16px;overflow:hidden;text-decoration:none;position:relative}',
+      '.sc-est-banner picture,.sc-est-banner img{display:block;width:100%;height:auto}',
+      '.sc-est-banner-txt{padding:20px 18px;min-height:96px;display:flex;flex-direction:column;justify-content:center;gap:4px}',
+      '.sc-est-banner-txt b{font:700 20px/1.2 var(--cy-serif,system-ui,sans-serif)}',
+      '.sc-est-banner-txt span{font:500 13px/1.4 var(--cy-sans,system-ui,sans-serif);opacity:.9}',
+      '.sc-est-banner-txt i{font:700 12px/1 var(--cy-sans,system-ui,sans-serif);font-style:normal;text-decoration:underline;margin-top:4px}',
+      '.sc-est-ficha{display:block;margin:10px 0;padding:10px 12px;border-radius:12px;font:600 13px/1.35 var(--cy-sans,system-ui,sans-serif);text-decoration:none}'
+    );
+    var st = esteEl('style'); st.id = 'sc-est-css'; st.setAttribute('data-sc-est', '1'); st.textContent = css.join('\n'); document.head.appendChild(st);
+
+    /* barra: encima de la franja existente (sin mover nada de la pagina) */
+    camps.some(function (c) {
+      var e = c.visual.estetica, ad = q('section.js-adbar');
+      if (!(e.barra && e.barra.activa && e.barra.mensaje && ad)) return false;
+      var col = esteCol(c, e.paleta, 'x', 'marron'); var k = e.barra.fondo; if (e.paleta && e.paleta[k]) col = e.paleta[k];
+      if (getComputedStyle(ad).position === 'static') { ad.style.position = 'relative'; ad.setAttribute('data-sc-est-pos', '1'); }
+      var b = esteEl('div', 'sc-est-barra'); b.setAttribute('data-sc-est', '1'); b.style.background = col.fondo; b.style.color = col.texto;
+      var dest = esteSeguro(e.barra.destino), cont = esteEl(dest ? 'a' : 'div'); if (dest) cont.href = dest;
+      cont.appendChild(esteEl('span', '', e.barra.mensaje));
+      if (e.barra.cuenta && c.hasta) {
+        var cu = esteEl('span', 'sc-est-cuenta', esteTiempo(c.hasta)); cont.appendChild(cu);
+        esteCuentaTimer = setInterval(function () { cu.textContent = esteTiempo(c.hasta); }, 30000);
+      }
+      b.appendChild(cont); ad.appendChild(b);
+      return true;
+    });
+
+    /* etiquetas en las fotos: una por producto, gana el mayor descuento */
+    var mapa = {};
+    camps.forEach(function (c) {
+      var e = c.visual.estetica; if (!(e.etiqueta && e.etiqueta.activa)) return;
+      (c.reglas || []).forEach(function (r) {
+        var txt = (e.etiqueta.texto || r.etiqueta || '').slice(0, 24); if (!txt) return;
+        var peso = +r.etiqueta_peso || 0, ids = r.alcance && r.alcance.productos_resueltos;
+        if (!ids || !ids.length) return;
+        var col = (e.acento && e.paleta && e.paleta[e.acento]) || (e.paleta && e.paleta.rojo) || { fondo: '#c0392b', texto: '#fff' };
+        ids.forEach(function (id) { if (!mapa[id] || mapa[id].peso < peso) mapa[id] = { txt: txt, peso: peso, col: col }; });
+      });
+    });
+    var hayEt = false; for (var k0 in mapa) { hayEt = true; break; }
+    var poner = function () {
+      try {
+        qa('.js-item-product[data-product-id]').forEach(function (it) {
+          if (it.querySelector('.sc-est-pill')) return;
+          var m = mapa[it.getAttribute('data-product-id')]; if (!m) return;
+          var img = it.querySelector('.item-image, .js-item-image-container, picture, img'); var host = img && (img.tagName === 'IMG' ? img.parentNode : img); if (!host) return;
+          if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-sc-est-pos', '1'); }
+          var p = esteEl('span', 'sc-est-pill', m.txt); p.setAttribute('data-sc-est', '1'); p.style.background = m.col.fondo; p.style.color = m.col.texto; host.appendChild(p);
+        });
+      } catch (e) {}
+    };
+    if (hayEt) {
+      poner();
+      if (typeof MutationObserver === 'function' && document.body) {
+        esteObs = new MutationObserver(function () { if (esteTimer) return; esteTimer = setTimeout(function () { esteTimer = null; poner(); }, 200); });
+        esteObs.observe(document.body, { childList: true, subtree: true });
+      }
+    }
+
+    /* banner de categoria: arriba de la grilla, con la altura reservada por la proporcion de la imagen */
+    var ruta = location.pathname.toLowerCase().replace(/\/?$/, '/');
+    camps.some(function (c) {
+      var e = c.visual.estetica, ca = e.categoria;
+      if (!(ca && ca.activa && ca.rutas && ca.rutas.indexOf(ruta) >= 0)) return false;
+      var dest = esteSeguro(ca.boton && ca.boton.destino), col = (e.paleta && e.paleta[ca.fondo]) || { fondo: '#34211b', texto: '#f5f0e5' };
+      var b = esteEl(dest ? 'a' : 'div', 'sc-est-banner'); b.setAttribute('data-sc-est', '1'); if (dest) b.href = dest;
+      var pc = esteImg(ca.imagen && ca.imagen.pc), cel = esteImg(ca.imagen && ca.imagen.cel);
+      if (pc || cel) {
+        var pic = esteEl('picture');
+        if (cel) { var s = esteEl('source'); s.media = '(max-width:767px)'; s.srcset = cel; pic.appendChild(s); }
+        var im = esteEl('img'); im.src = pc || cel; im.alt = ca.titulo || ''; pic.appendChild(im); b.appendChild(pic);
+      } else {
+        b.style.background = col.fondo; b.style.color = col.texto;
+        var t = esteEl('div', 'sc-est-banner-txt'); if (ca.titulo) t.appendChild(esteEl('b', '', ca.titulo)); if (ca.texto) t.appendChild(esteEl('span', '', ca.texto));
+        if (ca.boton && ca.boton.texto) t.appendChild(esteEl('i', '', ca.boton.texto)); b.appendChild(t);
+      }
+      var grilla = q('.js-product-table') || q('#category-page') || q('main');
+      if (!grilla || !grilla.parentNode) return false;
+      grilla.parentNode.insertBefore(b, grilla); return true;
+    });
+
+    /* ficha: linea junto al precio (solo si el producto esta en el alcance de alguna regla) y banner arriba */
+    var pid = window.LS && LS.product && LS.product.id;
+    if (pid) camps.some(function (c) {
+      var e = c.visual.estetica, fi = e.ficha; if (!(fi && fi.activa)) return false;
+      var dentro = (c.reglas || []).some(function (r) { var ids = r.alcance && r.alcance.productos_resueltos; return ids && ids.indexOf(+pid) >= 0; });
+      if (!dentro) return false;
+      var fo = q('form#product_form'), pr = q('.js-price-display') || fo;
+      var col = (e.paleta && e.paleta[e.acento]) || { fondo: '#34211b', texto: '#f5f0e5' };
+      if (fi.texto && pr && pr.parentNode) {
+        var l = esteEl('div', 'sc-est-ficha', fi.texto); l.setAttribute('data-sc-est', '1'); l.style.background = col.fondo; l.style.color = col.texto;
+        var ancla = fo && fo.parentNode ? fo : pr; ancla.parentNode.insertBefore(l, ancla);
+      }
+      return true;
+    });
+  }
+  var estePrev = /[?&]satine_preview=/.test(location.search);
+  function esteAplicar(d, deVista) {
+    try {
+      if (estePrev && deVista !== true) return;   /* en vista previa manda la promocion pedida, no la activa */
+      var camps = (d && typeof d === 'object') ? esteCampanas(d) : [];
+      var sig = JSON.stringify(camps.map(function (c) { return [c.slug, c.visual.estetica, c.hasta, c.reglas && c.reglas.map(function (r) { return [r.etiqueta, r.etiqueta_peso, r.alcance && r.alcance.productos_resueltos]; })]; }));
+      if (sig === esteSig) return;
+      esteSig = sig;
+      var go = function () { try { estePintar(camps); esteSig = sig; } catch (e) { try { esteLimpiar(); } catch (_) {} } };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+    } catch (e) {}
+  }
+  /* vista previa: ?satine_preview=<slug>.<clave> pide esa promocion aunque no este activa (solo lectura) */
+  function estePreview() {
+    try {
+      var m = location.search.match(/[?&]satine_preview=([^&]+)/); if (!m || !CFG.contrato || typeof fetch !== 'function') return;
+      var t = decodeURIComponent(m[1]), i = t.lastIndexOf('.'); if (i < 1) return;
+      fetch(CFG.contrato + '?vista=' + encodeURIComponent(t.slice(0, i)) + '&clave=' + encodeURIComponent(t.slice(i + 1)), { credentials: 'omit', cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { esteAplicar(d, true); }).catch(function () {});
+    } catch (e) {}
+  }
+
   /* ---------- contrato del ERP (Gestion de ofertas): tramos, precios, porcentajes y fechas reales ---------- */
   function extraerContrato(d) {
     try {
@@ -734,6 +907,7 @@
     if (!CFG.contrato || typeof fetch !== 'function') return;
     try {
       fetch(CFG.contrato, { credentials: 'omit', cache: 'default' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+        esteAplicar(d);   /* 1.10: estetica generica (independiente de Cyber) */
         var o = extraerContrato(d); if (!o) return;
         try { localStorage.setItem('satineOfertas', JSON.stringify({ v: 1, t: Date.now(), o: o })); } catch (e) {}
         var cambio = aplicarContrato(o);
@@ -782,6 +956,7 @@
   aplicarContrato(leerContratoGuardado());   /* lo ultimo que dijo el ERP, para arrancar sin esperar la red */
   armarTextos();
   sincronizarContrato();
+  estePreview();
   if (activo() || vista) arrancar();
   else { var falta = new Date(CFG.desde).getTime() - Date.now(); if (falta > 0 && falta < 4 * 3600e3) setTimeout(arrancar, falta + 500); }
 })();
