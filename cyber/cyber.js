@@ -1,4 +1,6 @@
-/* satine-cyber 1.9 (02/11/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
+/* 1.11.0 (09/11/2026): banners de portada (estetica.home) y de ficha (estetica.ficha.banner) + registro de reserva sc_est_reserva en localStorage para que el head del theme
+   reserve el hueco antes del primer pintado (sin salto de pagina). Con la estetica apagada no hace nada nuevo. Ver seccion 1.11 mas abajo.
+   satine-cyber 1.9 (02/11/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
    La baja y ejecuta satine-v257-cyber.js (layout de satinecases.com). Vive en SATINE344/satine-assets/cyber/cyber.js.
    NO cambia precios. El descuento real lo aplica Tienda Nube (promo "Descuento en el carrito" 1269900: fundas Leather + vidrios +
    tarjeteros; subtotal de esas categorias >= $95.000 -> -$18.000 (= vidrio al 50%); >= $130.000 -> -$28.500 (= + tarjetero al 30%);
@@ -19,7 +21,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.10.0',
+    version: '1.11.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -686,6 +688,82 @@
   /* ---------- 1.10: estetica temporal de la web desde Promociones (barra, acento, etiquetas, banner, ficha) ----------
      Lee campana.visual.estetica del contrato (y otras[]). Sin contrato o con algo raro, no pinta nada. No depende de Cyber. */
   var esteBloques = [], esteObs = null, esteTimer = null, esteCuentaTimer = null, esteVis = null, esteSig = '';
+  /* ---------- 1.11: banners de portada y de ficha + reserva de espacio ----------
+     RESERVA: al recibir la estetica se guarda en localStorage 'sc_est_reserva' que rutas llevan banner y cuanto miden (formato en docs del ERP / LEEME del lote de theme):
+       {"v":1,"hasta":<ms>,"barra":0|1,"home":{"c":{"r":1.3333},"p":{"r":3}}|null,"ficha":{"c":{"r":4},"p":{"r":5}}|null,"cat":{"/fundas/":{"c":{"r":2},"p":{"r":4}}}}
+     c = celular (<768 px), p = compu. r = proporcion ancho/alto (banner con imagen); h = alto en px (banner de texto, medido en este aparato).
+     Un script chico en el <head> del theme (layout v273) lo lee en la visita siguiente y deja un div hueco (data-sc-rsv) con la proporcion del banner ANTES del primer pintado; aca lo sacamos en el mismo instante en que
+     se inserta el banner (misma tarea de JS, sin pintado en el medio), asi que el alto neto es cero. Sin registro, o con vista previa, el head no hace nada. */
+  var RSV_CLAVE = 'sc_est_reserva', RSV_TOPE = 6 * 3600e3;
+  var RSV_ASP = { cat: { c: 2, p: 4 }, home: { c: 4 / 3, p: 3 }, ficha: { c: 4, p: 5 } };   /* mismas proporciones que el CSS de abajo */
+  function rsvClase() { try { return window.matchMedia('(min-width:768px)').matches ? 'p' : 'c'; } catch (e) { return 'c'; } }
+  function rsvSoltar() {
+    try {
+      var w = document.querySelectorAll('[data-sc-rsv]'), i;   /* huecos que puso el head del theme (layout v273) */
+      for (i = 0; i < w.length; i++) if (w[i].parentNode) w[i].parentNode.removeChild(w[i]);
+      var s = document.getElementById('sc-rsv-css'); if (s && s.parentNode) s.parentNode.removeChild(s);
+    } catch (e) {}
+  }
+  function rsvLeer() { try { var j = JSON.parse(localStorage.getItem(RSV_CLAVE) || 'null'); return j && j.v === 1 ? j : null; } catch (e) { return null; } }
+  function rsvBorrar() { if (estePrev) return; try { localStorage.removeItem(RSV_CLAVE); } catch (e) {} }
+  function esteImgs(o) { return { pc: esteImg(o && o.pc), cel: esteImg(o && o.cel) }; }
+  function esteHomeDe(camps) {   /* portada: gana la primera campana con home.activa y algo para mostrar (imagen o titulo de la tarjeta del inicio) */
+    for (var i = 0; i < camps.length; i++) {
+      var c = camps[i], e = c.visual.estetica; if (!(e.home && e.home.activa === true)) continue;
+      var vh = (c.visual.home && typeof c.visual.home === 'object') ? c.visual.home : {}, im = esteImgs(e.home.imagen);
+      if (im.pc || im.cel || (typeof vh.titulo === 'string' && vh.titulo)) return { c: c, e: e, vh: vh, im: im };
+    }
+    return null;
+  }
+  function esteFichaDe(camps) {   /* ficha: banner solo con imagen (el contrato no trae texto para el) */
+    for (var i = 0; i < camps.length; i++) {
+      var c = camps[i], e = c.visual.estetica, b = e.ficha && e.ficha.banner; if (!(b && b.activa === true)) continue;
+      var im = esteImgs(b.imagen); if (im.pc || im.cel) return { c: c, e: e, b: b, im: im };
+    }
+    return null;
+  }
+  function rsvArmar(camps, medidas) {
+    var r = { v: 1, hasta: 0, barra: 0, home: null, ficha: null, cat: {} }, n = 0, hasta = Date.now() + RSV_TOPE, prev = rsvLeer(), k = rsvClase(), otra = k === 'c' ? 'p' : 'c';
+    var usar = function (c) { if (c.hasta) { var t = new Date(c.hasta).getTime(); if (t < hasta) hasta = t; } };
+    var ent = function (asp, txt, previo, medida) {   /* con imagen: proporcion fija en los dos; de texto: alto medido en el aparato actual (y lo que ya sabiamos del otro) */
+      var o = {};
+      if (!txt) { o.c = { r: asp.c }; o.p = { r: asp.p }; return o; }
+      if (previo && previo[otra] && previo[otra].h > 0) o[otra] = { h: previo[otra].h };
+      if (medida > 0) o[k] = { h: medida };
+      return o;
+    };
+    var med = function (clave, ruta) { for (var i = 0; i < medidas.length; i++) if (medidas[i].k === clave && (clave !== 'cat' || medidas[i].ruta === ruta)) return medidas[i].h; return 0; };
+    camps.forEach(function (c) {
+      var e = c.visual.estetica, ca = e.categoria;
+      if (!r.barra && e.barra && e.barra.activa && e.barra.mensaje) { r.barra = 1; usar(c); }
+      if (ca && ca.activa && ca.rutas && ca.rutas.forEach) ca.rutas.forEach(function (ru) {
+        if (typeof ru !== 'string' || r.cat[ru]) return;
+        var im = esteImgs(ca.imagen), o = ent(RSV_ASP.cat, !(im.pc || im.cel), prev && prev.cat && prev.cat[ru], med('cat', ru));
+        if (o.c || o.p) { r.cat[ru] = o; n++; usar(c); }
+      });
+    });
+    var hm = esteHomeDe(camps);
+    if (hm) { var oh = ent(RSV_ASP.home, !(hm.im.pc || hm.im.cel), prev && prev.home, med('home')); if (oh.c || oh.p) { r.home = oh; n++; usar(hm.c); } }
+    var fi = esteFichaDe(camps);
+    if (fi) { r.ficha = ent(RSV_ASP.ficha, false); n++; usar(fi.c); }
+    if (!n && !r.barra) return null;
+    r.hasta = hasta;
+    return hasta > Date.now() ? r : null;
+  }
+  function rsvGuardar(camps, medidas) {
+    if (estePrev) return;
+    try {
+      var r = rsvArmar(camps, medidas);
+      if (r) localStorage.setItem(RSV_CLAVE, JSON.stringify(r)); else localStorage.removeItem(RSV_CLAVE);
+    } catch (e) {}
+  }
+  function esteFoto(pc, cel, alt, d) {   /* <picture> con width/height (proporcion conocida antes de bajar la foto), decoding async; fetchpriority=high solo la de arriba del pliegue */
+    var pic = esteEl('picture');
+    if (cel) { var s = esteEl('source'); s.media = '(max-width:767px)'; s.srcset = cel; s.setAttribute('width', d.cw); s.setAttribute('height', d.ch); pic.appendChild(s); }
+    var im = esteEl('img'); im.src = pc || cel; im.alt = alt || ''; im.setAttribute('width', d.pw); im.setAttribute('height', d.ph); im.decoding = 'async';
+    if (d.alta) im.setAttribute('fetchpriority', 'high'); else im.setAttribute('loading', 'lazy');
+    pic.appendChild(im); return pic;
+  }
   function esteEl(tag, cls, txt) { var n = document.createElement(tag); if (cls) n.className = cls; if (txt) n.textContent = txt; return n; }
   function esteSeguro(u) { return typeof u === 'string' && (/^\/(?![\/\\])[^\\\s\x00-\x1f]*$/.test(u) || /^https:\/\/(www\.)?satinecases\.com(\/|$)/i.test(u)) ? u : ''; }
   function esteImg(u) { return typeof u === 'string' && /^https:\/\//i.test(u) ? u : ''; }
@@ -742,7 +820,8 @@
   function esteCol(c, p, clave, defecto) { var k = c.visual.estetica[clave] || defecto; return (p && p[k]) || (p && p[defecto]) || { fondo: '#34211b', texto: '#f5f0e5' }; }
   function estePintar(camps) {
     esteLimpiar();
-    if (!camps.length) return;
+    if (!camps.length) { rsvBorrar(); rsvSoltar(); return; }
+    var medidas = [];
     var pri = camps[0], E0 = pri.visual.estetica, P = E0.paleta || {}, css = [];
     document.documentElement.setAttribute('data-sc-est', '1');
     /* acento: el de la primera campana que lo define */
@@ -766,7 +845,21 @@
       '.sc-est-banner-txt b{font:700 20px/1.2 var(--cy-serif,system-ui,sans-serif)}',
       '.sc-est-banner-txt span{font:500 13px/1.4 var(--cy-sans,system-ui,sans-serif);opacity:.9}',
       '.sc-est-banner-txt i{font:700 12px/1 var(--cy-sans,system-ui,sans-serif);font-style:normal;text-decoration:underline;margin-top:4px}',
-      '.sc-est-ficha{display:block;margin:10px 0;padding:10px 12px;border-radius:12px;font:600 13px/1.35 var(--cy-sans,system-ui,sans-serif);text-decoration:none}'
+      '.sc-est-ficha{display:block;margin:10px 0;padding:10px 12px;border-radius:12px;font:600 13px/1.35 var(--cy-sans,system-ui,sans-serif);text-decoration:none}',
+      /* 1.11: portada. Ancho = min(100% - 24px, 1200px) y proporcion 4/3 en celular, 3/1 en compu (el head del theme reserva con la misma cuenta) */
+      '.sc-est-home{display:block;position:relative;box-sizing:border-box;width:min(100% - 24px,1200px);margin:0 auto 20px;border-radius:16px;overflow:hidden;text-decoration:none;color:#f5f0e5;background:#34211b}',
+      '.sc-est-home-img{aspect-ratio:4/3}@media(min-width:768px){.sc-est-home-img{aspect-ratio:3/1}}',
+      '.sc-est-home picture,.sc-est-home img{display:block;width:100%;height:100%;object-fit:cover}',
+      '.sc-est-home-tx{display:flex;flex-direction:column;gap:6px;padding:24px 20px;align-items:flex-start}',
+      '.sc-est-home-img .sc-est-home-tx{position:absolute;left:0;right:0;bottom:0;padding:56px 20px 18px;color:#f5f0e5;background:linear-gradient(to top,rgba(52,33,27,.86),rgba(52,33,27,0))}',
+      '.sc-est-home-tx small{font:700 11px/1.2 var(--cy-sans,system-ui,sans-serif);letter-spacing:.08em;text-transform:uppercase;opacity:.85}',
+      '.sc-est-home-tx b{font:700 22px/1.15 var(--cy-serif,system-ui,sans-serif);max-width:26em}',
+      '.sc-est-home-tx span{font:500 13px/1.4 var(--cy-sans,system-ui,sans-serif);opacity:.92;max-width:34em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
+      '.sc-est-home-tx i{font:700 13px/1 var(--cy-sans,system-ui,sans-serif);font-style:normal;margin-top:6px;padding:0 20px;min-height:44px;display:inline-flex;align-items:center;border-radius:999px;background:#f5f0e5;color:#34211b}',
+      '@media(min-width:768px){.sc-est-home-tx{padding:32px 40px}.sc-est-home-img .sc-est-home-tx{padding:72px 40px 28px}.sc-est-home-tx b{font-size:30px}.sc-est-home-tx span{font-size:15px}}',
+      /* 1.11: ficha. Franja de imagen debajo del boton de compra, 4/1 en celular y 5/1 en compu */
+      '.sc-est-fbn{display:block;margin:12px 0 0;border-radius:12px;overflow:hidden;text-decoration:none;aspect-ratio:4/1;background:rgba(0,0,0,.04)}@media(min-width:768px){.sc-est-fbn{aspect-ratio:5/1}}',
+      '.sc-est-fbn picture,.sc-est-fbn img{display:block;width:100%;height:100%;object-fit:cover}'
     );
     var st = esteEl('style'); st.id = 'sc-est-css'; st.setAttribute('data-sc-est', '1'); st.textContent = css.join('\n'); document.head.appendChild(st);
 
@@ -783,7 +876,7 @@
         var cu = esteEl('span', 'sc-est-cuenta', esteTiempo(c.hasta)); cont.appendChild(cu);
         var tic = function () {
           if (document.hidden) return;
-          if (Date.now() >= new Date(c.hasta).getTime()) { esteLimpiar(); return; }   /* vencio: la estetica se va sola */
+          if (Date.now() >= new Date(c.hasta).getTime()) { esteLimpiar(); rsvBorrar(); return; }   /* vencio: la estetica se va sola */
           cu.textContent = esteTiempo(c.hasta);
         };
         esteCuentaTimer = setInterval(tic, 1000);
@@ -834,9 +927,8 @@
       var b = esteEl(dest ? 'a' : 'div', 'sc-est-banner'); b.setAttribute('data-sc-est', '1'); if (dest) b.href = dest;
       var pc = esteImg(ca.imagen && ca.imagen.pc), cel = esteImg(ca.imagen && ca.imagen.cel);
       if (pc || cel) {
-        b.className += ' sc-est-banner-img'; var pic = esteEl('picture');
-        if (cel) { var s = esteEl('source'); s.media = '(max-width:767px)'; s.srcset = cel; pic.appendChild(s); }
-        var im = esteEl('img'); im.src = pc || cel; im.alt = ca.titulo || ''; pic.appendChild(im); b.appendChild(pic);
+        b.className += ' sc-est-banner-img';
+        b.appendChild(esteFoto(pc, cel, ca.titulo, { pw: 1200, ph: 300, cw: 800, ch: 400, alta: true }));
       } else {
         b.style.background = col.fondo; b.style.color = col.texto;
         var t = esteEl('div', 'sc-est-banner-txt'); if (ca.titulo) t.appendChild(esteEl('b', '', ca.titulo)); if (ca.texto) t.appendChild(esteEl('span', '', ca.texto));
@@ -844,8 +936,44 @@
       }
       var grilla = q('.js-product-table') || q('#category-page') || q('main');
       if (!grilla || !grilla.parentNode) return false;
-      grilla.parentNode.insertBefore(b, grilla); return true;
+      grilla.parentNode.insertBefore(b, grilla);
+      if (!(pc || cel)) medidas.push({ k: 'cat', ruta: ruta, h: Math.round(b.getBoundingClientRect().height + (parseFloat(getComputedStyle(b).marginBottom) || 0)) });
+      return true;
     });
+
+    /* 1.11 portada: banner justo DEBAJO del hero (el header transparente de la portada va encima del hero: arriba quedaria tapado). Imagen con el texto de "Tarjeta del inicio" encima, o bloque de color si no hay imagen. */
+    var hm = esteHomeDe(camps);
+    if (hm && location.pathname === '/') {
+      var hero = q('.js-home-sections-container > .section-slider-home');
+      if (hero && hero.parentNode) {
+        var vh = hm.vh, hb = vh.boton && typeof vh.boton === 'object' ? vh.boton : {};
+        var hdest = esteSeguro(hm.e.home.destino) || esteSeguro(hb.destino), hel = esteEl(hdest ? 'a' : 'div', 'sc-est-home'); hel.setAttribute('data-sc-est', '1'); if (hdest) hel.href = hdest;
+        var htx = esteEl('div', 'sc-est-home-tx');
+        if (typeof vh.kicker === 'string' && vh.kicker) htx.appendChild(esteEl('small', '', vh.kicker));
+        if (typeof vh.titulo === 'string' && vh.titulo) htx.appendChild(esteEl('b', '', vh.titulo));
+        if (typeof vh.texto === 'string' && vh.texto) htx.appendChild(esteEl('span', '', vh.texto));
+        if (typeof hb.texto === 'string' && hb.texto) htx.appendChild(esteEl('i', '', hb.texto));
+        var hcol = (hm.e.paleta && hm.e.paleta.marron) || { fondo: '#34211b', texto: '#f5f0e5' };
+        if (hm.im.pc || hm.im.cel) {
+          hel.className += ' sc-est-home-img';
+          hel.appendChild(esteFoto(hm.im.pc, hm.im.cel, vh.titulo, { pw: 1200, ph: 400, cw: 800, ch: 600, alta: true }));
+          if (htx.childNodes.length) hel.appendChild(htx);
+        } else { hel.style.background = hcol.fondo; hel.style.color = hcol.texto; hel.appendChild(htx); }
+        hero.parentNode.insertBefore(hel, hero.nextSibling);
+        if (!(hm.im.pc || hm.im.cel)) medidas.push({ k: 'home', h: Math.round(hel.getBoundingClientRect().height + (parseFloat(getComputedStyle(hel).marginBottom) || 0)) });
+      }
+    }
+
+    /* 1.11 ficha: franja de imagen debajo del boton de compra (despues del formulario; la seleccion de modelo y color NO se toca) */
+    var fb = esteFichaDe(camps);
+    if (fb && /^\/productos\//i.test(location.pathname)) {
+      var ffo = q('form#product_form');
+      if (ffo && ffo.parentNode) {
+        var fdest = esteSeguro(fb.b.destino), fel = esteEl(fdest ? 'a' : 'div', 'sc-est-fbn'); fel.setAttribute('data-sc-est', '1'); if (fdest) fel.href = fdest;
+        fel.appendChild(esteFoto(fb.im.pc, fb.im.cel, 'Promoci\u00f3n vigente', { pw: 1000, ph: 200, cw: 800, ch: 200, alta: false }));
+        ffo.parentNode.insertBefore(fel, ffo.nextSibling);
+      }
+    }
 
     /* ficha: linea junto al precio (solo si el producto esta en el alcance de alguna regla). El banner de ficha (fi.banner) y home.activa estan reservados: todavia no se pintan. */
     var pid = window.LS && LS.product && LS.product.id;
@@ -862,17 +990,24 @@
       }
       return true;
     });
+    rsvSoltar();   /* el banner ya esta puesto (o no va): el hueco del head se va en esta misma tarea */
+    rsvGuardar(camps, medidas);
   }
   var estePrev = /[?&]satine_preview=/.test(location.search);
   /* cache chica SOLO de la estetica (sessionStorage, clave sc_est_v1): lo minimo para pintar de entrada y no empujar la pagina cuando llega el fetch.
      No toca la cache del objeto Cyber (localStorage satineOfertas). Con vista previa no se lee ni se escribe. */
   var EST_CLAVE = 'sc_est_v1', esteCachePend = false;
+  function esteHomeMin(h) {   /* solo los textos que usa el banner de la portada */
+    if (!h || typeof h !== 'object') return {};
+    var b = h.boton && typeof h.boton === 'object' ? h.boton : {};
+    return { kicker: h.kicker, titulo: h.titulo, texto: h.texto, boton: { texto: b.texto, destino: b.destino } };
+  }
   function esteMin(c) {   /* solo lo que usa estePintar */
-    return { slug: c.slug, estado: c.estado, desde: c.desde, hasta: c.hasta, visual: { estetica: c.visual.estetica },
+    return { slug: c.slug, estado: c.estado, desde: c.desde, hasta: c.hasta, visual: { estetica: c.visual.estetica, home: esteHomeMin(c.visual.home) },
       reglas: (c.reglas || []).filter(function (r) { var ids = r && r.alcance && r.alcance.productos_resueltos; return ids && ids.length; })
         .map(function (r) { return { etiqueta: r.etiqueta, etiqueta_peso: r.etiqueta_peso, alcance: { productos_resueltos: r.alcance.productos_resueltos } }; }) };
   }
-  function esteSigDe(camps) { return JSON.stringify(camps.map(function (c) { return [c.slug, c.visual.estetica, c.hasta, c.reglas.map(function (r) { return [r.etiqueta, r.etiqueta_peso, r.alcance.productos_resueltos]; })]; })); }
+  function esteSigDe(camps) { return JSON.stringify(camps.map(function (c) { return [c.slug, c.visual.estetica, c.visual.home, c.hasta, c.reglas.map(function (r) { return [r.etiqueta, r.etiqueta_peso, r.alcance.productos_resueltos]; })]; })); }
   function esteGuardar(camps) {
     if (estePrev) return;
     try { if (camps.length) sessionStorage.setItem(EST_CLAVE, JSON.stringify({ v: 1, t: Date.now(), c: camps })); else sessionStorage.removeItem(EST_CLAVE); } catch (e) {}
@@ -904,7 +1039,7 @@
       document.removeEventListener('DOMContentLoaded', forzar);
       if (!esteCachePend) return;   /* el fetch llego antes y ya decidio */
       esteCachePend = false;
-      try { estePintar(camps); esteSig = sig; } catch (e) { try { esteLimpiar(); } catch (_) {} }
+      try { estePintar(camps); esteSig = sig; } catch (e) { try { esteLimpiar(); } catch (_) {} rsvSoltar(); }
     };
     var forzar = function () { pintar(); };
     try {
@@ -917,14 +1052,14 @@
   function esteAplicar(d, deVista) {
     try {
       if (estePrev && deVista !== true) return;   /* en vista previa manda la promocion pedida, no la activa */
-      if (!d || typeof d !== 'object' || !('campana' in d)) return;   /* respuesta rara o HTTP con error: se conserva lo ultimo bueno */
+      if (!d || typeof d !== 'object' || !('campana' in d)) { rsvSoltar(); return; }   /* respuesta rara o HTTP con error: se conserva lo ultimo bueno (y el hueco del head se libera) */
       esteCachePend = false;   /* llego el contrato: manda el fetch, no la cache */
       var camps = ((d && typeof d === 'object') ? esteCampanas(d) : []).map(esteMin);
       if (d && typeof d === 'object' && 'campana' in d) esteGuardar(camps);   /* campana null o sin estetica: se borra */
       var sig = esteSigDe(camps);
-      if (sig === esteSig) return;
+      if (sig === esteSig) { rsvSoltar(); return; }
       esteSig = sig;
-      var go = function () { try { estePintar(camps); esteSig = sig; } catch (e) { try { esteLimpiar(); } catch (_) {} } };
+      var go = function () { try { estePintar(camps); esteSig = sig; } catch (e) { try { esteLimpiar(); } catch (_) {} rsvSoltar(); } };
       if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
     } catch (e) {}
   }
@@ -996,7 +1131,7 @@
         API.contrato = o;
         if (cambio && prendido) apagar();   /* se vuelve a armar con los numeros nuevos */
         if (!prendido && (activo() || vista)) arrancar();
-      }).catch(function () {});
+      }).catch(function () { rsvSoltar(); });
     } catch (e) {}
   }
 
