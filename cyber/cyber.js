@@ -1,4 +1,5 @@
-/* 1.13.0 (10/11/2026): MODO OFERTA. La estetica de promociones gana intensidad (sobrio / destacado / total), acabado (liso / onda con cuero y grano), color a medida (paleta.medida), linea de ahorro en las cards con el precio real y la regla, bloque de ahorro en la ficha, pestana en la barra fija, tile y menu de Ofertas y avisos en el carrito (chips por producto y aviso de la promocion, sin numeros inventados). Sin promocion activa no queda ni un nodo, clase ni variable.
+/* 1.13.1 (10/11/2026): primera visita sin cache: poner() lee todos los estilos de las cards antes de escribir (antes un recalculo de layout por card retrasaba hasta ~1,3 s la estetica de la portada); aire bajo el recuadro de la ficha.
+   1.13.0 (10/11/2026): MODO OFERTA. La estetica de promociones gana intensidad (sobrio / destacado / total), acabado (liso / onda con cuero y grano), color a medida (paleta.medida), linea de ahorro en las cards con el precio real y la regla, bloque de ahorro en la ficha, pestana en la barra fija, tile y menu de Ofertas y avisos en el carrito (chips por producto y aviso de la promocion, sin numeros inventados). Sin promocion activa no queda ni un nodo, clase ni variable.
    1.12.1 (10/11/2026): pulido de la estetica de promociones: la barra va ADENTRO de la capsula de la franja (redondeada y unida al menu, con la letra de la franja); el banner de portada se separa del hero; el banner de categoria se alinea con las cards (antes tocaba los bordes de la pantalla).
    1.12.0 (10/11/2026): (1) guardia PARA SIEMPRE «sin descuento»: si el cartel de oferta dice 0% o el precio tachado no es mayor que el precio, no se muestran (Tienda Nube los des-oculta con una promocion del panel prendida). (2) El acento de la promocion llega a todo: linea «-X% en combo», carteles nativos de oferta/promocion, precio SOLO si esta rebajado de verdad (antes pintaba todos los precios del sitio) y banner de portada sin imagen. */
 /* 1.11.0 (09/11/2026): banners de portada (estetica.home) y de ficha (estetica.ficha.banner) + registro de reserva sc_est_reserva en localStorage para que el head del theme
@@ -24,7 +25,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.13.0',
+    version: '1.13.1',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -929,7 +930,7 @@
       '.sc-est-banner-txt b{font:700 20px/1.2 var(--cy-serif,system-ui,sans-serif)}',
       '.sc-est-banner-txt span{font:500 13px/1.4 var(--cy-sans,system-ui,sans-serif);opacity:.9}',
       '.sc-est-banner-txt i{font:700 12px/1 var(--cy-sans,system-ui,sans-serif);font-style:normal;text-decoration:underline;margin-top:4px}',
-      '.sc-est-ficha{display:block;margin:10px 0;padding:10px 12px;border-radius:12px;font:600 13px/1.35 var(--cy-sans,system-ui,sans-serif);text-decoration:none}',
+      '.sc-est-ficha{display:block;margin:10px 0 16px;padding:10px 12px;border-radius:12px;font:600 13px/1.35 var(--cy-sans,system-ui,sans-serif);text-decoration:none}',
       /* 1.11: portada. Ancho = min(100% - 24px, 1200px) y proporcion 4/3 en celular, 3/1 en compu (el head del theme reserva con la misma cuenta) */
       '.sc-est-home{display:block;position:relative;box-sizing:border-box;width:min(100% - 24px,1200px);margin:16px auto 20px;border-radius:18px;overflow:hidden;text-decoration:none;color:#f5f0e5;background:#34211b}',
       '.sc-est-home-img{aspect-ratio:4/3}@media(min-width:768px){.sc-est-home-img{aspect-ratio:3/1}}',
@@ -1166,23 +1167,30 @@
     };
     var poner = function () {
       try {
+        /* 1.13.1: primero se LEE todo (getComputedStyle) y despues se ESCRIBE. Antes cada card leia estilos justo despues de que la anterior escribiera (pill, clases, linea): un recalculo de estilo y layout por card, hasta ~1,3 s con la portada todavia cargando, y la estetica aparecia recien al terminar. */
+        var plan = [];
         qa('.js-item-product[data-product-id]').forEach(function (it) {
-          var id = it.getAttribute('data-product-id'), m = mapa[id], rg = reg[id];
+          var id = it.getAttribute('data-product-id'), m = mapa[id], rg = reg[id], x = { it: it, rg: rg };
           if (m && !it.querySelector('.sc-est-pill')) {
             var img = it.querySelector('.item-image, .js-item-image-container, picture, img'); var host = img && (img.tagName === 'IMG' ? img.parentNode : img);
-            if (host) {
-              if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-sc-est-pos', '1'); }
-              var p = esteEl('span', 'sc-est-pill', m.txt); p.setAttribute('data-sc-est', '1');
-              var tp = ofTonos(m.col); ofPonerVars(p, tp);
-              p.style.setProperty('background', liso ? m.col.fondo : OF_PILDORA, 'important'); p.style.setProperty('color', m.col.texto, 'important');   /* con important, porque la portada deja transparente todo lo que va sobre la foto */
-              if (!liso) { p.style.boxShadow = '0 6px 12px -4px rgba(' + tp.oscRgb + ',.6),inset 0 1px 0 rgba(255,255,255,.25)'; p.style.padding = '4px 10px'; }
-              host.appendChild(p);
-            }
+            if (host) { x.m = m; x.host = host; x.pos = getComputedStyle(host).position === 'static'; }
+          }
+          if (rg && !it.classList.contains('sc-of-card')) { var pc = it.querySelector('.js-product-container'); x.fr = pc && parseFloat(getComputedStyle(pc).borderTopLeftRadius) > 0 ? pc : it; }
+          plan.push(x);
+        });
+        plan.forEach(function (x) {
+          var it = x.it, rg = x.rg, m = x.m, host = x.host;
+          if (m) {
+            if (x.pos) { host.style.position = 'relative'; host.setAttribute('data-sc-est-pos', '1'); }
+            var p = esteEl('span', 'sc-est-pill', m.txt); p.setAttribute('data-sc-est', '1');
+            var tp = ofTonos(m.col); ofPonerVars(p, tp);
+            p.style.setProperty('background', liso ? m.col.fondo : OF_PILDORA, 'important'); p.style.setProperty('color', m.col.texto, 'important');   /* con important, porque la portada deja transparente todo lo que va sobre la foto */
+            if (!liso) { p.style.boxShadow = '0 6px 12px -4px rgba(' + tp.oscRgb + ',.6),inset 0 1px 0 rgba(255,255,255,.25)'; p.style.padding = '4px 10px'; }
+            host.appendChild(p);
           }
           if (!rg) return;
           if (!it.classList.contains('sc-of-card')) it.classList.add('sc-of-card');
-          var pc = it.querySelector('.js-product-container'), fr = pc && parseFloat(getComputedStyle(pc).borderTopLeftRadius) > 0 ? pc : it;
-          if (!fr.classList.contains('sc-of-fr')) fr.classList.add('sc-of-fr');
+          if (x.fr && !x.fr.classList.contains('sc-of-fr')) x.fr.classList.add('sc-of-fr');
           ponerLinea(it, rg);
         });
         fichaAhorro(); pestana(); menuChip(); carroPintar();
