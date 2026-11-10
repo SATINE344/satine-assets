@@ -1,4 +1,5 @@
-/* 1.12.0 (10/11/2026): (1) guardia PARA SIEMPRE «sin descuento»: si el cartel de oferta dice 0% o el precio tachado no es mayor que el precio, no se muestran (Tienda Nube los des-oculta con una promocion del panel prendida). (2) El acento de la promocion llega a todo: linea «-X% en combo», carteles nativos de oferta/promocion, precio SOLO si esta rebajado de verdad (antes pintaba todos los precios del sitio) y banner de portada sin imagen. */
+/* 1.12.1 (10/11/2026): pulido de la estetica de promociones: la barra va ADENTRO de la capsula de la franja (redondeada y unida al menu, con la letra de la franja); el banner de portada se separa del hero; el banner de categoria se alinea con las cards (antes tocaba los bordes de la pantalla).
+   1.12.0 (10/11/2026): (1) guardia PARA SIEMPRE «sin descuento»: si el cartel de oferta dice 0% o el precio tachado no es mayor que el precio, no se muestran (Tienda Nube los des-oculta con una promocion del panel prendida). (2) El acento de la promocion llega a todo: linea «-X% en combo», carteles nativos de oferta/promocion, precio SOLO si esta rebajado de verdad (antes pintaba todos los precios del sitio) y banner de portada sin imagen. */
 /* 1.11.0 (09/11/2026): banners de portada (estetica.home) y de ficha (estetica.ficha.banner) + registro de reserva sc_est_reserva en localStorage para que el head del theme
    reserve el hueco antes del primer pintado (sin salto de pagina). Con la estetica apagada no hace nada nuevo. Ver seccion 1.11 mas abajo.
    satine-cyber 1.9 (02/11/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
@@ -22,7 +23,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.12.0',
+    version: '1.12.1',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -849,12 +850,14 @@
       return true;
     });
     css.push(
-      '.sc-est-barra{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:10px;z-index:10001;font:700 11px/1.2 var(--cy-sans,system-ui,sans-serif);letter-spacing:.04em;text-transform:uppercase;text-align:center;padding:0 12px;overflow:hidden;white-space:nowrap}',
-      '.sc-est-barra a{color:inherit;text-decoration:none;display:flex;gap:10px;align-items:center;max-width:100%}',
+      '.sc-est-barra{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;gap:10px;z-index:10001;font:600 11px/1.2 var(--cy-sans,system-ui,sans-serif);letter-spacing:.04em;text-transform:uppercase;text-align:center;padding:0 16px;overflow:hidden;white-space:nowrap;border-radius:inherit}',
+      '.sc-est-barra>a,.sc-est-barra>div{color:inherit;text-decoration:none;display:flex;gap:10px;align-items:center;justify-content:center;max-width:100%;min-width:0}',
+      /* 1.12.1: el theme le fuerza un color a los textos de la franja: sin esto el dorado salia con letra clara */
+      '.sc-est-barra *{color:inherit!important}',
       '.sc-est-barra span{overflow:hidden;text-overflow:ellipsis}',
-      '.sc-est-cuenta{font-variant-numeric:tabular-nums;opacity:.85}',
+      '.sc-est-cuenta{font-variant-numeric:tabular-nums;opacity:.85;flex:none}',
       '.sc-est-pill{position:absolute;left:8px;top:8px;z-index:3;padding:3px 9px;border-radius:999px;font:700 11px/1.3 var(--cy-sans,system-ui,sans-serif);pointer-events:none;letter-spacing:.02em}',
-      '.sc-est-banner{display:block;margin:0 0 16px;border-radius:16px;overflow:hidden;text-decoration:none;position:relative}',
+      '.sc-est-banner{display:block;margin:0 12px 16px;border-radius:18px;overflow:hidden;text-decoration:none;position:relative}',
       '.sc-est-banner-img{aspect-ratio:2/1;background:rgba(0,0,0,.04)}@media(min-width:768px){.sc-est-banner-img{aspect-ratio:4/1}}',
       '.sc-est-banner picture,.sc-est-banner img{display:block;width:100%;height:100%;object-fit:cover}',
       '.sc-est-banner-txt{padding:20px 18px;min-height:96px;display:flex;flex-direction:column;justify-content:center;gap:4px}',
@@ -863,7 +866,7 @@
       '.sc-est-banner-txt i{font:700 12px/1 var(--cy-sans,system-ui,sans-serif);font-style:normal;text-decoration:underline;margin-top:4px}',
       '.sc-est-ficha{display:block;margin:10px 0;padding:10px 12px;border-radius:12px;font:600 13px/1.35 var(--cy-sans,system-ui,sans-serif);text-decoration:none}',
       /* 1.11: portada. Ancho = min(100% - 24px, 1200px) y proporcion 4/3 en celular, 3/1 en compu (el head del theme reserva con la misma cuenta) */
-      '.sc-est-home{display:block;position:relative;box-sizing:border-box;width:min(100% - 24px,1200px);margin:0 auto 20px;border-radius:16px;overflow:hidden;text-decoration:none;color:#f5f0e5;background:#34211b}',
+      '.sc-est-home{display:block;position:relative;box-sizing:border-box;width:min(100% - 24px,1200px);margin:16px auto 20px;border-radius:18px;overflow:hidden;text-decoration:none;color:#f5f0e5;background:#34211b}',
       '.sc-est-home-img{aspect-ratio:4/3}@media(min-width:768px){.sc-est-home-img{aspect-ratio:3/1}}',
       '.sc-est-home picture,.sc-est-home img{display:block;width:100%;height:100%;object-fit:cover}',
       '.sc-est-home-tx{display:flex;flex-direction:column;gap:6px;padding:24px 20px;align-items:flex-start}',
@@ -872,7 +875,7 @@
       '.sc-est-home-tx b{font:700 22px/1.15 var(--cy-serif,system-ui,sans-serif);max-width:26em}',
       '.sc-est-home-tx span{font:500 13px/1.4 var(--cy-sans,system-ui,sans-serif);opacity:.92;max-width:34em;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}',
       '.sc-est-home-tx i{font:700 13px/1 var(--cy-sans,system-ui,sans-serif);font-style:normal;margin-top:6px;padding:0 20px;min-height:44px;display:inline-flex;align-items:center;border-radius:999px;background:#f5f0e5;color:#34211b}',
-      '@media(min-width:768px){.sc-est-home-tx{padding:32px 40px}.sc-est-home-img .sc-est-home-tx{padding:72px 40px 28px}.sc-est-home-tx b{font-size:30px}.sc-est-home-tx span{font-size:15px}}',
+      '@media(min-width:768px){.sc-est-home{margin:24px auto}.sc-est-home-tx{padding:32px 40px}.sc-est-home-img .sc-est-home-tx{padding:72px 40px 28px}.sc-est-home-tx b{font-size:30px}.sc-est-home-tx span{font-size:15px}}',
       /* 1.11: ficha. Franja de imagen debajo del boton de compra, 4/1 en celular y 5/1 en compu */
       '.sc-est-fbn{display:block;margin:12px 0 0;border-radius:12px;overflow:hidden;text-decoration:none;aspect-ratio:4/1;background:rgba(0,0,0,.04)}@media(min-width:768px){.sc-est-fbn{aspect-ratio:5/1}}',
       '.sc-est-fbn picture,.sc-est-fbn img{display:block;width:100%;height:100%;object-fit:cover}'
@@ -884,8 +887,11 @@
       var e = c.visual.estetica, ad = q('section.js-adbar');
       if (!(e.barra && e.barra.activa && e.barra.mensaje && ad)) return false;
       var col = esteCol(c, e.paleta, 'x', 'marron'); var k = e.barra.fondo; if (e.paleta && e.paleta[k]) col = e.paleta[k];
-      if (getComputedStyle(ad).position === 'static') { ad.style.position = 'relative'; ad.setAttribute('data-sc-est-pos', '1'); }
-      var b = esteEl('div', 'sc-est-barra'); b.setAttribute('data-sc-est', '1'); b.style.background = col.fondo; b.style.color = col.texto;
+      /* 1.12.1: la barra va ADENTRO de la capsula de la franja (misma forma redondeada, unida al menu) y con la letra de la franja; antes cubria todo el ancho con esquinas rectas y rompia la capsula flotante */
+      var host = q('.container-fluid', ad) || ad, msj = q('.satine-adbar-message,.adbar-message', ad);
+      if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-sc-est-pos', '1'); }
+      var b = esteEl('div', 'sc-est-barra'); b.setAttribute('data-sc-est', '1'); b.style.background = col.fondo; b.style.setProperty('color', col.texto, 'important');   /* 1.12.1: con important: una regla del theme pisaba el color y el dorado salia con letra clara */
+      if (msj) { try { var mcs = getComputedStyle(msj); b.style.fontFamily = mcs.fontFamily; b.style.fontSize = mcs.fontSize; b.style.letterSpacing = mcs.letterSpacing; b.style.textTransform = mcs.textTransform; } catch (e) {} }
       var dest = esteSeguro(e.barra.destino), cont = esteEl(dest ? 'a' : 'div'); if (dest) cont.href = dest;
       cont.appendChild(esteEl('span', '', e.barra.mensaje));
       if (e.barra.cuenta && c.hasta) {
@@ -898,7 +904,8 @@
         esteCuentaTimer = setInterval(tic, 1000);
         document.addEventListener('visibilitychange', esteVis = function () { if (!document.hidden) tic(); });
       }
-      b.appendChild(cont); ad.appendChild(b);
+      [cont].concat([].slice.call(cont.children)).forEach(function (n) { n.style.setProperty('color', 'inherit', 'important'); n.style.setProperty('-webkit-text-fill-color', 'currentColor', 'important'); });
+      b.appendChild(cont); host.appendChild(b);
       return true;
     });
 
