@@ -1,7 +1,7 @@
 {
- "actualizado": "2026-11-09T15:00:07.499Z",
+ "actualizado": "2026-11-10T03:00:07.332Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-09",
+ "google_ultimo_ok": "2026-11-10",
  "google": {
   "rating": 4.5,
   "count": 41,
@@ -15,7 +15,7 @@
     "rating": 5,
     "texto": "Es impresionante la amé. !!!\nExcelente calidad 🫶🏻",
     "fecha": "2026-10-26T23:23:32.070082381Z",
-    "cuando": "Hace una semana"
+    "cuando": "Hace 2 semanas"
    },
    {
     "autor": "Noe",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 71756,
+  "ventas": 72005,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011
