@@ -953,7 +953,7 @@
       'html.scm .sc-est-ficha::before{content:"%";flex:none;width:26px;height:26px;border-radius:50%;background:rgba(var(--of-tx-rgb),.2);display:grid;place-items:center;font:700 13px/1 system-ui,sans-serif;position:relative;z-index:1}',
       'html.scm .sc-est-ficha>span{position:relative;z-index:1;display:flex;flex-direction:column;gap:2px}',
       'html.scm .sc-est-ficha>span small{font:500 12px/1.3 ' + FJ + ';opacity:.92}',
-      'html.scm .sc-est-linea{font:600 12px/1.3 ' + FJ + ';color:var(--of-ink);margin:5px 0 0}',
+      'html.scm .sc-est-linea{font:600 12px/1.3 ' + FJ + ';color:var(--of-ink);margin:5px 0 0;order:1;flex:0 0 100%}',
       'html.scm .sc-est-linea b{font-weight:800}',
       'html.scm .sc-of-carro{position:relative;isolation:isolate;overflow:hidden;display:flex;align-items:center;gap:10px;margin:12px 0 6px;padding:12px 14px;border-radius:16px;background:var(--of);color:var(--of-tx);font-family:' + FJ + ';text-align:left}',
       'html.scm .sc-of-carro>i{flex:none;width:28px;height:28px;border-radius:50%;background:rgba(var(--of-tx-rgb),.2);display:grid;place-items:center;font:700 13px/1 system-ui,sans-serif;font-style:normal}',
@@ -997,6 +997,7 @@
       'html.scm-c{background-color:var(--of-fondo)!important}',
       'html.scm-c::before{height:1200px;background:radial-gradient(130% 60% at 50% 10%,rgba(var(--of-rgb),.3),rgba(var(--of-rgb),0) 75%)}',
       'html.scm-c .js-item-product.sc-of-card .js-item-description.item-description{background:linear-gradient(#fff 0,var(--of-t18) 100%)!important}',
+      '@media(min-width:768px){' + O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx{max-width:60%;padding:34px 44px;gap:10px}' + O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx b{max-width:none;font-size:40px}' + O + '.sc-est-home:not(.sc-est-home-img) .sc-est-home-tx span{max-width:none;font-size:16px}' + O + '.sc-est-banner:not(.sc-est-banner-img) .sc-est-banner-txt{max-width:60%;padding:26px 32px}' + O + '.sc-est-banner:not(.sc-est-banner-img) .sc-est-banner-txt b{max-width:none;font-size:30px}' + O + '.sc-est-banner:not(.sc-est-banner-img) .sc-est-banner-txt span{font-size:15px}}',
       '@media (prefers-reduced-motion:reduce){html.scm .sc-of-carro em u{transition:none}}'
     );
     var st = esteEl('style'); st.id = 'sc-est-css'; st.setAttribute('data-sc-est', '1'); st.textContent = css.join('\n'); document.head.appendChild(st);
@@ -1018,7 +1019,7 @@
         var tic = function () {
           if (document.hidden) return;
           if (Date.now() >= new Date(c.hasta).getTime()) { esteLimpiar(); rsvBorrar(); return; }   /* vencio: la estetica se va sola */
-          cu.textContent = esteTiempo(c.hasta);
+          var tx = esteTiempo(c.hasta); if (cu.textContent !== tx) cu.textContent = tx;
         };
         esteCuentaTimer = setInterval(tic, 1000);
         document.addEventListener('visibilitychange', esteVis = function () { if (!document.hidden) tic(); });
@@ -1036,7 +1037,7 @@
         var peso = +r.etiqueta_peso || 0, ids = r.alcance && r.alcance.productos_resueltos;
         if (!ids || !ids.length) return;
         var et = String(r.etiqueta || (e.etiqueta && e.etiqueta.texto) || c.nombre || '').slice(0, 40), mec = ofMec(r);
-        ids.forEach(function (id) { if (!reg[id] || reg[id].peso < peso) reg[id] = { c: c, r: r, peso: peso, et: et, mec: mec }; });
+        ids.forEach(function (id) { if (!reg[id] || reg[id].peso < peso) reg[id] = { c: c, r: r, peso: peso, et: et, mec: mec, nom: String(r.nombre || c.nombre || '').slice(0, 50) }; });
         if (!(e.etiqueta && e.etiqueta.activa)) return;
         var txt = (e.etiqueta.texto || r.etiqueta || '').slice(0, 24); if (!txt) return;
         var col = (e.acento && e.paleta && e.paleta[e.acento]) || (e.paleta && e.paleta.rojo) || { fondo: '#c0392b', texto: '#fff' };
@@ -1079,6 +1080,11 @@
     };
     /* carrito (cajon y pagina): chip bajo cada producto en promo y un aviso. NO se tocan cantidades, subtotales ni totales, y no se agrega fila de descuento propia. */
     var carroOcupado = false;
+    var nomUtil = function (nom, tit, et) {   /* nombre de la campana como linea chica, solo si no repite lo que ya dice el titulo o la etiqueta */
+      var n = function (x) { return String(x || '').toLowerCase().replace(/[^a-z0-9\u00e0-\u00ff]+/g, ''); }, a = n(nom);
+      var resto = String(nom || '').toLowerCase().replace(/\d+(?:[.,]\d+)?\s?%|\b(?:segund[oa]s?|vidrios?|fundas?|productos?|unidad(?:es)?|off|descuento|al|la|el|de|te|sale|y|con|en|las|los|2\.?\u00aa?)\b/g, '').replace(/[^a-z\u00e0-\u00ff]+/g, '');
+    return a && resto && a !== n(et) && a !== n(tit) && n(tit).indexOf(a) < 0 ? String(nom) : '';
+    };
     var carroLeer = function (raiz, lista) {
       var grupos = {}, hay = false;
       qa('.js-cart-item', lista).forEach(function (it) {
@@ -1120,21 +1126,22 @@
           if (!cumple) { prim = cond.slice().sort(function (a, b) { return b.cant / b.rg.mec.n - a.cant / a.rg.mec.n; })[0]; falta = prim.rg.mec.n - prim.cant; }
           else prim = cond.filter(function (g) { return g.cant >= g.rg.mec.n; })[0];
         }
-        var mec = prim.rg.mec, tit, sub = prim.rg.et, icono = '%', pasos = 0, boton = null;
+        var mec = prim.rg.mec, tit, sub = '', icono = '%', pasos = 0, boton = null;
         if (cond.length && !cumple) {
-          tit = mec.k === 'seg' ? 'Sumá ' + falta + ' más y la 2.ª unidad te sale ' + mec.pct + ' % OFF' : 'Sumá ' + falta + ' más: llevás ' + mec.l + ' y pagás ' + mec.p;
-          sub = 'Promoción SATINE: ' + prim.rg.et; pasos = Math.round(prim.cant / mec.n * 100);
+          var pm = prim.rg.et.match(/\d+(?:[.,]\d+)?\s?%/), pt = pm ? pm[0] : mec.pct + '%';   /* el porcentaje con la misma forma que trae la etiqueta */
+          tit = mec.k === 'seg' ? 'Sumá ' + falta + ' más y la 2.ª te sale ' + pt + ' OFF' : 'Sumá ' + falta + ' más: llevás ' + mec.l + ' y pagás ' + mec.p;
+          sub = nomUtil(prim.rg.nom, tit, prim.rg.et); pasos = Math.round(prim.cant / mec.n * 100);
           var mejor = prim.items.slice().sort(function (a, b) { return b.cant - a.cant; })[0];
           if (mejor && q('[data-component="quantity.plus"]', mejor.el)) boton = mejor.el;
         } else {
-          tit = 'Promoción SATINE';
+          tit = 'Promoción SATINE'; sub = nomUtil(prim.rg.nom, tit, prim.rg.et) || prim.rg.et;
           if (cond.length && cumple) {   /* "aplicada" solo si el carrito real descuenta lo que la regla dice (mismo criterio que Cyber, +-1,5) */
             var real = carroDescuentoReal(raiz), esp = 0;
             cond.forEach(function (g) {
               if (g.cant < g.rg.mec.n) return;
               esp += g.rg.mec.k === 'seg' ? Math.floor(g.cant / 2) * g.unit * g.rg.mec.pct / 100 : Math.floor(g.cant / g.rg.mec.l) * g.unit * (g.rg.mec.l - g.rg.mec.p);
             });
-            if (real > 0 && esp > 0 && Math.abs(real - esp) <= 1.5) { tit = 'Promoción aplicada: ahorrás ' + plata(real); icono = '✓'; }
+            if (real > 0 && esp > 0 && Math.abs(real - esp) <= 1.5) { tit = 'Promoción aplicada: ahorrás ' + plata(real); icono = '✓'; sub = nomUtil(prim.rg.nom, tit, prim.rg.et); }
           }
         }
         var sig = [tit, sub, pasos, boton ? 1 : 0].join('|');
@@ -1142,7 +1149,7 @@
         previos.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
         var av = esteEl('div', 'sc-of-carro'); av.setAttribute('data-sc-est', '1'); av.setAttribute('data-sig', sig);
         av.appendChild(esteEl('i', '', icono));
-        var sp = esteEl('span'); sp.appendChild(esteEl('b', '', tit)); sp.appendChild(esteEl('small', '', sub));
+        var sp = esteEl('span'); sp.appendChild(esteEl('b', '', tit)); if (sub) sp.appendChild(esteEl('small', '', sub));
         if (pasos) { var em = esteEl('em'), u = esteEl('u'); u.style.width = pasos + '%'; em.appendChild(u); sp.appendChild(em); }
         av.appendChild(sp);
         if (boton) {
