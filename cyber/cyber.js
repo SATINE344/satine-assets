@@ -1,3 +1,4 @@
+/* 1.12.0 (10/11/2026): (1) guardia PARA SIEMPRE «sin descuento»: si el cartel de oferta dice 0% o el precio tachado no es mayor que el precio, no se muestran (Tienda Nube los des-oculta con una promocion del panel prendida). (2) El acento de la promocion llega a todo: linea «-X% en combo», carteles nativos de oferta/promocion, precio SOLO si esta rebajado de verdad (antes pintaba todos los precios del sitio) y banner de portada sin imagen. */
 /* 1.11.0 (09/11/2026): banners de portada (estetica.home) y de ficha (estetica.ficha.banner) + registro de reserva sc_est_reserva en localStorage para que el head del theme
    reserve el hueco antes del primer pintado (sin salto de pagina). Con la estetica apagada no hace nada nuevo. Ver seccion 1.11 mas abajo.
    satine-cyber 1.9 (02/11/2026) - capa visual del CYBER SATINE (31/10 19:00 al 4/11, hora Argentina).
@@ -21,7 +22,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.11.0',
+    version: '1.12.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -818,6 +819,13 @@
     var d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
     return (d ? d + 'd ' : '') + (h < 10 ? '0' : '') + h + 'h ' + (m < 10 ? '0' : '') + m + 'm';
   }
+  function esteHex(h) { return typeof h === 'string' && /^#(?:[0-9a-f]{3}|[0-9a-f]{6})$/i.test(h); }
+  function esteRgb(h) { var x = h.slice(1); if (x.length === 3) x = x[0] + x[0] + x[1] + x[1] + x[2] + x[2]; return parseInt(x.slice(0, 2), 16) + ',' + parseInt(x.slice(2, 4), 16) + ',' + parseInt(x.slice(4, 6), 16); }
+  function esteClaro(h) {   /* true si el color es demasiado claro para leerse como letra sobre blanco */
+    if (!esteHex(h)) return true;
+    var x = h.slice(1); if (x.length === 3) x = x[0] + x[0] + x[1] + x[1] + x[2] + x[2];
+    return (0.2126 * parseInt(x.slice(0, 2), 16) + 0.7152 * parseInt(x.slice(2, 4), 16) + 0.0722 * parseInt(x.slice(4, 6), 16)) / 255 > 0.6;
+  }
   function esteCol(c, p, clave, defecto) { var k = c.visual.estetica[clave] || defecto; return (p && p[k]) || (p && p[defecto]) || { fondo: '#34211b', texto: '#f5f0e5' }; }
   function estePintar(camps) {
     esteLimpiar();
@@ -829,8 +837,15 @@
     camps.some(function (c) {
       var k = c.visual.estetica.acento, a = k && c.visual.estetica.paleta && c.visual.estetica.paleta[k];
       if (!a) return false;
-      css.push('html[data-sc-est] .js-addtocart.btn-primary,html[data-sc-est] .btn-primary.js-addtocart{background:' + a.fondo + '!important;border-color:' + a.fondo + '!important;color:' + a.texto + '!important}',
-        'html[data-sc-est] .js-price-display{color:' + a.fondo + '!important}');
+      css.push('html[data-sc-est] .js-addtocart.btn-primary,html[data-sc-est] .btn-primary.js-addtocart{background:' + a.fondo + '!important;border-color:' + a.fondo + '!important;color:' + a.texto + '!important}');
+      if (!esteHex(a.fondo) || !esteHex(a.texto)) return true;
+      /* 1.12: el acento llega a todo lo que habla de la promocion. Un acento muy claro (dorado, crema) no se usa como color de letra sobre blanco. */
+      var tx = esteClaro(a.fondo) ? '' : a.fondo, H = 'html[data-sc-est] body :is(#sc-est-x,*) ';
+      if (tx) css.push('html[data-sc-est]{--satine-oferta-rojo:' + tx + '}');   /* precio: solo el rebajado de verdad (el theme lo pinta con esta variable cuando hay tachado) */
+      var rgb = esteRgb(a.fondo);   /* la linea de combo del theme es una ficha: punto + fondo suave + borde, los tres en el acento */
+      css.push('html[data-sc-est] .js-item-product .js-item-price-container.item-price-container[data-satine-combo]::after{' + (tx ? 'color:' + tx + '!important;' : '') + 'background:radial-gradient(circle at 9px 50%,' + a.fondo + ' 2.5px,rgba(' + rgb + ',0) 3px) no-repeat,rgba(' + rgb + ',.1)!important;box-shadow:inset 0 0 0 1px rgba(' + rgb + ',.4)!important}',
+        H + 'div.js-promotion-label-private.label.label,' + H + '.label.js-offer-label.js-offer-label{background:' + a.fondo + '!important;border-color:' + a.fondo + '!important;color:' + a.texto + '!important}',
+        H + 'div.js-promotion-label-private.label.label *,' + H + '.label.js-offer-label.js-offer-label *{color:' + a.texto + '!important}');
       return true;
     });
     css.push(
@@ -907,7 +922,9 @@
           var m = mapa[it.getAttribute('data-product-id')]; if (!m) return;
           var img = it.querySelector('.item-image, .js-item-image-container, picture, img'); var host = img && (img.tagName === 'IMG' ? img.parentNode : img); if (!host) return;
           if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-sc-est-pos', '1'); }
-          var p = esteEl('span', 'sc-est-pill', m.txt); p.setAttribute('data-sc-est', '1'); p.style.background = m.col.fondo; p.style.color = m.col.texto; host.appendChild(p);
+          var p = esteEl('span', 'sc-est-pill', m.txt); p.setAttribute('data-sc-est', '1');
+          p.style.setProperty('background', m.col.fondo, 'important'); p.style.setProperty('color', m.col.texto, 'important');   /* 1.12: con important, porque la portada deja transparente todo lo que va sobre la foto */
+          host.appendChild(p);
         });
       } catch (e) {}
     };
@@ -954,7 +971,8 @@
         if (typeof vh.titulo === 'string' && vh.titulo) htx.appendChild(esteEl('b', '', vh.titulo));
         if (typeof vh.texto === 'string' && vh.texto) htx.appendChild(esteEl('span', '', vh.texto));
         if (typeof hb.texto === 'string' && hb.texto) htx.appendChild(esteEl('i', '', hb.texto));
-        var hcol = (hm.e.paleta && hm.e.paleta.marron) || { fondo: '#34211b', texto: '#f5f0e5' };
+        var hac = hm.e.acento && hm.e.paleta && hm.e.paleta[hm.e.acento];   /* 1.12: sin imagen, el bloque toma el acento (si es oscuro: el boton de adentro es crema) */
+        var hcol = (hac && esteHex(hac.fondo) && esteHex(hac.texto) && !esteClaro(hac.fondo) && hac) || (hm.e.paleta && hm.e.paleta.marron) || { fondo: '#34211b', texto: '#f5f0e5' };
         if (hm.im.pc || hm.im.cel) {
           hel.className += ' sc-est-home-img';
           hel.appendChild(esteFoto(hm.im.pc, hm.im.cel, vh.titulo, { pw: 1200, ph: 400, cw: 800, ch: 600, alta: true }));
@@ -1174,6 +1192,56 @@
     estilo = null;
     document.documentElement.removeAttribute('data-satine-cyber');
   }
+
+  /* ---------- 1.12 GUARDIA «sin descuento» (para siempre: no depende de ninguna promocion ni de la estetica) ----------
+     Con una promocion del panel prendida, Tienda Nube a veces des-oculta el cartel de oferta con «0% OFF» y el precio tachado igual al precio.
+     Regla: si el porcentaje es 0 o el tachado no es mayor que el precio, no se muestra ninguno de los dos (y el precio no se pinta de oferta).
+     Si despues llega una rebaja real (cambio de variante, promo nueva) la marca se saca sola. */
+  var gObs = null, gEscr = 0;
+  function gNum(n) { var t = n ? String(n.textContent || '').replace(/[^\d,]/g, '').replace(',', '.') : ''; return t ? parseFloat(t) : NaN; }
+  function gPrecioDe(n) { var p = n.parentNode, i = 0, pr = null; while (p && p !== document.body && i++ < 4 && !(pr = p.querySelector('.js-price-display'))) p = p.parentNode; return pr; }
+  function gUno(n) {
+    try {
+      if (n.classList.contains('js-compare-price-display')) {
+        var c = gNum(n), p = gNum(gPrecioDe(n)), mal = !isNaN(c) && (c <= 0 || (!isNaN(p) && c <= p));
+        if (mal) {
+          if (!n.hasAttribute('data-sc-sin-desc')) n.setAttribute('data-sc-sin-desc', '1');
+          if (n.getAttribute('data-price-compare-visibility') === 'true' && gEscr < 400) { gEscr++; n.setAttribute('data-sc-vis', '1'); n.setAttribute('data-price-compare-visibility', 'false'); }
+        } else if (n.hasAttribute('data-sc-sin-desc')) {
+          n.removeAttribute('data-sc-sin-desc');
+          if (n.hasAttribute('data-sc-vis')) { n.removeAttribute('data-sc-vis'); if (n.getAttribute('data-price-compare-visibility') === 'false' && gEscr < 400) { gEscr++; n.setAttribute('data-price-compare-visibility', 'true'); } }
+        }
+      } else {
+        var s = n.querySelector('.js-offer-percentage'); if (!s) return;
+        var v = parseFloat(String(s.textContent || '').replace(',', '.'));
+        if (!isNaN(v) && v <= 0) { if (!n.hasAttribute('data-sc-sin-desc')) n.setAttribute('data-sc-sin-desc', '1'); }
+        else if (n.hasAttribute('data-sc-sin-desc')) n.removeAttribute('data-sc-sin-desc');
+      }
+    } catch (e) {}
+  }
+  function gTodo() { try { qa('.js-compare-price-display,.js-offer-label').forEach(gUno); } catch (e) {} }
+  function gArrancar() {
+    try {
+      var A = '[data-sc-sin-desc]', st = esteEl('style'); st.id = 'sc-g-css';
+      st.textContent = 'html body :is(#sc-g,*) ' + A + A + A + A + A + A + '{display:none!important}';   /* le gana a la regla del theme que muestra el tachado */
+      document.head.appendChild(st);
+      var go = function () {
+        if (gObs || !document.body) return;
+        gTodo();
+        if (typeof MutationObserver !== 'function') return;
+        gObs = new MutationObserver(function (rs) {
+          for (var i = 0; i < rs.length; i++) {
+            var r = rs[i], t = r.target, el = t && (t.nodeType === 1 ? t : t.parentNode);
+            if (r.type === 'attributes' || (el && el.closest && el.closest('.js-price-display,.js-compare-price-display,.js-offer-label'))) { gTodo(); return; }
+            for (var j = 0; r.addedNodes && j < r.addedNodes.length; j++) if (r.addedNodes[j].nodeType === 1) { gTodo(); return; }
+          }
+        });
+        gObs.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ['data-price-compare-visibility'] });
+      };
+      if (document.body) go(); else document.addEventListener('DOMContentLoaded', go);
+    } catch (e) {}
+  }
+  gArrancar();
 
   try { esteDesdeCache(); } catch (e) {}   /* 1.10: estetica desde la cache chica, lo antes posible */
   aplicarContrato(leerContratoGuardado());   /* lo ultimo que dijo el ERP, para arrancar sin esperar la red */
