@@ -1,5 +1,5 @@
 {
- "actualizado": "2026-11-11T03:00:07.801Z",
+ "actualizado": "2026-11-11T15:00:18.110Z",
  "google_estado": "ok",
  "google_ultimo_ok": "2026-11-11",
  "google": {
@@ -18,13 +18,13 @@
     "cuando": "Hace 2 semanas"
    },
    {
-    "autor": "Noe",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWCSBYucM9j4dsPjjyOFEC_fUnPKDXyqTYkRNq32UVWgMIB2cE=s128-c0x00000000-cc-rp-mo-ba3",
-    "perfil": "https://www.google.com/maps/contrib/113221970106395925144/reviews",
-    "rating": 1,
-    "texto": "Un desastre, les reclamas lo que pagaste, que porque no llega a tiempo o porque te venden lo que no es , y cuando les hablas , ya no tienen WhatsApp, segundo me bloquearon de Instagram, unos sinvergüenzas , maleducados!!! No les compreen nada 👎 y hoy les volví a comprar y me volvieron a mentir!!! Pedí un protector 18 pro Max y me mandan un 17 pro Max y lo taparon con una etiqueta ahora pedí la devolución del dinero!!!",
-    "fecha": "2026-10-13T21:58:22.229388731Z",
-    "cuando": "Hace 4 semanas"
+    "autor": "Gregorio Lopez Ogawa",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWcotfjeF28BlbMxqMBaBFJk9ShPSVg5SD4Rgat1n2JVqB-4n53LA=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/105007259164677751795/reviews",
+    "rating": 5,
+    "texto": "Increíble la calidad de las fundas, 10/10 la presentación de producto.",
+    "fecha": "2026-10-15T22:37:01.013481396Z",
+    "cuando": "Hace 3 semanas"
    },
    {
     "autor": "Carla Pachado",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 72281,
+  "ventas": 72266,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
