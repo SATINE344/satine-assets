@@ -1,4 +1,5 @@
-/* 1.15.0 (11/11/2026): LANZAMIENTOS en la tienda. Lee d.lanzamientos del contrato (sin esa clave la web queda igual, cero nodos y cero pedidos extra). Antes de salir: barra con cuenta regresiva, bloque en el inicio y en la ficha, cartel de entrada y formulario «Avisame cuando salga» (mail y/o WhatsApp, trampa antirrobot, estados, se recuerda en el navegador). A la hora: la cuenta pasa a «Ya disponible» sin recargar. Despues: etiqueta «Nuevo» en tarjetas y ficha, bloque destacado en el inicio, «Quedan pocas», leyenda de precio y tarjeta con el codigo de regalo (de mi-codigo, con boton Copiar; tambien en el carrito). Prioridad con las promos: una sola barra (gana la promo) y un solo cartel por visita. Ademas: el aviso viejo del carrito (.sc-of-carro) se apaga con progreso_carrito apagado, y el hueco de las secciones del inicio y de la ficha se reserva antes de pintar (altura medida en la visita anterior). Prueba de borradores: ?satine_preview=<slug>.<clave>&satine_fase=anticipo|disponible. Para volver a 1.14.0: revertir este commit en satine-assets.
+/* 1.15.1 (11/11/2026): el regalo de los anotados llega de verdad. Despues de la salida el contrato trae regalo_anotados:true; si este navegador recuerda que se anoto se consulta mi-codigo UNA vez y la ficha (y el bloque del inicio) muestran «Te anotaste: este es tu codigo» con Copiar y como usarlo; si no se anoto aca, un enlace discreto «¿Te anotaste? Buscá tu código» pide mail o WhatsApp (anotarse con recuperar:true) y consulta. Si falla o da 404 no se muestra nada. Sin lanzamientos, cero cambios. Para volver a 1.15.0: revertir este commit en satine-assets.
+   1.15.0 (11/11/2026): LANZAMIENTOS en la tienda. Lee d.lanzamientos del contrato (sin esa clave la web queda igual, cero nodos y cero pedidos extra). Antes de salir: barra con cuenta regresiva, bloque en el inicio y en la ficha, cartel de entrada y formulario «Avisame cuando salga» (mail y/o WhatsApp, trampa antirrobot, estados, se recuerda en el navegador). A la hora: la cuenta pasa a «Ya disponible» sin recargar. Despues: etiqueta «Nuevo» en tarjetas y ficha, bloque destacado en el inicio, «Quedan pocas», leyenda de precio y tarjeta con el codigo de regalo (de mi-codigo, con boton Copiar; tambien en el carrito). Prioridad con las promos: una sola barra (gana la promo) y un solo cartel por visita. Ademas: el aviso viejo del carrito (.sc-of-carro) se apaga con progreso_carrito apagado, y el hueco de las secciones del inicio y de la ficha se reserva antes de pintar (altura medida en la visita anterior). Prueba de borradores: ?satine_preview=<slug>.<clave>&satine_fase=anticipo|disponible. Para volver a 1.14.0: revertir este commit en satine-assets.
    1.14.0 (11/11/2026): PIEZAS DE LAS PROMOS + EXTENSION. Progreso en el carrito (barra con frase que cambia), "Ahorras $X" y "Termina en" en la ficha, tarjeta "Suma tu regalo", fila de destacados en el inicio y cartel de entrada, cada uno con su interruptor por campana (progreso_carrito, ahorro_visible, aviso_regalo, seccion_inicio, cartel_entrada); extension de campana (etiqueta Extendido, cartel propio, cuenta al fin nuevo; al llegar a cero se re-pide el contrato una vez). Respeta condicion.sobre y siempre el fin de la campana. Cache sc_est_v1 v3. Volver atras: restaurar cyber.js del commit 7934d64 (1.13.1). */
 /* 1.13.1 (10/11/2026): primera visita sin cache: poner() lee todos los estilos de las cards antes de escribir (antes un recalculo de layout por card retrasaba hasta ~1,3 s la estetica de la portada); aire bajo el recuadro de la ficha.
    1.13.0 (10/11/2026): MODO OFERTA. La estetica de promociones gana intensidad (sobrio / destacado / total), acabado (liso / onda con cuero y grano), color a medida (paleta.medida), linea de ahorro en las cards con el precio real y la regla, bloque de ahorro en la ficha, pestana en la barra fija, tile y menu de Ofertas y avisos en el carrito (chips por producto y aviso de la promocion, sin numeros inventados). Sin promocion activa no queda ni un nodo, clase ni variable.
@@ -27,7 +28,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.15.0',
+    version: '1.15.1',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -1729,6 +1730,7 @@
     var y = o('leyenda_precio'); if (y && y.texto) m.p.leyenda = { texto: e14Cortar(y.texto, 60), hasta: Date.parse(y.hasta) || 0 };
     var a = l.anotarse && typeof l.anotarse === 'object' ? l.anotarse : null;
     if (a) m.a = { titulo: e14Cortar(a.titulo, 70), texto: e14Cortar(a.texto, 160), boton: e14Cortar(a.boton, 30) || 'Avisame', pide: a.pide === 'mail' || a.pide === 'whatsapp' ? a.pide : 'ambos', consent: e14Cortar(a.consentimiento, 200), regalo: !!a.regalo };
+    m.rg = l.regalo_anotados === true || !!(m.a && m.a.regalo);
     return m;
   }
   /* ficha del anotado (se guarda en el navegador; en vista previa, solo en la pestana) */
@@ -1814,14 +1816,14 @@
     return w;
   }
   /* ---- regalo por anotarse: el codigo viene de mi-codigo (nunca del contrato) ---- */
-  function l15Codigo(m, cb) {
-    var A = m.a; if (!(A && A.regalo && m.fase === 'disponible' && typeof fetch === 'function')) return;
-    var f = l15FiGet(m.id); if (!f) return;
+  function l15Codigo(m, cb, ko) {
+    if (!(m.rg && m.fase === 'disponible' && typeof fetch === 'function')) { if (ko) ko(); return; }
+    var f = l15FiGet(m.id); if (!f) { if (ko) ko(); return; }
     var c = L15.cod[m.id];
-    if (c === false) return;
+    if (c === false) { if (ko) ko(); return; }
     if (c && c.codigo) { cb(c); return; }
-    if (c && c.cbs) { c.cbs.push(cb); return; }
-    var e = L15.cod[m.id] = { cbs: [cb] };
+    if (c && c.cbs) { c.cbs.push(cb); if (ko) c.kos.push(ko); return; }
+    var e = L15.cod[m.id] = { cbs: [cb], kos: ko ? [ko] : [] };
     try {
       fetch(l15Base() + '/api/tienda/lanzamientos/mi-codigo?lanzamiento=' + encodeURIComponent(m.id) + '&ficha=' + encodeURIComponent(f), { credentials: 'omit' })
         .then(function (r) { return r.ok ? r.json() : null; })
@@ -1829,8 +1831,8 @@
           if (j && j.ok && j.codigo) {
             var v = { codigo: String(j.codigo).slice(0, 40), pct: l15Num(j.pct), hasta: j.hasta ? Date.parse(j.hasta) || 0 : 0 }, cbs = e.cbs;
             L15.cod[m.id] = v; cbs.forEach(function (fn) { try { fn(v); } catch (_) {} });
-          } else L15.cod[m.id] = false;
-        }).catch(function () { L15.cod[m.id] = false; });
+          } else { L15.cod[m.id] = false; e.kos.forEach(function (fn) { try { fn(); } catch (_) {} }); }
+        }).catch(function () { L15.cod[m.id] = false; e.kos.forEach(function (fn) { try { fn(); } catch (_) {} }); });
     } catch (x) { L15.cod[m.id] = false; }
   }
   function l15Copiar(t, btn, live) {
@@ -1844,17 +1846,70 @@
   function l15RegaloLlenar(box, v) {
     box.textContent = '';
     var tx = esteEl('div', 'lz-rt');
-    tx.appendChild(esteEl('b', '', 'Tu regalo por anotarte'));
+    tx.appendChild(esteEl('b', '', 'Te anotaste: este es tu código'));
     tx.appendChild(esteEl('span', 'lz-cod', v.codigo));
     tx.appendChild(esteEl('small', '', (v.pct ? v.pct + '% OFF' : 'Descuento') + (v.hasta ? ' · válido hasta ' + l15Fecha(v.hasta).split(' · ')[0] : '')));
+    tx.appendChild(esteEl('small', 'lz-uso', 'Pegalo en el campo de cupón al finalizar la compra.'));
     var bt = esteEl('button', 'lz-btn lz-copy', 'Copiar'); bt.type = 'button';
     var live = esteEl('span', 'lz-sr'); live.setAttribute('role', 'status'); live.setAttribute('aria-live', 'polite');
     bt.addEventListener('click', function () { l15Copiar(v.codigo, bt, live); });
     box.appendChild(tx); box.appendChild(bt); box.appendChild(live); box.hidden = false;
+    return bt;
+  }
+  /* «¿Te anotaste? Buscá tu código»: para quien se anoto en otro navegador. Pide el mismo dato y consulta. */
+  function l15Buscar(m) {
+    var box = l15Marca(esteEl('div', 'lz-reg lz-bus')), uid = 'lzb' + (++L15.n);
+    box.setAttribute('aria-live', 'polite');
+    var lk = esteEl('button', 'lz-lnk', '¿Te anotaste? Buscá tu código'); lk.type = 'button'; lk.setAttribute('aria-expanded', 'false'); box.appendChild(lk);
+    lk.addEventListener('click', function () {
+      lk.setAttribute('aria-expanded', 'true'); lk.hidden = true;
+      var f = esteEl('form', 'lz-form'); f.setAttribute('novalidate', ''); f.setAttribute('aria-label', 'Buscá tu código');
+      var st = esteEl('p', 'lz-st'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.id = uid + 's'; st.tabIndex = -1;
+      var inp = {};
+      [['mail', 'email', 'El mail con el que te anotaste', 'email', 'email'], ['telefono', 'tel', 'O tu WhatsApp', 'tel', 'tel']].forEach(function (c) {
+        var d = esteEl('div', 'lz-c'), l = esteEl('label', '', c[2]); l.setAttribute('for', uid + c[0]);
+        var i = esteEl('input'); i.type = c[1]; i.id = uid + c[0]; i.name = c[0]; i.autocomplete = c[3]; i.setAttribute('inputmode', c[4]); i.setAttribute('aria-describedby', st.id);
+        d.appendChild(l); d.appendChild(i); f.appendChild(d); inp[c[0]] = i;
+      });
+      var hp = esteEl('div', 'lz-hp'); hp.setAttribute('aria-hidden', 'true');
+      var hi = esteEl('input'); hi.type = 'text'; hi.name = 'sitio'; hi.tabIndex = -1; hi.autocomplete = 'off'; hp.appendChild(hi); f.appendChild(hp);
+      var bt = esteEl('button', 'lz-btn', 'Buscar mi código'); bt.type = 'submit'; f.appendChild(bt); f.appendChild(st);
+      box.appendChild(f); try { inp.mail.focus(); } catch (e) {}
+      var decir = function (t, err) { st.textContent = t; st.className = 'lz-st' + (err ? ' lz-err' : ''); };
+      f.addEventListener('submit', function (ev) {
+        ev.preventDefault(); if (bt.disabled) return;
+        var mail = inp.mail.value.trim(), tel = inp.telefono.value.trim(), nT = tel.replace(/[\s()+\-.]/g, '');
+        var okM = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail), okT = /^\d{8,15}$/.test(nT);
+        inp.mail.removeAttribute('aria-invalid'); inp.telefono.removeAttribute('aria-invalid');
+        var mal = (mail && !okM) ? inp.mail : (tel && !okT) ? inp.telefono : (!mail && !tel) ? inp.mail : null;
+        if (mal) { mal.setAttribute('aria-invalid', 'true'); decir(mal === inp.telefono ? 'Revisá el número: usá solo números, con código de área.' : (mail ? 'Revisá el mail: tiene que ser algo como nombre@correo.com.' : 'Escribí el mail o el WhatsApp con el que te anotaste.'), true); try { mal.focus(); } catch (e) {} return; }
+        if (typeof fetch !== 'function') { decir('No pudimos buscarlo. Probá de nuevo en un rato.', true); return; }
+        var body = { lanzamiento: m.id, recuperar: true, pagina: location.pathname.slice(0, 120), sitio: hi.value || '' };
+        if (okM) body.mail = mail; if (okT) body.telefono = tel;
+        bt.disabled = true; bt.setAttribute('aria-busy', 'true'); decir('Buscando…', false);
+        var fin = function () { bt.disabled = false; bt.removeAttribute('aria-busy'); };
+        fetch(l15Base() + '/api/tienda/lanzamientos/anotarse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'omit' })
+          .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { s: r.status, j: j || {} }; }); })
+          .then(function (x) {
+            fin();
+            if (x.s === 200 && x.j.ok !== false && x.j.ficha) {
+              l15FiSet(m.id, x.j.ficha); delete L15.cod[m.id];
+              l15Codigo(m, function (v) { var b2 = l15RegaloLlenar(box, v); try { b2.focus(); } catch (e) {} l15Pasada(); },
+                function () { decir('Te encontramos, pero tu código todavía no está listo. Probá de nuevo en unos minutos.', true); });
+            } else if (x.s === 404) decir('No encontramos ese dato entre los anotados. Revisá que sea el mismo.', true);
+            else if (x.s === 422) decir(x.j.error || 'Revisá el dato que cargaste.', true);
+            else if (x.s === 429) decir('Hiciste muchos intentos. Probá de nuevo en un rato.', true);
+            else decir('No pudimos buscarlo ahora. Probá de nuevo en un rato.', true);
+          })
+          .catch(function () { fin(); decir('Sin conexión. Revisá tu internet y probá de nuevo.', true); });
+      });
+    });
+    return box;
   }
   function l15Regalo(m) {   /* tarjeta oculta hasta que el codigo llega */
-    if (!(m.a && m.a.regalo && m.fase === 'disponible' && l15FiGet(m.id))) return null;
-    var box = l15Marca(esteEl('div', 'lz-reg')); box.hidden = true;
+    if (!(m.rg && m.fase === 'disponible')) return null;
+    if (!l15FiGet(m.id)) return l15Buscar(m);
+    var box = l15Marca(esteEl('div', 'lz-reg')); box.hidden = true; box.setAttribute('aria-live', 'polite');
     l15Codigo(m, function (v) { l15RegaloLlenar(box, v); });
     return box;
   }
@@ -2049,6 +2104,9 @@
       '.lz-reg{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:12px 0;padding:14px 16px;border:1px dashed rgba(52,33,27,.4);border-radius:16px;background:' + K + ';color:' + C + ';font-family:' + FJ2 + '}',
       '.lz-reg[hidden]{display:none}.lz-rt{display:flex;flex-direction:column;gap:2px;flex:1 1 160px}.lz-rt b{font:700 13px/1.3 ' + FJ2 + '}.lz-rt small{font:400 12px/1.3 ' + FJ2 + '}',
       '.lz-cod{font:700 18px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.06em}.lz-copy{min-height:40px}',
+      '.lz-bus{display:block;padding:8px 2px;border:0;background:transparent}.lz-bus .lz-form{margin-top:8px;max-width:420px}',
+      '.lz-lnk{padding:0;border:0;background:none;color:' + C + ';font:400 13px/1.4 ' + FJ2 + ';text-decoration:underline;text-underline-offset:3px;cursor:pointer;opacity:.85}.lz-lnk:focus-visible{outline:2px solid ' + C + ';outline-offset:2px}',
+      '.lz-reg.lz-bus:has(.lz-rt){display:flex;padding:14px 16px;border:1px dashed rgba(52,33,27,.4);background:' + K + '}',
       '.lz-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}',
       '.lz-ov{position:fixed;left:0;right:0;top:0;bottom:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(52,33,27,.5)}',
       '.lz-dlg{box-sizing:border-box;width:100%;max-width:380px;padding:24px;background:#fff;border-radius:16px;color:' + C + ';font-family:' + FJ2 + ';animation:lz-in .3s ease-out}',
