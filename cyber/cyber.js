@@ -1,3 +1,4 @@
+/* 1.21.2 (11/11/2026): banda de /en-oferta/ en celular (<768): padding-top 58 -> 30 px (sobraba aire arriba del texto) y contenido centrado en vertical cuando la banda mide el alto minimo. Solo CSS. */
 /* 1.21.1 (11/11/2026): WEB 3e. (1) Ficha de lanzamiento: la etiqueta NUEVO es una pastilla chica (ancho del texto, 22 px de alto, a la izquierda), no una barra de lado a lado. (2) Seccion del inicio sin alto minimo fijo (sobraba rojo debajo con 1 producto; la tarjeta ya reserva su imagen con aspect-ratio). (3) /en-oferta/: una sola banda; el texto del banner de categoria pasa de subtitulo adentro de la banda (otras rutas igual). (4) Barra de la capsula: el mensaje largo se desliza despacio de ida y vuelta (contador fijo, bordes difuminados); con reduce-motion queda cortado con puntos suspensivos. */
 /* 1.21.0 (11/11/2026): WEB 3d. Banda de /en-oferta/ y seccion del inicio con aire y forma de tarjeta (esquinas redondeadas, sin pegarse a los bordes); tarjeta tematica sola en la ultima fila de la grilla ocupa el ancho completo; etiqueta Nuevo y pastilla de descuento con la misma altura y margen; entrada SIN salto de diseno: las piezas se insertan y lo que sigue se compensa en el mismo cuadro y se desliza a su lugar (esteEntrar), el margen de la banda ya no mueve el body, el aviso de entrada ya no toca el overflow de html. */
 /* 1.20.0 (11/11/2026): WEB 3c. La cinta de "arriba" (ofertas y lanzamientos) corre ADENTRO de la franja oscura del encabezado, recortada por ella: el encabezado no cambia de forma ni de alto (se borra el relleno del body y el corrimiento de Filtrar); Filtrar queda donde esta sin promo. Etiqueta Nuevo arriba a la izquierda de la foto (a la derecha si ya hay pastilla de oferta). Pastilla flotante: no va en la ficha, se esconde con el pie en pantalla, maximo 60 % del ancho. Tarjeta de grilla con las columnas de los productos y sin contar los ocultos. */
@@ -35,7 +36,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.21.1',
+    version: '1.21.2',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -1374,7 +1375,7 @@
       'html.scm.scm-b .sc-e17-chip{background:rgba(var(--of-tx-rgb),.14);color:var(--of-tx);box-shadow:inset 0 0 0 1px rgba(var(--of-tx-rgb),.3)}',
       V + '.sc-e17-img .sc-e17-chip{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}',
       V + '.sc-e17-oc{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}',
-      P + '{padding-top:58px}',
+      '@media(max-width:767.98px){' + P + '{padding-top:30px;display:flex;flex-direction:column;justify-content:center}' + V + '.sc-e17-in{width:100%}}',   /* 1.21.2: era padding-top:58px, de cuando Filtrar caia sobre la banda; hoy la banda arranca debajo del encabezado y sobraba aire arriba. Centrado vertical por si la banda mide el alto minimo */
       '@media(min-width:768px){' + P + '{padding:48px 0 36px;min-height:220px}' + V + '.sc-e17-in{padding:0 24px;gap:26px}' + V + '.sc-e17-top{flex-direction:row;justify-content:space-between;align-items:flex-end;gap:32px}' + V + '.sc-e17-lado{align-items:flex-end}' + V + '.sc-e17-chips{flex-wrap:wrap;overflow:visible;margin:0;padding:0}' + V + '.sc-e14-u{min-width:76px}}',
       /* menu */
       V + 'body a.sc-menu-of.sc-menu-of.sc-menu-of{color:var(--sc-mof)!important}',
