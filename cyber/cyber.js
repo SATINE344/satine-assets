@@ -1,4 +1,5 @@
-/* 1.16.0 (11/11/2026): (1) UN SOLO cartel de descuento en las tarjetas: donde ponemos nuestra pastilla la tarjeta lleva la clase sc-pill-on y se ocultan SOLO las etiquetas nativas de descuento (js-offer-label-private, js-offer-label, js-promotion-label-private); (2) UNA SOLA fila en el inicio: e14Seccion no hace nada si ya existe .sc-e14-sec; (3) RELOJ UNICO con segundos: cada cuenta es un nodo con data-sc-fin (ISO) y un unico setInterval de 1 s (esteRelojIniciar) las actualiza, pausado con document.hidden; reemplaza al timer de la barra y al de la ficha; la ficha dice 'Termina en' siempre que haya fecha de fin y el cartel de entrada suma esa linea; (4) seccion del inicio rehecha: banda tematica de ancho completo segun intensidad (sobrio / destacado / total), titulo grande, contador en cajas, boton y fila (carrusel en celular, grilla de 4 en escritorio).
+/* 1.17.0 (11/11/2026): (1) PAGINA /en-oferta/ TEMATICA: cabecera con los tonos de la campana (kicker con la fecha, titulo, bajada, cuenta regresiva del reloj unico, cantidad de productos, chips de categorias con scroll lateral e imagen opcional con velo); el h1 nativo queda en el DOM, recortado para lector de pantalla. (2) MENU: lo que esta en oferta se pinta (sc-menu-of = categoria directa y sus hijas, sc-menu-of-padre = punto), entrada de la campana (viste el link Ofertas que ya existe; si no hay, agrega uno), mosaico .sat-tk-of con los tonos de la campana. Lee d.en_oferta + estetica.pagina_oferta/menu del contrato; sin esos datos todo queda igual que 1.16. Cache sc_est_v1 pasa a v:4.
+   1.16.0 (11/11/2026): (1) UN SOLO cartel de descuento en las tarjetas: donde ponemos nuestra pastilla la tarjeta lleva la clase sc-pill-on y se ocultan SOLO las etiquetas nativas de descuento (js-offer-label-private, js-offer-label, js-promotion-label-private); (2) UNA SOLA fila en el inicio: e14Seccion no hace nada si ya existe .sc-e14-sec; (3) RELOJ UNICO con segundos: cada cuenta es un nodo con data-sc-fin (ISO) y un unico setInterval de 1 s (esteRelojIniciar) las actualiza, pausado con document.hidden; reemplaza al timer de la barra y al de la ficha; la ficha dice 'Termina en' siempre que haya fecha de fin y el cartel de entrada suma esa linea; (4) seccion del inicio rehecha: banda tematica de ancho completo segun intensidad (sobrio / destacado / total), titulo grande, contador en cajas, boton y fila (carrusel en celular, grilla de 4 en escritorio).
    1.15.1 (11/11/2026): el regalo de los anotados llega de verdad. Despues de la salida el contrato trae regalo_anotados:true; si este navegador recuerda que se anoto se consulta mi-codigo UNA vez y la ficha (y el bloque del inicio) muestran «Te anotaste: este es tu codigo» con Copiar y como usarlo; si no se anoto aca, un enlace discreto «¿Te anotaste? Buscá tu código» pide mail o WhatsApp (anotarse con recuperar:true) y consulta. Si falla o da 404 no se muestra nada. Sin lanzamientos, cero cambios. Para volver a 1.15.0: revertir este commit en satine-assets.
    1.15.0 (11/11/2026): LANZAMIENTOS en la tienda. Lee d.lanzamientos del contrato (sin esa clave la web queda igual, cero nodos y cero pedidos extra). Antes de salir: barra con cuenta regresiva, bloque en el inicio y en la ficha, cartel de entrada y formulario «Avisame cuando salga» (mail y/o WhatsApp, trampa antirrobot, estados, se recuerda en el navegador). A la hora: la cuenta pasa a «Ya disponible» sin recargar. Despues: etiqueta «Nuevo» en tarjetas y ficha, bloque destacado en el inicio, «Quedan pocas», leyenda de precio y tarjeta con el codigo de regalo (de mi-codigo, con boton Copiar; tambien en el carrito). Prioridad con las promos: una sola barra (gana la promo) y un solo cartel por visita. Ademas: el aviso viejo del carrito (.sc-of-carro) se apaga con progreso_carrito apagado, y el hueco de las secciones del inicio y de la ficha se reserva antes de pintar (altura medida en la visita anterior). Prueba de borradores: ?satine_preview=<slug>.<clave>&satine_fase=anticipo|disponible. Para volver a 1.14.0: revertir este commit en satine-assets.
    1.14.0 (11/11/2026): PIEZAS DE LAS PROMOS + EXTENSION. Progreso en el carrito (barra con frase que cambia), "Ahorras $X" y "Termina en" en la ficha, tarjeta "Suma tu regalo", fila de destacados en el inicio y cartel de entrada, cada uno con su interruptor por campana (progreso_carrito, ahorro_visible, aviso_regalo, seccion_inicio, cartel_entrada); extension de campana (etiqueta Extendido, cartel propio, cuenta al fin nuevo; al llegar a cero se re-pide el contrato una vez). Respeta condicion.sobre y siempre el fin de la campana. Cache sc_est_v1 v3. Volver atras: restaurar cyber.js del commit 7934d64 (1.13.1). */
@@ -29,7 +30,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.16.0',
+    version: '1.17.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -1171,8 +1172,166 @@
       }).catch(limpiar);
     } catch (e) { limpiar(); }
   }
+  /* ---------- 1.17: pagina En oferta tematica + menu con ofertas ----------
+     Todo con data-sc-est (se va con esteLimpiar) y las clases/textos que se le ponen al theme se deshacen en e17Limpiar (registrado en e14Lim por e14Instalar). Sin promo: cero nodos, cero clases. */
+  var e17Mem = [];
+  function e17On(o, k, d) { return o && o[k] !== undefined ? o[k] !== false : d; }
+  function e17Camp(camps, clave) { var r = null; camps.some(function (c) { var E = c && c.visual && c.visual.estetica; if (c.en_oferta && E && E[clave] && typeof E[clave] === 'object') { r = c; return true; } return false; }); return r; }
+  function e17Ruta(r) { try { var p = new URL(String(r), location.href).pathname.toLowerCase(); return p.replace(/\/+$/, '') + '/'; } catch (e) { return ''; } }
+  function e17Path(a) {   /* ruta del link si es de esta tienda; '' si es # u otro sitio */
+    var h = a.getAttribute('href'); if (!h || h.charAt(0) === '#' || /^(javascript|mailto|tel):/i.test(h)) return '';
+    try { var u = new URL(h, location.href); if (u.hostname.replace(/^www\./, '') !== location.hostname.replace(/^www\./, '')) return ''; return u.pathname.toLowerCase().replace(/\/+$/, '') + '/'; } catch (e) { return ''; }
+  }
+  function e17Norm(s) { return String(s || '').toLowerCase().replace(/[^a-z0-9à-ÿ]+/g, ''); }
+  function e17Lum(c) { var v = c.map(function (x) { x /= 255; return x <= 0.03928 ? x / 12.92 : Math.pow((x + 0.055) / 1.055, 2.4); }); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; }
+  function e17Cont(a, b) { var x = e17Lum(a), y = e17Lum(b); return (Math.max(x, y) + 0.05) / (Math.min(x, y) + 0.05); }
+  function e17Arr(h) { return esteRgb(h).split(',').map(Number); }
+  function e17Hx(c) { return '#' + c.map(function (x) { return ('0' + Math.max(0, Math.min(255, Math.round(x))).toString(16)).slice(-2); }).join(''); }
+  function e17Color(M) {   /* color del menu: rojo de la tienda o el de la campana; si no llega a AA (4,5) sobre blanco y sobre el fondo gris de los subniveles, cae al rojo y se oscurece hasta llegar */
+    var H = document.documentElement, rojo = '#c0392b', col = rojo, blanco = [255, 255, 255], gris = [246, 245, 245];
+    if (M && M.color === 'campana') { var b = (getComputedStyle(H).getPropertyValue('--of') || '').trim(); if (esteHex(b)) { var a = e17Arr(b); if (e17Cont(a, blanco) >= 4.5 && e17Cont(a, gris) >= 4.5) col = b; } }
+    var c = e17Arr(col), i = 0;
+    while ((e17Cont(c, blanco) < 4.5 || e17Cont(c, gris) < 4.5) && i++ < 30) c = c.map(function (x) { return x * 0.94; });
+    H.style.setProperty('--sc-mof', e17Hx(c));
+  }
+  /* pagina /en-oferta/: cabecera tematica arriba de la grilla; el h1 nativo queda en el DOM pero recortado (lector de pantalla) */
+  function e17Pagina(camps) {
+    var c = e17Camp(camps, 'pagina_oferta'); if (!c) return;
+    var E = c.visual.estetica, pg = E.pagina_oferta, eo = c.en_oferta;
+    if (pg.activa === false || q('.sc-e17-pg')) return;
+    if (e17Ruta(location.pathname) !== e17Ruta(eo.ruta || '/en-oferta/')) return;
+    var cards = qa('.js-product-table .js-item-product').length, ctl = q('section.js-category-controls'), ant = q('.js-category-controls-prev') || ctl;
+    if (!cards || !ant || !ant.parentNode) return;
+    var tit = e14Cortar(pg.titulo || c.nombre, 60), vivo = c.hasta && new Date(c.hasta).getTime() > Date.now();
+    var sec = esteEl('section', 'sc-e17-pg'); sec.setAttribute('data-sc-est', '1'); sec.setAttribute('aria-label', tit);
+    var pc = esteImg(pg.imagen_pc), cel = esteImg(pg.imagen_cel);
+    if (pc || cel) {
+      sec.classList.add('sc-e17-img');
+      var bg = esteEl('div', 'sc-e17-bg'), pic = esteEl('picture'), im = esteEl('img');
+      if (pc && cel) { var so = esteEl('source'); so.media = '(min-width:768px)'; so.srcset = pc; pic.appendChild(so); }
+      im.src = cel || pc; im.alt = ''; im.decoding = 'async'; pic.appendChild(im); bg.appendChild(pic); sec.appendChild(bg);
+    }
+    var inn = esteEl('div', 'sc-e17-in'), top = esteEl('div', 'sc-e17-top'), tx = esteEl('div', 'sc-e17-tx'), lado = esteEl('div', 'sc-e17-lado');
+    tx.appendChild(esteEl('small', 'sc-e14-kick', c.hasta ? 'Hasta el ' + esteFinAR(c.hasta) : 'Ofertas'));
+    tx.appendChild(esteEl('h2', '', tit)); var baj = e14Cortar(pg.bajada, 140); if (baj) tx.appendChild(esteEl('p', '', baj));
+    if (vivo && pg.cuenta !== false) {
+      var cn = esteEl('div', 'sc-e14-cnt'); cn.setAttribute('data-sc-fin', c.hasta); cn.setAttribute('data-sc-cajas', '1'); cn.setAttribute('role', 'timer'); cn.setAttribute('aria-label', 'Tiempo que falta para que termine');
+      [['d', 'días'], ['h', 'horas'], ['m', 'min'], ['s', 'seg']].forEach(function (u) { var ca = esteEl('div', 'sc-e14-u'); ca.appendChild(esteEl('b', '', '00')).setAttribute('data-sc-u', u[0]); ca.appendChild(esteEl('small', '', u[1])); cn.appendChild(ca); });
+      lado.appendChild(cn);
+    }
+    var n = Math.max(+eo.total || 0, cards); lado.appendChild(esteEl('span', 'sc-e17-n', n + (n === 1 ? ' producto' : ' productos')));
+    top.appendChild(tx); top.appendChild(lado); inn.appendChild(top);
+    var ch = (pg.chips !== false && eo.categorias || []).filter(function (k) { return k.directa && k.ruta && k.nombre; }).slice(0, 8);
+    if (ch.length) {
+      var nav = esteEl('nav', 'sc-e17-chips'); nav.setAttribute('aria-label', 'Categorías en oferta');
+      ch.forEach(function (k) { var a = esteEl('a', 'sc-e17-chip', e14Cortar(k.nombre, 40)); a.href = k.ruta; nav.appendChild(a); });
+      inn.appendChild(nav);
+    }
+    sec.appendChild(inn); ant.parentNode.insertBefore(sec, ant);
+    try { var hd = q('header.js-head-main'), cs = getComputedStyle(hd || document.body); if (hd && cs.position === 'fixed') { var off = hd.getBoundingClientRect().bottom - sec.getBoundingClientRect().top; if (off > 0) sec.style.marginTop = Math.round(off) + 'px'; } } catch (e) {}   /* el header del theme es fijo y transparente: la banda arranca debajo de el, no tapada */
+    qa('section.js-category-controls h1,section.js-category-controls .s266-k,[data-store="page-title"] h1,[data-store="page-title"] .s266-k').forEach(function (h) { h.classList.add('sc-e17-oc'); });
+    if (vivo && pg.cuenta !== false) esteRelojIniciar();
+  }
+  function e17Entrada(c, M, a, mov) {   /* viste un link de la campana (clase + "Termina en" en el celular); no cambia su texto */
+    if (!a.classList.contains('sc-menu-ent')) a.classList.add('sc-menu-ent');
+    a.style.setProperty('color', '#fff', 'important'); a.style.setProperty('background-color', 'var(--sc-mof)', 'important');
+    if (mov && c.hasta && new Date(c.hasta).getTime() > Date.now() && !a.querySelector('.sc-e17-tk')) {
+      var t = esteEl('span', 'sc-e17-tk'); t.setAttribute('data-sc-est', '1'); t.setAttribute('data-sc-fin', c.hasta); t.setAttribute('data-sc-pre', 'Termina en '); t.textContent = 'Termina en ' + esteTiempo(c.hasta); (q('.n', a) || a).appendChild(t); esteRelojIniciar();
+    }
+  }
+  function e17Menu(camps) {
+    var c = e17Camp(camps, 'menu'); if (!c) return;
+    var M = c.visual.estetica.menu, eo = c.en_oferta; if (M.activa === false) return;
+    var raices = qa('.js-nav-desktop-list,#nav-hamburger'); if (!raices.length) return;
+    var res = e17On(M, 'resaltar', true), ent = e17On(M, 'entrada', true), ruta = e17Ruta(eo.ruta || '/en-oferta/');
+    var cats = (eo.categorias || []).map(function (k) { return { ruta: e17Ruta(k.ruta), nom: e17Norm(k.nombre), directa: k.directa === true }; }).filter(function (k) { return k.ruta && k.ruta !== '/'; });
+    if (res || ent) e17Color(M);
+    qa('.js-nav-desktop-list a,#nav-hamburger a').forEach(function (a) {
+      if (a.closest('.sc-e17-ent')) return;
+      var movil = !!a.closest('#nav-hamburger'), p = e17Path(a);
+      if (p && p === ruta) { if (ent) e17Entrada(c, M, a, movil); return; }
+      if (!res || !cats.length || !a.textContent.trim()) return;   /* sin texto (foto del menu) no se marca */
+      var ex = null, hijo = false;
+      if (p) { cats.forEach(function (k) { if (k.ruta === p) ex = ex && ex.directa ? ex : k; else if (k.directa && p.indexOf(k.ruta) === 0) hijo = true; }); }
+      else if (a.getAttribute('href') === '#' && a.nextElementSibling) {   /* padre del menu del celular: se reconoce por su "Ver todo" o por el nombre */
+        var vt = qa('a.nav-list-link', a.nextElementSibling).filter(function (x) { return /^\s*ver todo/i.test(x.textContent); })[0], pv = vt ? e17Path(vt) : '', nm = e17Norm(a.textContent);
+        cats.forEach(function (k) { if ((pv && k.ruta === pv) || (!pv && k.nom && k.nom === nm)) ex = ex && ex.directa ? ex : k; });
+      }
+      var cl = ex ? (ex.directa ? 'sc-menu-of' : 'sc-menu-of-padre') : hijo ? 'sc-menu-of' : '';
+      if (cl && !a.classList.contains(cl)) a.classList.add(cl);
+      if (cl === 'sc-menu-of') a.style.setProperty('color', 'var(--sc-mof)', 'important');   /* inline: el theme pone el color del menu con !important y mas especificidad */
+      if (((!ex && hijo) || (cl && /^\s*ver todo/i.test(a.textContent))) && !a.classList.contains('sc-menu-of-h')) a.classList.add('sc-menu-of-h');
+    });
+    if (!ent) return;
+    var dest = esteSeguro(eo.ruta) || '/en-oferta/', txt = e14Cortar(M.texto_entrada || c.nombre, 40);
+    raices.forEach(function (r) {
+      var movil = r.id === 'nav-hamburger';
+      if (r.querySelector('.sc-menu-ent,.sc-e17-ent,.sat-tk-of')) return;
+      var lista = movil ? q('ul.nav-list', r) : r; if (!lista) return;
+      var li = esteEl('li', 'sc-e17-ent' + (movil ? ' nav-item' : ' nav-item-desktop nav-main')); li.setAttribute('data-sc-est', '1');
+      var a = esteEl('a', 'sc-menu-ent', txt); a.href = dest; li.appendChild(a);
+      if (movil) { lista.insertBefore(li, lista.firstChild); e17Entrada(c, M, a, true); } else lista.appendChild(li);
+    });
+    qa('.sat-tk-of').forEach(function (m) {   /* mosaico de ofertas (si el menu o la cinta lo traen): tonos y nombre de la campana; el original vuelve en e17Limpiar */
+      if (m.classList.contains('sc-e17-tk-of')) return;
+      var b = q('b', m); if (b) { e17Mem.push({ el: b, t: b.textContent }); b.textContent = txt; }
+      m.classList.add('sc-e17-tk-of');
+    });
+  }
+  function e17Limpiar() {
+    ['sc-menu-of', 'sc-menu-of-h', 'sc-menu-of-padre', 'sc-menu-ent', 'sc-e17-oc', 'sc-e17-tk-of'].forEach(function (k) {
+      qa('.' + k).forEach(function (n) { if (k === 'sc-menu-of' || k === 'sc-menu-ent') { n.style.removeProperty('color'); n.style.removeProperty('background-color'); if (!n.getAttribute('style')) n.removeAttribute('style'); } n.classList.remove(k); if (n.getAttribute('class') === '') n.removeAttribute('class'); });
+    });
+    e17Mem.forEach(function (m) { try { m.el.textContent = m.t; } catch (e) {} }); e17Mem = [];
+    document.documentElement.style.removeProperty('--sc-mof');
+  }
+  function e17Css(FJ, AM) {
+    var V = 'html.scm ', P = V + '.sc-e17-pg';
+    return [
+      '@keyframes sc-e17-in{from{opacity:0}to{opacity:1}}',
+      P + '{box-sizing:border-box;position:relative;isolation:isolate;overflow:hidden;width:100%;min-height:200px;margin:0;padding:30px 0 22px;font-family:' + FJ + ';color:var(--of-ink);background:var(--of-fondo,#efe9e3);border-top:3px solid var(--of);animation:sc-e17-in .35s ease both}',
+      'html.scm.scm-b .sc-e17-pg{color:var(--of-tx);background:var(--of);border-top:0}',
+      'html.scm.scm-c:not(.scm-liso) .sc-e17-pg{background:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.6px) 0 0/7px 7px,linear-gradient(135deg,rgba(var(--of-osc-rgb),0),rgba(var(--of-osc-rgb),.22)),var(--of)}',
+      V + '.sc-e17-pg.sc-e17-img{color:#fff;background:var(--of-osc,#2b1a14);border-top:0}',
+      V + '.sc-e17-bg{position:absolute;inset:0;z-index:-2}',
+      V + '.sc-e17-bg img{display:block;width:100%;height:100%;object-fit:cover}',
+      V + '.sc-e17-img::before{content:"";position:absolute;inset:0;z-index:-1;background:rgba(var(--of-osc-rgb),.78)}',
+      V + '.sc-e17-in{box-sizing:border-box;max-width:1240px;margin:0 auto;padding:0 16px;display:flex;flex-direction:column;gap:18px}',
+      V + '.sc-e17-top{display:flex;flex-direction:column;gap:18px}',
+      V + '.sc-e17-lado{display:flex;flex-direction:column;align-items:flex-start;gap:12px}',
+      V + '.sc-e17-pg .sc-e14-kick{display:block;font:700 11px/1.2 ' + FJ + ';letter-spacing:.16em;text-transform:uppercase;opacity:.85;margin-bottom:8px}',
+      V + '.sc-e17-pg h2{margin:0;padding:0;font:700 clamp(30px,8vw,56px)/1.04 ' + AM + ';color:inherit;letter-spacing:-.02em;text-transform:none}',
+      V + '.sc-e17-pg p{margin:8px 0 0;font:500 14px/1.45 ' + FJ + ';opacity:.85;max-width:52ch}',
+      V + '.sc-e17-n{font:600 13px/1 ' + FJ + ';letter-spacing:.02em;opacity:.85}',
+      V + '.sc-e17-pg .sc-e14-cnt{display:flex;gap:8px}',
+      V + '.sc-e17-img .sc-e14-u{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.3)}',
+      V + '.sc-e17-chips{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;margin:0 -16px;padding:2px 16px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}',
+      V + '.sc-e17-chips::-webkit-scrollbar{display:none}',
+      V + '.sc-e17-chip{flex:0 0 auto;scroll-snap-align:start;box-sizing:border-box;display:inline-flex;align-items:center;min-height:44px;padding:0 18px;border-radius:999px;font:600 14px/1 ' + FJ + ';text-decoration:none;white-space:nowrap;background:#fff;color:var(--of-ink);box-shadow:inset 0 0 0 1px rgba(var(--of-rgb),.28)}',
+      'html.scm.scm-b .sc-e17-chip{background:rgba(var(--of-tx-rgb),.14);color:var(--of-tx);box-shadow:inset 0 0 0 1px rgba(var(--of-tx-rgb),.3)}',
+      V + '.sc-e17-img .sc-e17-chip{background:rgba(255,255,255,.16);color:#fff;box-shadow:inset 0 0 0 1px rgba(255,255,255,.4)}',
+      V + '.sc-e17-oc{position:absolute!important;width:1px!important;height:1px!important;margin:-1px!important;padding:0!important;overflow:hidden!important;clip:rect(0 0 0 0)!important;clip-path:inset(50%)!important;white-space:nowrap!important;border:0!important}',
+      P + '{padding-top:58px}',
+      '@media(min-width:768px){' + P + '{padding:48px 0 36px;min-height:220px}' + V + '.sc-e17-in{padding:0 24px;gap:26px}' + V + '.sc-e17-top{flex-direction:row;justify-content:space-between;align-items:flex-end;gap:32px}' + V + '.sc-e17-lado{align-items:flex-end}' + V + '.sc-e17-chips{flex-wrap:wrap;overflow:visible;margin:0;padding:0}' + V + '.sc-e14-u{min-width:76px}}',
+      /* menu */
+      V + 'body a.sc-menu-of.sc-menu-of.sc-menu-of{color:var(--sc-mof)!important}',
+      V + 'body a.sc-menu-of.sc-menu-of:not(.sc-menu-of-h)::after{content:"%"!important;display:inline-block!important;vertical-align:middle;margin-left:6px;padding:2px 5px;border-radius:8px;background:var(--sc-mof)!important;color:#fff!important;font:700 10px/1 ' + FJ + ';letter-spacing:0;text-transform:none;width:auto;height:auto;position:static}',
+      V + 'body a.sc-menu-of-padre.sc-menu-of-padre::after{content:""!important;display:inline-block!important;vertical-align:middle;margin-left:7px;width:6px;height:6px;border-radius:50%;background:var(--sc-mof)!important;padding:0;position:static}',
+      V + 'body a.sc-menu-ent.sc-menu-ent.sc-menu-ent:not(.rowl){background:var(--sc-mof);color:#fff!important;border-radius:999px;padding:7px 15px;font-weight:700;text-decoration:none}',
+      V + '#nav-hamburger a.sc-menu-ent:not(.rowl){display:flex;flex-wrap:wrap;align-items:center;gap:2px 10px;border-radius:14px;padding:14px 16px;margin:8px 0}',
+      V + '#nav-hamburger a.sc-menu-ent:not(.rowl)::after{content:"\u2192";margin-left:auto;font-size:18px}',
+      V + 'a.sc-menu-ent.rowl{border-radius:14px}',
+      V + 'a.sc-menu-ent.rowl .n,' + V + 'a.sc-menu-ent.rowl .thm{color:#fff!important}',
+      V + 'a.sc-menu-ent.rowl .thm{background:rgba(255,255,255,.2)!important}',
+      V + 'a.sc-menu-ent.rowl .sc-of-chip{background:rgba(255,255,255,.22)!important;color:#fff!important}',
+      V + '.sc-e17-tk{display:block;font:600 11px/1.2 ' + FJ + ';opacity:.92;letter-spacing:.02em;font-variant-numeric:tabular-nums}',
+      V + 'a>.sc-e17-tk{flex-basis:100%;order:3}',
+      V + 'a.sat-tk-of.sc-e17-tk-of{background:var(--of)!important;color:var(--of-tx)!important}',
+      V + 'a.sat-tk-of.sc-e17-tk-of *{color:inherit!important}'
+    ];
+  }
   function e14Instalar(camps, X) {
-    e14Act = camps;
+    e14Act = camps; e14Lim.push(e17Limpiar);
     var t = Infinity; camps.forEach(function (c) { var h = c.hasta ? new Date(c.hasta).getTime() : 0; if (h && h < t) t = h; });
     if (isFinite(t) && t > Date.now()) {
       e14Fue = false;
@@ -1183,6 +1342,8 @@
     return { fin: function () { [function () { e14Seccion(camps); }, function () { e14Cartel(camps); }].forEach(function (f) { try { f(); } catch (e) {} }); },
       poner: function () {
       try { if (!q('.sc-e14-sec')) e14Seccion(camps); } catch (e) {}
+      try { e17Pagina(camps); } catch (e) {}
+      try { e17Menu(camps); } catch (e) {}
       try { X.ahoOn = e14Algun(camps, 'ahorro_visible', true); e14Ficha(camps, X); } catch (e) {}
       try { ['#modal-cart', '#shoppingCartPage'].forEach(function (s) { var r = q(s); if (r) e14Cart(camps, X, r); }); } catch (e) {}
     } };
@@ -1372,6 +1533,7 @@
       '@media (prefers-reduced-motion:reduce){html.scm .sc-of-carro em u{transition:none}}'
     );
     try { Array.prototype.push.apply(css, e14Css(FJ, AM)); } catch (e) {}
+    try { Array.prototype.push.apply(css, e17Css(FJ, AM)); } catch (e) {}
     var st = esteEl('style'); st.id = 'sc-est-css'; st.setAttribute('data-sc-est', '1'); st.textContent = css.join('\n'); document.head.appendChild(st);
 
     /* barra: encima de la franja existente (sin mover nada de la pagina) */
@@ -1679,16 +1841,22 @@
             alcance: { productos_resueltos: (r.alcance && r.alcance.productos_resueltos) || [] } };
         }) };
   }
+  function e17EnOferta(d) {   /* contrato: d.en_oferta = {ruta, total, categorias:[{nombre, ruta, directa}]}; sin esa clave (ERP viejo) no se pinta nada de 1.17 */
+    var o = d && d.en_oferta; if (!o || typeof o !== 'object') return null;
+    return { ruta: typeof o.ruta === 'string' ? o.ruta.slice(0, 120) : '/en-oferta/', total: +o.total > 0 ? Math.floor(+o.total) : 0,
+      categorias: (Array.isArray(o.categorias) ? o.categorias : []).slice(0, 40).filter(function (k) { return k && typeof k.ruta === 'string' && typeof k.nombre === 'string'; })
+        .map(function (k) { return { nombre: k.nombre.slice(0, 80), ruta: k.ruta.slice(0, 160), directa: k.directa === true }; }) };
+  }
   function esteSigDe(camps) { return JSON.stringify(camps); }
   function esteGuardar(camps) {
     if (estePrev) return;
-    try { if (camps.length) sessionStorage.setItem(EST_CLAVE, JSON.stringify({ v: 3, t: Date.now(), c: camps })); else sessionStorage.removeItem(EST_CLAVE); } catch (e) {}
+    try { if (camps.length) sessionStorage.setItem(EST_CLAVE, JSON.stringify({ v: 4, t: Date.now(), c: camps })); else sessionStorage.removeItem(EST_CLAVE); } catch (e) {}
   }
   function esteLeerCache() {
     if (estePrev) return null;
     try {
       var j = JSON.parse(sessionStorage.getItem(EST_CLAVE) || 'null'), ahora = Date.now();
-      if (!j || j.v !== 3 || !(ahora - j.t < 600e3) || !j.c || !j.c.length) return null;
+      if (!j || j.v !== 4 || !(ahora - j.t < 600e3) || !j.c || !j.c.length) return null;
       var l = j.c.filter(function (c) {
         return c && c.visual && c.visual.estetica && c.visual.estetica.activa === true && c.reglas
           && !(c.desde && ahora < new Date(c.desde).getTime()) && !(c.hasta && ahora >= new Date(c.hasta).getTime());
@@ -1728,6 +1896,7 @@
       if (!d || typeof d !== 'object' || !('campana' in d)) { rsvSoltar(); return; }   /* respuesta rara o HTTP con error: se conserva lo ultimo bueno (y el hueco del head se libera) */
       esteCachePend = false;   /* llego el contrato: manda el fetch, no la cache */
       var camps = ((d && typeof d === 'object') ? esteCampanas(d) : []).map(esteMin);
+      var eo17 = e17EnOferta(d); camps.forEach(function (c) { if (eo17) c.en_oferta = eo17; });   /* 1.17: pagina En oferta y menu */
       if (d && typeof d === 'object' && 'campana' in d) esteGuardar(camps);   /* campana null o sin estetica: se borra */
       var sig = esteSigDe(camps);
       if (sig === esteSig) { rsvSoltar(); return; }
