@@ -1,3 +1,4 @@
+/* 1.19.0 (11/11/2026): WEB 3b. Ficha: cupon y boton extra van DEBAJO del boton de compra (no lo mueven); Filtrar/Ordenar de /en-oferta/ en su propia fila bajo la banda (ya no tapan carrito ni menu); tarjeta de la grilla; sello sobre la foto de la ficha; lanzamientos: entrada de menu y cinta. */
 /* 1.18.0 (11/11/2026): WEB 3a. Pulido de 1.17: nombre de la categoria en oferta (menu del celular) con el color de la oferta; el boton Filtrar del theme ya no tapa la banda de /en-oferta/; el alto de la banda se reserva en el head (sc_est_reserva) para que la grilla no salte en la visita siguiente; hueco banda-grilla parejo. Piezas nuevas, cada una solo si viene activa en el contrato: cinta de frases (estetica.cinta), botones (estetica.botones: seccion_inicio, pagina_oferta, ficha, flotante), cierre (estetica.cierre), cupon copiable (campana.cupon) y brillo del titulo (estetica.efecto). Todo con data-sc-est="1"; sin promo, cero nodos. Cache sc_est_v1 pasa a v:5. */
 /* 1.17.0 (11/11/2026): (1) PAGINA /en-oferta/ TEMATICA: cabecera con los tonos de la campana (kicker con la fecha, titulo, bajada, cuenta regresiva del reloj unico, cantidad de productos, chips de categorias con scroll lateral e imagen opcional con velo); el h1 nativo queda en el DOM, recortado para lector de pantalla. (2) MENU: lo que esta en oferta se pinta (sc-menu-of = categoria directa y sus hijas, sc-menu-of-padre = punto), entrada de la campana (viste el link Ofertas que ya existe; si no hay, agrega uno), mosaico .sat-tk-of con los tonos de la campana. Lee d.en_oferta + estetica.pagina_oferta/menu del contrato; sin esos datos todo queda igual que 1.16. Cache sc_est_v1 pasa a v:4.
    1.16.0 (11/11/2026): (1) UN SOLO cartel de descuento en las tarjetas: donde ponemos nuestra pastilla la tarjeta lleva la clase sc-pill-on y se ocultan SOLO las etiquetas nativas de descuento (js-offer-label-private, js-offer-label, js-promotion-label-private); (2) UNA SOLA fila en el inicio: e14Seccion no hace nada si ya existe .sc-e14-sec; (3) RELOJ UNICO con segundos: cada cuenta es un nodo con data-sc-fin (ISO) y un unico setInterval de 1 s (esteRelojIniciar) las actualiza, pausado con document.hidden; reemplaza al timer de la barra y al de la ficha; la ficha dice 'Termina en' siempre que haya fecha de fin y el cartel de entrada suma esa linea; (4) seccion del inicio rehecha: banda tematica de ancho completo segun intensidad (sobrio / destacado / total), titulo grande, contador en cajas, boton y fila (carrusel en celular, grilla de 4 en escritorio).
@@ -31,7 +32,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.18.0',
+    version: '1.19.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -1344,7 +1345,7 @@
   var e18E = { camps: null, D: null, on: false, med: {}, io: null };
   function e18Datos(camps) {
     if (e18E.camps === camps && e18E.D) return e18E.D;
-    var D = { cinta: null, botones: [], cierre: null, cupon: null, brillo: false, hay: false };
+    var D = { cinta: null, botones: [], cierre: null, cupon: null, brillo: false, tarjeta: null, sello: null, hay: false };
     camps.forEach(function (c) {
       var E = c.visual.estetica;
       if (!D.cinta && E.cinta && typeof E.cinta === 'object' && E.cinta.activa === true) {
@@ -1363,9 +1364,14 @@
         if (ti || tx) D.cierre = { c: c, titulo: ti, texto: tx, boton: bt && lk ? { texto: bt, link: lk } : null };
       }
       if (!D.cupon && c.cupon && typeof c.cupon === 'object' && /^[A-Za-z0-9_-]{2,30}$/.test(String(c.cupon.codigo || ''))) D.cupon = { c: c, codigo: String(c.cupon.codigo), texto: e14Cortar(c.cupon.texto, 60) };
+      if (!D.tarjeta && E.tarjeta_grilla && typeof E.tarjeta_grilla === 'object' && E.tarjeta_grilla.activa === true) {
+        var tg = E.tarjeta_grilla, tt = e14Cortar(tg.titulo, 40), tx2 = e14Cortar(tg.texto, 90), pos = Math.round(+tg.posicion) || 5;
+        if (tt) D.tarjeta = { c: c, titulo: tt, texto: tx2, img: esteImg(tg.imagen), link: esteSeguro(tg.link), pos: Math.max(2, Math.min(12, pos)) };
+      }
+      if (!D.sello && E.sello && typeof E.sello === 'object' && E.sello.activa === true) { var st = e14Cortar(E.sello.texto, 14); if (st) D.sello = { c: c, texto: st, forma: E.sello.forma === 'cinta' ? 'cinta' : 'circulo' }; }
       if (E.efecto === 'brillo') D.brillo = true;
     });
-    D.hay = !!(D.cinta || D.botones.length || D.cierre || D.cupon || D.brillo);
+    D.hay = !!(D.tarjeta || D.sello || D.cinta || D.botones.length || D.cierre || D.cupon || D.brillo);
     e18E.camps = camps; e18E.D = D; return D;
   }
   function e18Excl() { return /^\/(carrito|cart|checkout|comprar)(\/|$)/i.test(location.pathname) || !!q('#shoppingCartPage'); }
@@ -1436,6 +1442,7 @@
     el.addEventListener('touchstart', pp(true), { passive: true }); el.addEventListener('touchend', pp(false), { passive: true }); el.addEventListener('touchcancel', pp(false), { passive: true });
     a.p.insertBefore(el, a.r);
     e18Rep(el, ci.frases);
+    try { e19Bajar(); } catch (e) {}
   }
   function e18Inicio(D) {   /* boton de la seccion del inicio, junto a "Ver todas las ofertas" */
     var b = D.botones.filter(function (x) { return x.lugar === 'seccion_inicio'; })[0], lado = q('.sc-e14-sec .sc-e14-lado');
@@ -1455,14 +1462,45 @@
   function e18Ficha(D, X) {   /* ficha de un producto alcanzado: cupon y boton justo debajo de "Ahorras / Termina en" (en la misma pasada que lo pone e14Ficha, asi no se corre nada despues) */
     var m = X && X.pid && X.reg && X.reg[X.pid], w = q('.sc-e18-fx');
     var b = D.botones.filter(function (x) { return x.lugar === 'ficha'; })[0];
-    var ah = q('.sc-e14-ah') || q('.js-price-container');
+    var bt = q('#product_form input.js-addtocart.cart, #product_form .js-addtocart.cart'), ah = bt && bt.closest('.form-row');   /* 1.19: debajo del boton de compra, para que el boton y la eleccion de modelo/color no se muevan */
+    if (!ah) ah = q('.sc-e14-ah') || q('.js-price-container');
     if (!m || !ah || !ah.parentNode || (!b && !D.cupon)) { if (w && w.parentNode) w.parentNode.removeChild(w); return; }
     if (!w) {
       w = esteEl('div', 'sc-e18-fx'); w.setAttribute('data-sc-est', '1');
       if (D.cupon) w.appendChild(e18Cupon(D.cupon));
       if (b) w.appendChild(e18Boton(b));
     }
-    if (w.previousElementSibling !== ah) ah.parentNode.insertBefore(w, ah.nextSibling);
+    if (w.previousElementSibling !== ah || w.parentNode !== ah.parentNode) ah.parentNode.insertBefore(w, ah.nextSibling);
+  }
+  function e18Grilla(D) {   /* tarjeta de la grilla: del tamano de un producto, en /en-oferta/ y en categorias con oferta directa; una sola, en su posicion */
+    var t = D.tarjeta, tb = t && q('.js-product-table'), eo = t && t.c.en_oferta, rp = e17Ruta(location.pathname), aqui = false;
+    if (t && eo) { aqui = rp === e17Ruta(eo.ruta || '/en-oferta/'); (eo.categorias || []).forEach(function (k) { if (k && k.directa === true && e17Ruta(k.ruta) === rp) aqui = true; }); }
+    var ex = qa('.sc-e18-tg');
+    if (!t || !tb || !aqui || e18Excl()) { ex.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); }); return; }
+    var el = ex.filter(function (n) { return n.parentNode === tb; })[0];
+    ex.forEach(function (n) { if (n !== el && n.parentNode) n.parentNode.removeChild(n); });
+    var items = [].filter.call(tb.children, function (n) { return n.classList.contains('js-item-product'); });
+    if (!items.length) return;
+    if (!el) {
+      el = esteEl('div', 'col-6 col-md-4 item sc-e18-tg'); el.setAttribute('data-sc-est', '1');
+      var a = esteEl(t.link ? 'a' : 'div', 'sc-e18-tgi'); if (t.link) a.href = t.link;
+      if (t.img) { var im = esteEl('img', 'sc-e18-tgm'); im.src = t.img; im.alt = ''; im.loading = 'lazy'; im.decoding = 'async'; a.appendChild(im); }
+      var cu = esteEl('div', 'sc-e18-tgc'); cu.appendChild(esteEl('strong', 'sc-e18-tgt', t.titulo)); if (t.texto) cu.appendChild(esteEl('span', 'sc-e18-tgx', t.texto)); a.appendChild(cu);
+      el.appendChild(a);
+    }
+    var idx = Math.min(t.pos - 1, items.length), ref = items[idx] || null;   /* menos productos que la posicion: va al final */
+    var actual = [].filter.call(tb.children, function (n) { return n === el || n.classList.contains('js-item-product'); }).indexOf(el);
+    if (el.parentNode !== tb || actual !== idx) tb.insertBefore(el, ref && ref !== el ? ref : (idx >= items.length ? items[items.length - 1].nextSibling : ref));
+  }
+  function e18Sello(D, X) {   /* sello sobre la foto principal de la ficha de un producto en oferta */
+    var s = D.sello, m = X && X.pid && X.reg && X.reg[X.pid], host = s && m && q('.product-image-container'), w = q('.sc-e18-sello');
+    if (!s || !m || !host || e18Excl()) { if (w && w.parentNode) w.parentNode.removeChild(w); return; }
+    if (w && w.parentNode === host) return;
+    if (w && w.parentNode) w.parentNode.removeChild(w);
+    if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-sc-e18-pos', '1'); }
+    w = esteEl('div', 'sc-e18-sello sc-e18-sl-' + s.forma); w.setAttribute('data-sc-est', '1'); w.setAttribute('aria-hidden', 'true');
+    w.appendChild(esteEl('span', 'sc-e18-slt', s.texto));
+    host.appendChild(w);
   }
   function e18Cierre(D) {   /* franja antes del pie: en el inicio y en /en-oferta/ */
     var ci = D.cierre, el = q('.sc-e18-cierre');
@@ -1516,8 +1554,52 @@
       } catch (e) { h.classList.add('sc-e18-go'); }
     });
   }
+  var e19Dt = [];
+  var e19Bd = false, e19Iv = 0;
+  function e19Bajar() {   /* 1.19: con una cinta en el encabezado (ofertas o lanzamiento) el encabezado crece; Filtrar / Ordenar del theme (fijos) bajan lo mismo (margin-top) para no quedar sobre el carrito ni el menu */
+    var hd = q('header.js-head-main'), c = hd && q('.sc-e18-cinta,.lz-cinta', hd), h = c ? c.offsetHeight + 4 : 0, bd = document.body;
+    if (!c && e19Iv) { clearInterval(e19Iv); e19Iv = 0; }
+    if (c && !e19Iv) e19Iv = setInterval(function () { try { e19Bajar(); } catch (e) {} }, 250);   /* la cinta puede nacer antes que su CSS: se vuelve a medir enseguida */
+    if (bd) {   /* el encabezado es fijo: la pagina baja lo mismo que crece (misma distancia encabezado-contenido que sin vista previa). Va en una hoja propia: el theme borra el style inline del body */
+      var cp = c ? c.offsetHeight : 0, st = q('#sc-e19-st');
+      if (cp) {
+        if (!st) { st = esteEl('style'); st.id = 'sc-e19-st'; st.setAttribute(c.classList.contains('lz-cinta') ? 'data-sc-lz' : 'data-sc-est', '1'); document.head.appendChild(st); }
+        var tx = 'body{padding-top:' + cp + 'px!important}'; if (st.textContent !== tx) st.textContent = tx;
+        e19Bd = true;
+      } else if (st) { st.parentNode.removeChild(st); e19Bd = false; }
+    }
+    ['#satine-filtrar-dock', '#satine-ordenar-dock'].forEach(function (sel) {
+      var d = q(sel); if (!d || d.classList.contains('sc-e18-dk')) return;
+      var tiene = d.style.getPropertyPriority('margin-top') === 'important' && e19Dt.indexOf(d) > -1;
+      if (h && (!tiene || d.style.marginTop !== h + 'px')) { d.style.setProperty('margin-top', h + 'px', 'important'); if (e19Dt.indexOf(d) < 0) e19Dt.push(d); }
+      else if (!h && tiene) { d.style.removeProperty('margin-top'); if (!d.getAttribute('style')) d.removeAttribute('style'); e19Dt.splice(e19Dt.indexOf(d), 1); }
+    });
+  }
+  function e19Soltar() {
+    if (e19Iv) { clearInterval(e19Iv); e19Iv = 0; }
+    var st0 = q('#sc-e19-st'); if (st0 && st0.parentNode) st0.parentNode.removeChild(st0); e19Bd = false;
+    e19Dt.forEach(function (d) { try { d.style.removeProperty('margin-top'); if (!d.getAttribute('style')) d.removeAttribute('style'); } catch (e) {} });
+    e19Dt = [];
+  }
+  var e18Dk = [];
+  function e18Fila(sec) {   /* 1.19: Filtrar / Ordenar del theme (fijos) pasan a su propia fila debajo de la banda, a la derecha; nunca sobre el encabezado, el carrito ni la banda */
+    var docks = ['#satine-filtrar-dock', '#satine-ordenar-dock'].map(function (x) { return q(x); }).filter(Boolean), fila = q('.sc-e18-fil');
+    if (!sec || !docks.length) { if (fila && !fila.children.length && fila.parentNode) fila.parentNode.removeChild(fila); return; }
+    if (!fila) { fila = esteEl('div', 'sc-e18-fil'); fila.setAttribute('data-sc-est', '1'); sec.parentNode.insertBefore(fila, sec.nextSibling); }
+    else if (fila.previousElementSibling !== sec) sec.parentNode.insertBefore(fila, sec.nextSibling);
+    docks.sort(function (a, b) { return a.id === 'satine-ordenar-dock' ? -1 : 1; }).forEach(function (d) {
+      if (d.parentNode === fila) return;
+      if (!e18Dk.some(function (r) { return r.el === d; })) e18Dk.push({ el: d, p: d.parentNode, n: d.nextSibling });
+      d.classList.add('sc-e18-dk'); fila.appendChild(d);
+    });
+  }
+  function e18FilaDeshacer() {
+    e18Dk.forEach(function (r) { try { r.el.classList.remove('sc-e18-dk'); if (!r.el.getAttribute('class')) r.el.removeAttribute('class'); if (r.p && r.p.isConnected) r.p.insertBefore(r.el, r.n && r.n.parentNode === r.p ? r.n : null); } catch (e) {} });
+    e18Dk = [];
+  }
   function e18Dock() {   /* el boton Filtrar / Ordenar del theme es fijo: la banda de /en-oferta/ arranca debajo de el, no por detras */
     var sec = q('.sc-e17-pg'); if (sec) { var cc = q('.js-category-controls'); if (cc && !cc.classList.contains('sc-e18-ctl')) cc.classList.add('sc-e18-ctl'); }
+    e18Fila(sec); e19Bajar();
     if (!sec || window.pageYOffset > 5) return;
     var dk = ['#satine-filtrar-dock', '#satine-ordenar-dock'].map(function (s) { return q(s); }).filter(function (d) { return d && e18Visible(d) && getComputedStyle(d).position === 'fixed'; })[0];
     var base = +sec.getAttribute('data-mt0') || 0, m = parseFloat(sec.style.marginTop) || 0, top0 = sec.getBoundingClientRect().top - m;
@@ -1539,16 +1621,16 @@
   }
   function e18Init() {
     if (e18E.on) return; e18E.on = true;
-    var raf = 0, f = function () { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; try { e18Pos(); e18Dock(); var ci = q('.sc-e18-cinta'); if (ci && e18E.D && e18E.D.cinta) e18Rep(ci, e18E.D.cinta.frases); } catch (e) {} }); };
+    var raf = 0, f = function () { if (raf) return; raf = requestAnimationFrame(function () { raf = 0; try { e18Pos(); e18Dock(); e19Bajar(); var ci = q('.sc-e18-cinta'); if (ci && e18E.D && e18E.D.cinta) e18Rep(ci, e18E.D.cinta.frases); } catch (e) {} }); };
     window.addEventListener('resize', f); window.addEventListener('scroll', f, { passive: true });
-    var iv = setInterval(function () { if (q('.sc-e18-flot')) f(); }, 500);   /* la barra de compra y el chat aparecen despues de un retraso propio: se revisa de nuevo */
-    e14Lim.push(function () { clearInterval(iv); qa('.sc-e18-ctl,.sc-e18-br,.sc-e18-go').forEach(function (n) { n.classList.remove('sc-e18-ctl', 'sc-e18-br', 'sc-e18-go'); }); window.removeEventListener('resize', f); window.removeEventListener('scroll', f); if (raf) cancelAnimationFrame(raf); if (e18E.io) { e18E.io.disconnect(); e18E.io = null; } e18E.on = false; e18E.camps = null; e18E.D = null; });
+    var iv = setInterval(function () { try { e19Bajar(); } catch (e) {} if (q('.sc-e18-flot') || q('#satine-filtrar-dock') || q('.sc-e18-cinta')) f(); }, 500);   /* la barra de compra y el chat aparecen despues de un retraso propio: se revisa de nuevo */
+    e14Lim.push(function () { e18FilaDeshacer(); e19Soltar(); clearInterval(iv); qa('[data-sc-e18-pos]').forEach(function (n) { n.style.position = ''; n.removeAttribute('data-sc-e18-pos'); if (!n.getAttribute('style')) n.removeAttribute('style'); }); qa('.sc-e18-ctl,.sc-e18-br,.sc-e18-go').forEach(function (n) { n.classList.remove('sc-e18-ctl', 'sc-e18-br', 'sc-e18-go'); }); window.removeEventListener('resize', f); window.removeEventListener('scroll', f); if (raf) cancelAnimationFrame(raf); if (e18E.io) { e18E.io.disconnect(); e18E.io = null; } e18E.on = false; e18E.camps = null; e18E.D = null; });
   }
   function e18Poner(camps, X) {   /* el pulido de 1.17 (dock, hueco, reserva) corre siempre; las piezas nuevas solo si vienen activas */
     var D = e18Datos(camps);
     e18Init();
     var gs = [function () { e18Dock(); }, function () { e18Medir(camps); }];
-    if (D.hay) gs = [function () { e18Cierre(D); }, function () { e18Cinta(D); }, function () { e18Inicio(D); }, function () { e18Pagina(D); }, function () { e18Ficha(D, X); }, function () { e18Flot(D); }, function () { e18Brillo(D); }].concat(gs);
+    if (D.hay) gs = [function () { e18Cierre(D); }, function () { e18Cinta(D); }, function () { e18Inicio(D); }, function () { e18Pagina(D); }, function () { e18Ficha(D, X); }, function () { e18Grilla(D); }, function () { e18Sello(D, X); }, function () { e18Flot(D); }, function () { e18Brillo(D); }].concat(gs);
     gs.forEach(function (g) { try { g(); } catch (e) {} });
   }
   function e18Css(FJ, AM) {
@@ -1580,6 +1662,20 @@
       V + '.sc-e18-bt:focus-visible,' + V + '.sc-e18-cupb:focus-visible,' + V + '.sc-e18-fl-a:focus-visible,' + V + '.sc-e18-fl-x:focus-visible{outline:2px solid currentColor;outline-offset:3px}',
       V + '.sc-e18-fila{display:flex;flex-wrap:wrap;align-items:center;gap:10px}',
       V + '.sc-e18-pgx{display:flex;flex-wrap:wrap;align-items:center;gap:10px}',
+      V + '.sc-e18-fil{box-sizing:border-box;display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:0 12px;margin:0 0 8px;min-height:44px}',
+      V + '.sc-e18-fil .sc-e18-dk{position:static!important;top:auto!important;right:auto!important;left:auto!important;transform:none!important;opacity:1!important;pointer-events:auto!important;display:flex!important;min-height:44px;margin:0!important;z-index:1!important}',
+      V + '.sc-e18-tg{padding:0 6px;margin-bottom:12px}',
+      V + '.sc-e18-tgi{box-sizing:border-box;position:relative;display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:100%;min-height:200px;aspect-ratio:3/4;overflow:hidden;border-radius:12px;background:var(--of);color:var(--of-tx)!important;text-decoration:none;font-family:' + FJ + '}',
+      V + '.sc-e18-tgm{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;opacity:.55}',
+      V + '.sc-e18-tgc{position:relative;display:flex;flex-direction:column;gap:6px;padding:14px;background:linear-gradient(to top,var(--of) 55%,transparent)}',
+      V + '.sc-e18-tgt{font:800 17px/1.15 ' + FJ + ';letter-spacing:-.01em;color:var(--of-tx)!important}',
+      V + '.sc-e18-tgx{font:500 12.5px/1.35 ' + FJ + ';color:var(--of-tx)!important;opacity:.9}',
+      V + 'a.sc-e18-tgi{transition:transform .25s cubic-bezier(.22,1,.36,1)}@media(hover:hover){' + V + 'a.sc-e18-tgi:hover{transform:translate3d(0,-2px,0)}}',
+      V + '.sc-e18-sello{position:absolute;z-index:3;pointer-events:none;left:12px;top:12px}',
+      V + '.sc-e18-sl-circulo{width:68px;height:68px;border-radius:50%;display:flex;align-items:center;justify-content:center;text-align:center;transform:rotate(-8deg);background:var(--of);color:var(--of-tx);box-shadow:0 0 0 3px #fff,0 4px 12px rgba(0,0,0,.18)}',
+      V + '.sc-e18-sl-circulo .sc-e18-slt{font:800 11px/1.1 ' + FJ + ';letter-spacing:.02em;text-transform:uppercase;padding:0 6px;overflow-wrap:anywhere}',
+      V + '.sc-e18-sl-cinta{left:0;top:0;width:96px;height:96px;overflow:hidden}',
+      V + '.sc-e18-sl-cinta .sc-e18-slt{position:absolute;left:-30px;top:18px;width:132px;transform:rotate(-45deg);background:var(--of);color:var(--of-tx);text-align:center;font:800 11px/22px ' + FJ + ';letter-spacing:.06em;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}',
       V + '.sc-e18-fx{display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin:12px 0 4px}',
       /* cupon */
       V + '.sc-e18-cup{display:inline-flex;flex-direction:column;align-items:flex-start;gap:4px;position:relative}',
@@ -2249,6 +2345,8 @@
     var c = o('cartel'); if (c && (c.titulo || c.texto)) m.p.cartel = { titulo: e14Cortar(c.titulo, 70), texto: e14Cortar(c.texto, 160), boton: e14Cortar(c.boton, 30), destino: esteSeguro(c.destino) };
     var s = o('seccion'); if (s && (s.titulo || s.texto)) m.p.seccion = { titulo: e14Cortar(s.titulo, 60), texto: e14Cortar(s.texto, 200), imagen: esteImg(s.imagen), cuenta: s.cuenta_regresiva === true };
     var e = o('etiqueta'); if (e && e.texto) m.p.etiqueta = e14Cortar(e.texto, 24);
+    var mn = o('menu'); if (mn && mn.texto) m.p.menu = { texto: e14Cortar(mn.texto, 30) };
+    var ci = o('cinta'); if (ci && Array.isArray(ci.frases)) { var fr = ci.frases.map(function (x) { return e14Cortar(x, 60); }).filter(Boolean).slice(0, 6); if (fr.length) m.p.cinta = { frases: fr }; }
     var u = o('pocas_unidades'); if (u) m.p.pocas = { umbral: l15Num(u.umbral) || 3, texto: e14Cortar(u.texto, 40) || 'Quedan pocas' };
     var y = o('leyenda_precio'); if (y && y.texto) m.p.leyenda = { texto: e14Cortar(y.texto, 60), hasta: Date.parse(y.hasta) || 0 };
     var a = l.anotarse && typeof l.anotarse === 'object' ? l.anotarse : null;
@@ -2555,8 +2653,39 @@
     return hay;
   }
   /* repasa lo que Tienda Nube vuelve a dibujar (listados que cargan mas, carrito que se re-arma) sin repetir nada */
+  function l15Menu() {   /* entrada destacada del lanzamiento en el menu: debajo de la de ofertas si existe; nunca mas de dos nuestras */
+    var m = L15.lista.filter(function (x) { return x.p.menu; })[0];
+    qa('.js-nav-desktop-list,#nav-hamburger').forEach(function (r) {
+      var movil = r.id === 'nav-hamburger', lista = movil ? q('ul.nav-list', r) : r; if (!lista) return;
+      var mio = q('li.lz-ment', lista);
+      if (!m) { if (mio) l15Quitar(mio); return; }
+      var of = q('li.sc-e17-ent', lista);
+      if (!mio) {
+        var dest = (m.p.cartel && m.p.cartel.destino) || (m.prods[0] && m.prods[0].url) || '', dst = esteSeguro(dest); if (!dst) return;
+        mio = l15Marca(esteEl('li', 'lz-ment' + (movil ? ' nav-item' : ' nav-item-desktop nav-main')));
+        var a = esteEl('a', 'lz-ment-a', m.p.menu.texto); a.href = dst; mio.appendChild(a);
+      }
+      var bien = mio.parentNode === lista && (of ? mio.previousSibling === of : (movil ? lista.firstChild === mio : lista.lastChild === mio));
+      if (!bien) { if (of) lista.insertBefore(mio, of.nextSibling); else if (movil) lista.insertBefore(mio, lista.firstChild); else lista.appendChild(mio); }
+    });
+  }
+  function l15Cinta() {   /* cinta de frases del lanzamiento; si ya hay una de ofertas, gana la de ofertas */
+    var m = L15.lista.filter(function (x) { return x.p.cinta; })[0], el = q('.lz-cinta');
+    if (!m || q('.sc-e18-cinta') || /^\/(carrito|cart|checkout|comprar)(\/|$)/i.test(location.pathname) || q('#shoppingCartPage')) { if (el) l15Quitar(el); return; }
+    var fr = m.p.cinta.frases;
+    if (!el) {
+      var a = e18Ancla('arriba'); if (!a) return;
+      el = l15Marca(esteEl('div', 'lz-cinta')); el.setAttribute('role', 'region'); el.setAttribute('aria-label', 'Lanzamiento');
+      var pista = esteEl('div', 'lz-pista'), g1 = esteEl('div', 'lz-g'), g2 = esteEl('div', 'lz-g'); g2.setAttribute('aria-hidden', 'true');
+      pista.appendChild(g1); pista.appendChild(g2); el.appendChild(pista); a.p.insertBefore(el, a.r);
+      var ll = function (k) { [g1, g2].forEach(function (g) { while (g.firstChild) g.removeChild(g.firstChild); for (var i = 0; i < k; i++) fr.forEach(function (f) { g.appendChild(esteEl('span', 'lz-cf', f)); var d = esteEl('span', 'lz-cp', '\u00b7'); d.setAttribute('aria-hidden', 'true'); g.appendChild(d); }); }); };
+      ll(1); var w1 = g1.offsetWidth || 1, n = Math.max(1, Math.min(14, Math.ceil(window.innerWidth * 1.1 / w1))); if (n > 1) ll(n);
+      pista.classList.add('lz-ok');
+    }
+  }
   function l15Pasada() {
     try {
+      l15Menu(); l15Cinta(); if (q('.lz-cinta')) { e19Bajar(); if (!L15.dk) { L15.dk = function () { e19Bajar(); }; window.addEventListener('resize', L15.dk); window.addEventListener('scroll', L15.dk, { passive: true }); var ivd = setInterval(L15.dk, 500); L15.undo.push(function () { clearInterval(ivd); window.removeEventListener('resize', L15.dk); window.removeEventListener('scroll', L15.dk); L15.dk = null; e19Soltar(); }); } }
       var mapa = {}, hay = false;
       L15.lista.forEach(function (m) { if (m.fase === 'disponible' && m.p.etiqueta) m.prods.forEach(function (p) { mapa[p.id] = m.p.etiqueta; hay = true; }); });
       if (hay) qa('.js-item-product[data-product-id]').forEach(function (it) {
@@ -2589,6 +2718,12 @@
   function l15Css() {
     var FJ2 = '"Plus Jakarta Sans",system-ui,sans-serif', C = L15_COLOR, K = L15_CREMA, B = 'rgba(52,33,27,.14)';
     return [
+      '.lz-cinta{box-sizing:border-box;position:relative;z-index:1;width:100%;height:34px;overflow:hidden;contain:layout paint;font:600 11px/34px ' + FJ2 + ';letter-spacing:.14em;text-transform:uppercase;white-space:nowrap;background:' + C + ';color:' + K + '}',
+      '.lz-pista{display:flex;width:max-content;will-change:transform}.lz-pista.lz-ok{animation:lz-run 26s linear infinite}',
+      '.lz-g{display:flex;flex:0 0 auto;align-items:center}.lz-cf{padding:0 14px}.lz-cp{opacity:.6}',
+      '@keyframes lz-run{from{transform:translate3d(0,0,0)}to{transform:translate3d(-50%,0,0)}}',
+      '@media(prefers-reduced-motion:reduce){.lz-pista{animation:none!important;width:100%;justify-content:center}.lz-g{width:100%;justify-content:center}.lz-g+.lz-g{display:none}.lz-cf~*{display:none}}',
+      '.lz-ment-a{font-weight:700!important;color:' + C + '!important;background:' + K + ';border-radius:999px;padding:4px 12px!important;text-decoration:none}',
       '.lz-barra{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:10001;font:600 11px/1.2 ' + FJ2 + ';letter-spacing:.04em;text-transform:uppercase;text-align:center;padding:0 16px;overflow:hidden;white-space:nowrap;border-radius:inherit;background:' + C + ';color:' + K + '}',
       '.lz-barra>a,.lz-barra>div{display:flex;gap:10px;align-items:center;justify-content:center;max-width:100%;min-width:0;text-decoration:none}',
       '.lz-barra,.lz-barra *{color:' + K + '!important}.lz-barra span{overflow:hidden;text-overflow:ellipsis}',
