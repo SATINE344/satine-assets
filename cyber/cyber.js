@@ -1,4 +1,5 @@
-/* 1.14.0 (11/11/2026): PIEZAS DE LAS PROMOS + EXTENSION. Progreso en el carrito (barra con frase que cambia), "Ahorras $X" y "Termina en" en la ficha, tarjeta "Suma tu regalo", fila de destacados en el inicio y cartel de entrada, cada uno con su interruptor por campana (progreso_carrito, ahorro_visible, aviso_regalo, seccion_inicio, cartel_entrada); extension de campana (etiqueta Extendido, cartel propio, cuenta al fin nuevo; al llegar a cero se re-pide el contrato una vez). Respeta condicion.sobre y siempre el fin de la campana. Cache sc_est_v1 v3. Volver atras: restaurar cyber.js del commit 7934d64 (1.13.1). */
+/* 1.15.0 (11/11/2026): LANZAMIENTOS en la tienda. Lee d.lanzamientos del contrato (sin esa clave la web queda igual, cero nodos y cero pedidos extra). Antes de salir: barra con cuenta regresiva, bloque en el inicio y en la ficha, cartel de entrada y formulario «Avisame cuando salga» (mail y/o WhatsApp, trampa antirrobot, estados, se recuerda en el navegador). A la hora: la cuenta pasa a «Ya disponible» sin recargar. Despues: etiqueta «Nuevo» en tarjetas y ficha, bloque destacado en el inicio, «Quedan pocas», leyenda de precio y tarjeta con el codigo de regalo (de mi-codigo, con boton Copiar; tambien en el carrito). Prioridad con las promos: una sola barra (gana la promo) y un solo cartel por visita. Ademas: el aviso viejo del carrito (.sc-of-carro) se apaga con progreso_carrito apagado, y el hueco de las secciones del inicio y de la ficha se reserva antes de pintar (altura medida en la visita anterior). Prueba de borradores: ?satine_preview=<slug>.<clave>&satine_fase=anticipo|disponible. Para volver a 1.14.0: revertir este commit en satine-assets.
+   1.14.0 (11/11/2026): PIEZAS DE LAS PROMOS + EXTENSION. Progreso en el carrito (barra con frase que cambia), "Ahorras $X" y "Termina en" en la ficha, tarjeta "Suma tu regalo", fila de destacados en el inicio y cartel de entrada, cada uno con su interruptor por campana (progreso_carrito, ahorro_visible, aviso_regalo, seccion_inicio, cartel_entrada); extension de campana (etiqueta Extendido, cartel propio, cuenta al fin nuevo; al llegar a cero se re-pide el contrato una vez). Respeta condicion.sobre y siempre el fin de la campana. Cache sc_est_v1 v3. Volver atras: restaurar cyber.js del commit 7934d64 (1.13.1). */
 /* 1.13.1 (10/11/2026): primera visita sin cache: poner() lee todos los estilos de las cards antes de escribir (antes un recalculo de layout por card retrasaba hasta ~1,3 s la estetica de la portada); aire bajo el recuadro de la ficha.
    1.13.0 (10/11/2026): MODO OFERTA. La estetica de promociones gana intensidad (sobrio / destacado / total), acabado (liso / onda con cuero y grano), color a medida (paleta.medida), linea de ahorro en las cards con el precio real y la regla, bloque de ahorro en la ficha, pestana en la barra fija, tile y menu de Ofertas y avisos en el carrito (chips por producto y aviso de la promocion, sin numeros inventados). Sin promocion activa no queda ni un nodo, clase ni variable.
    1.12.1 (10/11/2026): pulido de la estetica de promociones: la barra va ADENTRO de la capsula de la franja (redondeada y unida al menu, con la letra de la franja); el banner de portada se separa del hero; el banner de categoria se alinea con las cards (antes tocaba los bordes de la pantalla).
@@ -26,7 +27,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.14.0',
+    version: '1.15.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -1043,6 +1044,7 @@
     });
     if (!n) return;
     sec.appendChild(fila); an.parentNode.insertBefore(sec, an.nextSibling);
+    try { l15RsvSoltar(sec, c.hasta, 'home'); } catch (e) {}
   }
   function e14Bloq() {
     var p = location.pathname.toLowerCase();
@@ -1422,6 +1424,8 @@
           if (!nm || !nm.parentNode) return;
           var tg = esteEl('span', 'sc-of-tag', rg.et); tg.setAttribute('data-sc-est', '1'); nm.insertAdjacentElement('afterend', tg);
         });
+        /* 1.15: con progreso_carrito apagado tampoco queda el aviso viejo (cabo de 1.14) */
+        if (!e14Algun(camps, 'progreso_carrito', true)) { previos.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); }); return; }
         /* el aviso: se arma segun lo que hay en el carrito y la regla de la promo */
         var gs = Object.keys(grupos).map(function (k) { return grupos[k]; }), cond = gs.filter(function (g) { return g.rg.mec.n; });
         var prim = gs[0], falta = 0, cumple = false;
@@ -1656,6 +1660,7 @@
     } catch (e) {}
   }
   function esteAplicar(d, deVista) {
+    try { if (!(estePrev && deVista !== true)) l15Aplicar(d); } catch (e) {}   /* 1.15: lanzamientos (su propio camino, no depende de las promos) */
     try {
       if (estePrev && deVista !== true) return;   /* en vista previa manda la promocion pedida, no la activa */
       if (!d || typeof d !== 'object' || !('campana' in d)) { rsvSoltar(); return; }   /* respuesta rara o HTTP con error: se conserva lo ultimo bueno (y el hueco del head se libera) */
@@ -1675,8 +1680,486 @@
       var m = location.search.match(/[?&]satine_preview=([^&]+)/); if (!m || !CFG.contrato || typeof fetch !== 'function') return;
       var t = decodeURIComponent(m[1]), i = t.lastIndexOf('.'); if (i < 1) return;
       estePrevUrl = CFG.contrato + '?vista=' + encodeURIComponent(t.slice(0, i)) + '&clave=' + encodeURIComponent(t.slice(i + 1));
+      var fz = location.search.match(/[?&]satine_fase=(anticipo|disponible)/); if (fz) estePrevUrl += '&fase=' + fz[1];   /* 1.15: ver los dos momentos de un lanzamiento en borrador */
       fetch(estePrevUrl, { credentials: 'omit', cache: 'no-store' })
         .then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { esteAplicar(d, true); }).catch(function () {});
+    } catch (e) {}
+  }
+
+  /* ---------- 1.15: LANZAMIENTOS (productos nuevos que se anuncian antes y se destacan despues) ----------
+     Leen d.lanzamientos del mismo contrato (cero pedidos extra). Sin esa clave no se crea ni un nodo. Nodos propios (data-sc-lz, clase lz-, estilo #lz-css): esteLimpiar() de las promos no los toca.
+     Cada pieza va en su try/catch. Prioridad con las promos: UNA sola barra (gana la de la promo; el lanzamiento conserva etiqueta, seccion y formulario) y UN solo cartel de entrada por visita (gana el de la promo si todavia no se vio). */
+  var L15 = { lista: [], sig: '', skew: 0, tim: null, obs: null, od: 0, vis: null, tms: [], undo: [], n: 0, pbarra: false, pcart: false, fue: 0, vuelo: false, sig2: 0, cod: {}, rsvTocado: 0, rsvKind: '', rsvT: 0, rsvO: null };
+  var L15_RSV = 'sc_l15_rsv', L15_COLOR = '#34211b', L15_CREMA = '#f5f0e5';
+  function l15Num(n) { n = +n; return isFinite(n) ? n : 0; }
+  function l15Base() { try { return new URL(CFG.contrato).origin; } catch (e) { return ''; } }
+  function l15Z(n) { return (n < 10 ? '0' : '') + n; }
+  function l15Fecha(ms) {   /* hora de Argentina (UTC-3, sin horario de verano): 14/11 · 18:00 h */
+    var t = new Date(ms - 3 * 3600000);
+    return l15Z(t.getUTCDate()) + '/' + l15Z(t.getUTCMonth() + 1) + ' · ' + l15Z(t.getUTCHours()) + ':' + l15Z(t.getUTCMinutes()) + ' h';
+  }
+  function l15Resta(ms) {
+    if (ms <= 0) return 'Ya disponible';
+    var s = Math.floor(ms / 1000), d = Math.floor(s / 86400), h = Math.floor(s % 86400 / 3600), m = Math.floor(s % 3600 / 60);
+    return d ? d + 'd ' + l15Z(h) + 'h ' + l15Z(m) + 'm' : l15Z(h) + 'h ' + l15Z(m) + 'm ' + l15Z(s % 60) + 's';
+  }
+  function l15Ahora() { return Date.now() + L15.skew; }
+  function l15Fuera(n) {   /* nunca un formulario adentro de otro (el de compra): se sube hasta quedar afuera */
+    var f = n;
+    while (f && f.parentNode && f.parentNode.closest) { var up = f.parentNode.closest('form'); if (!up) break; f = up; }
+    return f;
+  }
+  function l15Quitar(n) { if (n && n.parentNode) n.parentNode.removeChild(n); }
+  function l15Marca(n) { n.setAttribute('data-sc-lz', '1'); return n; }
+  function l15Min(l) {   /* solo lo que se usa, validado y acotado */
+    if (!l || typeof l !== 'object' || !l.id || (l.fase !== 'anticipo' && l.fase !== 'disponible')) return null;
+    var P = l.piezas && typeof l.piezas === 'object' ? l.piezas : {};
+    var o = function (k) { return P[k] && typeof P[k] === 'object' ? P[k] : null; };
+    var sale = Date.parse(l.sale), nh = Date.parse(l.nuevo_hasta);
+    var m = { id: String(l.id).slice(0, 64), nombre: e14Cortar(l.nombre, 80), fase: l.fase, sale: isFinite(sale) ? sale : 0, hasta: isFinite(nh) ? nh : 0, prods: [], p: {}, a: null };
+    (Array.isArray(l.productos) ? l.productos : []).slice(0, 40).forEach(function (p) {
+      if (!p || typeof p !== 'object') return;
+      m.prods.push({ id: String(p.id == null ? '' : p.id), nombre: e14Cortar(p.nombre, 80), url: esteSeguro(p.url), img: esteImg(p.imagen), precio: l15Num(p.precio), promo: l15Num(p.precio_promo), stock: p.stock == null ? null : l15Num(p.stock) });
+    });
+    var b = o('barra'); if (b && b.texto) m.p.barra = { texto: e14Cortar(b.texto, 90) };
+    var c = o('cartel'); if (c && (c.titulo || c.texto)) m.p.cartel = { titulo: e14Cortar(c.titulo, 70), texto: e14Cortar(c.texto, 160), boton: e14Cortar(c.boton, 30), destino: esteSeguro(c.destino) };
+    var s = o('seccion'); if (s && (s.titulo || s.texto)) m.p.seccion = { titulo: e14Cortar(s.titulo, 60), texto: e14Cortar(s.texto, 200), imagen: esteImg(s.imagen), cuenta: s.cuenta_regresiva === true };
+    var e = o('etiqueta'); if (e && e.texto) m.p.etiqueta = e14Cortar(e.texto, 24);
+    var u = o('pocas_unidades'); if (u) m.p.pocas = { umbral: l15Num(u.umbral) || 3, texto: e14Cortar(u.texto, 40) || 'Quedan pocas' };
+    var y = o('leyenda_precio'); if (y && y.texto) m.p.leyenda = { texto: e14Cortar(y.texto, 60), hasta: Date.parse(y.hasta) || 0 };
+    var a = l.anotarse && typeof l.anotarse === 'object' ? l.anotarse : null;
+    if (a) m.a = { titulo: e14Cortar(a.titulo, 70), texto: e14Cortar(a.texto, 160), boton: e14Cortar(a.boton, 30) || 'Avisame', pide: a.pide === 'mail' || a.pide === 'whatsapp' ? a.pide : 'ambos', consent: e14Cortar(a.consentimiento, 200), regalo: !!a.regalo };
+    return m;
+  }
+  /* ficha del anotado (se guarda en el navegador; en vista previa, solo en la pestana) */
+  function l15FiGet(id) { try { return (estePrev ? sessionStorage : localStorage).getItem('sc_lz_' + id) || ''; } catch (e) { return ''; } }
+  function l15FiSet(id, f) { try { (estePrev ? sessionStorage : localStorage).setItem('sc_lz_' + id, String(f)); } catch (e) {} }
+  function l15Cuenta(m) {
+    var s = esteEl('span', 'lz-cuenta', l15Resta(m.sale - l15Ahora()));
+    s.setAttribute('data-lz-cuenta', String(m.sale)); return s;
+  }
+  function l15Tic() {
+    if (document.hidden) return;
+    var ya = l15Ahora(), fin = false;
+    qa('[data-lz-cuenta]').forEach(function (n) {
+      var r = +n.getAttribute('data-lz-cuenta') - ya, x = l15Resta(r);
+      if (n.textContent !== x) n.textContent = x;
+      if (r <= 0) fin = true;
+    });
+    if (fin) { qa('[data-lz-kick]').forEach(function (n) { if (n.textContent !== 'Nuevo') n.textContent = 'Nuevo'; }); l15Salio(); }
+  }
+  function l15Salio() {   /* llego la hora: se vuelve a pedir el contrato (hasta 5 veces, cada ~7 s, por si el servidor aun no cambio de fase) */
+    if (L15.vuelo || L15.fue >= 5 || Date.now() < L15.sig2) return;
+    var url = estePrev ? estePrevUrl : CFG.contrato; if (!url || typeof fetch !== 'function') return;
+    L15.vuelo = true; L15.fue++; L15.sig2 = Date.now() + 6500;
+    try {
+      fetch(url, { credentials: 'omit', cache: 'no-store' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) { L15.vuelo = false; if (d) esteAplicar(d, estePrev); }).catch(function () { L15.vuelo = false; });
+    } catch (e) { L15.vuelo = false; }
+  }
+  /* ---- formulario "Avisame cuando salga" ---- */
+  function l15Form(m) {
+    var A = m.a, w = l15Marca(esteEl('div', 'lz-fw')), uid = 'lz' + (++L15.n);
+    if (A.titulo) w.appendChild(esteEl('p', 'lz-ft', A.titulo));
+    if (A.texto) w.appendChild(esteEl('p', 'lz-fx', A.texto));
+    var f = esteEl('form', 'lz-form'); f.setAttribute('novalidate', ''); f.setAttribute('aria-label', A.titulo || 'Avisame cuando salga');
+    var st = esteEl('p', 'lz-st'); st.setAttribute('role', 'status'); st.setAttribute('aria-live', 'polite'); st.id = uid + 's'; st.tabIndex = -1;
+    var inp = {};
+    var campo = function (k, tipo, rotulo, auto, modo) {
+      var d = esteEl('div', 'lz-c'), l = esteEl('label', '', rotulo); l.setAttribute('for', uid + k);
+      var i = esteEl('input'); i.type = tipo; i.id = uid + k; i.name = k; i.autocomplete = auto; i.setAttribute('inputmode', modo); i.setAttribute('aria-describedby', st.id);
+      d.appendChild(l); d.appendChild(i); f.appendChild(d); inp[k] = i;
+    };
+    if (A.pide !== 'whatsapp') campo('mail', 'email', 'Tu mail', 'email', 'email');
+    if (A.pide !== 'mail') campo('telefono', 'tel', 'Tu WhatsApp', 'tel', 'tel');
+    var hp = esteEl('div', 'lz-hp'); hp.setAttribute('aria-hidden', 'true');
+    var hi = esteEl('input'); hi.type = 'text'; hi.name = 'sitio'; hi.tabIndex = -1; hi.autocomplete = 'off'; hp.appendChild(hi); f.appendChild(hp);
+    var bt = esteEl('button', 'lz-btn', A.boton); bt.type = 'submit'; f.appendChild(bt);
+    if (A.consent) f.appendChild(esteEl('p', 'lz-cons', A.consent));
+    f.appendChild(st); w.appendChild(f);
+    var decir = function (t, err) { st.textContent = t; st.className = 'lz-st' + (err ? ' lz-err' : ''); };
+    var cerrar = function (t) {   /* anotado: se queda solo el mensaje, sin cambiar la altura */
+      try { w.style.minHeight = w.offsetHeight + 'px'; } catch (e) {}
+      w.className += ' lz-ok'; decir(t, false);
+    };
+    if (l15FiGet(m.id)) cerrar('Ya estás anotado. Te avisamos cuando salga.');
+    f.addEventListener('submit', function (ev) {
+      ev.preventDefault();
+      if (bt.disabled) return;
+      var mail = inp.mail ? inp.mail.value.trim() : '', tel = inp.telefono ? inp.telefono.value.trim() : '';
+      var okM = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(mail), nT = tel.replace(/[\s()+\-.]/g, ''), okT = /^\d{8,15}$/.test(nT);
+      Object.keys(inp).forEach(function (k) { inp[k].removeAttribute('aria-invalid'); });
+      var mal = null;
+      if (A.pide === 'mail' && !okM) mal = inp.mail;
+      else if (A.pide === 'whatsapp' && !okT) mal = inp.telefono;
+      else if (A.pide === 'ambos') { if (mail && !okM) mal = inp.mail; else if (tel && !okT) mal = inp.telefono; else if (!mail && !tel) mal = inp.mail; }
+      if (mal) { mal.setAttribute('aria-invalid', 'true'); decir(mal === inp.mail ? 'Revisá el mail: tiene que ser algo como nombre@correo.com.' : 'Revisá el número: usá solo números, con código de área.', true); try { mal.focus(); } catch (e) {} return; }
+      var body = { lanzamiento: m.id, pagina: location.pathname.slice(0, 120), sitio: hi.value || '' };
+      if (okM) body.mail = mail;
+      if (okT) body.telefono = tel;
+      bt.disabled = true; bt.setAttribute('aria-busy', 'true'); decir('Enviando…', false);
+      var fin = function () { bt.disabled = false; bt.removeAttribute('aria-busy'); };
+      if (typeof fetch !== 'function') { fin(); decir('No pudimos enviarlo. Probá de nuevo en un rato.', true); return; }
+      fetch(l15Base() + '/api/tienda/lanzamientos/anotarse', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body), credentials: 'omit' })
+        .then(function (r) { return r.json().catch(function () { return {}; }).then(function (j) { return { s: r.status, j: j || {} }; }); })
+        .then(function (x) {
+          fin();
+          if (x.s === 200 && x.j.ok !== false) { if (x.j.ficha) l15FiSet(m.id, x.j.ficha); cerrar('Listo, te anotamos. Te avisamos cuando salga.'); try { st.focus(); } catch (e) {} return; }
+          if (x.s === 422) decir('Revisá el dato que cargaste: no pudimos leerlo.', true);
+          else if (x.s === 429) decir('Hiciste muchos intentos. Probá de nuevo en un rato.', true);
+          else if (x.s === 409) { decir('Este lanzamiento ya no está abierto para anotarse.', true); l15Salio(); }
+          else decir('No pudimos anotarte ahora. Probá de nuevo en un rato.', true);
+        })
+        .catch(function () { fin(); decir('Sin conexión. Revisá tu internet y probá de nuevo.', true); });
+    });
+    return w;
+  }
+  /* ---- regalo por anotarse: el codigo viene de mi-codigo (nunca del contrato) ---- */
+  function l15Codigo(m, cb) {
+    var A = m.a; if (!(A && A.regalo && m.fase === 'disponible' && typeof fetch === 'function')) return;
+    var f = l15FiGet(m.id); if (!f) return;
+    var c = L15.cod[m.id];
+    if (c === false) return;
+    if (c && c.codigo) { cb(c); return; }
+    if (c && c.cbs) { c.cbs.push(cb); return; }
+    var e = L15.cod[m.id] = { cbs: [cb] };
+    try {
+      fetch(l15Base() + '/api/tienda/lanzamientos/mi-codigo?lanzamiento=' + encodeURIComponent(m.id) + '&ficha=' + encodeURIComponent(f), { credentials: 'omit' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          if (j && j.ok && j.codigo) {
+            var v = { codigo: String(j.codigo).slice(0, 40), pct: l15Num(j.pct), hasta: j.hasta ? Date.parse(j.hasta) || 0 : 0 }, cbs = e.cbs;
+            L15.cod[m.id] = v; cbs.forEach(function (fn) { try { fn(v); } catch (_) {} });
+          } else L15.cod[m.id] = false;
+        }).catch(function () { L15.cod[m.id] = false; });
+    } catch (x) { L15.cod[m.id] = false; }
+  }
+  function l15Copiar(t, btn, live) {
+    var ok = function () { btn.textContent = 'Copiado'; live.textContent = 'Código copiado'; setTimeout(function () { btn.textContent = 'Copiar'; live.textContent = ''; }, 2000); };
+    var fb = function () {
+      try { var a = document.createElement('textarea'); a.value = t; a.setAttribute('readonly', ''); a.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0'; document.body.appendChild(a); a.select(); var r = document.execCommand('copy'); document.body.removeChild(a); if (r) ok(); } catch (e) {}
+    };
+    try { if (navigator.clipboard && navigator.clipboard.writeText) { navigator.clipboard.writeText(t).then(ok, fb); return; } } catch (e) {}
+    fb();
+  }
+  function l15RegaloLlenar(box, v) {
+    box.textContent = '';
+    var tx = esteEl('div', 'lz-rt');
+    tx.appendChild(esteEl('b', '', 'Tu regalo por anotarte'));
+    tx.appendChild(esteEl('span', 'lz-cod', v.codigo));
+    tx.appendChild(esteEl('small', '', (v.pct ? v.pct + '% OFF' : 'Descuento') + (v.hasta ? ' · válido hasta ' + l15Fecha(v.hasta).split(' · ')[0] : '')));
+    var bt = esteEl('button', 'lz-btn lz-copy', 'Copiar'); bt.type = 'button';
+    var live = esteEl('span', 'lz-sr'); live.setAttribute('role', 'status'); live.setAttribute('aria-live', 'polite');
+    bt.addEventListener('click', function () { l15Copiar(v.codigo, bt, live); });
+    box.appendChild(tx); box.appendChild(bt); box.appendChild(live); box.hidden = false;
+  }
+  function l15Regalo(m) {   /* tarjeta oculta hasta que el codigo llega */
+    if (!(m.a && m.a.regalo && m.fase === 'disponible' && l15FiGet(m.id))) return null;
+    var box = l15Marca(esteEl('div', 'lz-reg')); box.hidden = true;
+    l15Codigo(m, function (v) { l15RegaloLlenar(box, v); });
+    return box;
+  }
+  /* ---- piezas ---- */
+  function l15Barra(m) {
+    var ad = q('section.js-adbar'); if (!ad || !m.p.barra) return false;
+    var host = q('.container-fluid', ad) || ad, msj = q('.satine-adbar-message,.adbar-message', ad);
+    if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-lz-pos', '1'); }
+    var b = l15Marca(esteEl('div', 'lz-barra'));
+    if (msj) { try { var cs = getComputedStyle(msj); b.style.fontFamily = cs.fontFamily; b.style.fontSize = cs.fontSize; b.style.letterSpacing = cs.letterSpacing; b.style.textTransform = cs.textTransform; } catch (e) {} }
+    var con = m.fase === 'disponible' ? m.prods.filter(function (p) { return p.url; }) : [], url = con.length === 1 ? con[0].url : '';
+    var cont = esteEl(url ? 'a' : 'div'); if (url) cont.href = url;
+    cont.appendChild(esteEl('span', '', m.p.barra.texto));
+    if (m.fase === 'anticipo' && m.sale) cont.appendChild(l15Cuenta(m));
+    b.appendChild(cont); host.appendChild(b); return true;
+  }
+  function l15Cartel(m) {
+    var C = m.p.cartel; if (!C || L15.pcart) return false;
+    var clave = 'sc_lzc_' + m.id + '_' + m.fase; if (e14Vis(clave)) return false;
+    var hecho = false, previo = null;
+    var mostrar = function () {
+      if (hecho || e14Bloq()) return; hecho = true; e14Marca(clave);
+      try { previo = document.activeElement; } catch (e) {}
+      var ov = l15Marca(esteEl('div', 'lz-ov')), dlg = esteEl('div', 'lz-dlg'), uid = 'lzd' + (++L15.n);
+      dlg.setAttribute('role', 'dialog'); dlg.setAttribute('aria-modal', 'true'); dlg.setAttribute('aria-labelledby', uid);
+      dlg.appendChild(esteEl('span', 'lz-kick', m.fase === 'anticipo' ? 'Próximamente' : (m.p.etiqueta || 'Nuevo')));
+      var h = esteEl('h2', '', C.titulo || m.nombre); h.id = uid; dlg.appendChild(h);
+      if (C.texto) dlg.appendChild(esteEl('p', '', C.texto));
+      if (m.fase === 'anticipo' && m.sale) dlg.appendChild(esteEl('p', 'lz-fe', 'Sale el ' + l15Fecha(m.sale)));
+      var ac = esteEl('div', 'lz-ac'), btn = null;
+      if (C.destino) { btn = esteEl('a', 'lz-btn', C.boton || 'Ver más'); btn.href = C.destino; ac.appendChild(btn); }
+      var ce = esteEl('button', C.destino ? 'lz-btn2' : 'lz-btn', C.destino ? 'Ahora no' : (C.boton || 'Entendido')); ce.type = 'button'; ac.appendChild(ce);
+      dlg.appendChild(ac); ov.appendChild(dlg); document.body.appendChild(ov);
+      var cerrar = function () { document.removeEventListener('keydown', tecla, true); l15Quitar(ov); try { if (previo && previo.focus) previo.focus(); } catch (e) {} };
+      var tecla = function (ev) {
+        if (ev.key === 'Escape') { ev.preventDefault(); cerrar(); return; }
+        if (ev.key !== 'Tab') return;
+        var fo = qa('a[href],button', dlg); if (!fo.length) return;
+        var pri = fo[0], ult = fo[fo.length - 1];
+        if (ev.shiftKey && document.activeElement === pri) { ev.preventDefault(); ult.focus(); }
+        else if (!ev.shiftKey && document.activeElement === ult) { ev.preventDefault(); pri.focus(); }
+      };
+      document.addEventListener('keydown', tecla, true);
+      ce.addEventListener('click', cerrar); ov.addEventListener('click', function (ev) { if (ev.target === ov) cerrar(); });
+      L15.undo.push(function () { document.removeEventListener('keydown', tecla, true); });
+      try { (btn || ce).focus(); } catch (e) {}
+    };
+    L15.tms.push(setTimeout(mostrar, 4000));
+    var sc = function () { window.removeEventListener('scroll', sc); mostrar(); };
+    window.addEventListener('scroll', sc, { passive: true }); L15.undo.push(function () { window.removeEventListener('scroll', sc); });
+    return true;
+  }
+  function l15Tarjeta(m, p) {
+    var a = esteEl('a', 'lz-card'); a.href = p.url;
+    var i = esteEl('img'); i.src = p.img; i.alt = p.nombre; i.width = 300; i.height = 300; i.loading = 'lazy'; i.decoding = 'async'; a.appendChild(i);
+    a.appendChild(esteEl('span', 'lz-pill', m.p.etiqueta || 'Nuevo'));
+    a.appendChild(esteEl('span', 'lz-nom', p.nombre));
+    var pr = esteEl('span', 'lz-pr');
+    if (p.promo > 0 && p.precio > p.promo) { pr.appendChild(esteEl('b', '', plata(p.promo))); pr.appendChild(esteEl('s', '', plata(p.precio))); } else if (p.precio > 0) pr.appendChild(esteEl('b', '', plata(p.precio)));
+    a.appendChild(pr);
+    if (m.p.pocas && p.stock != null && p.stock > 0 && p.stock <= m.p.pocas.umbral) a.appendChild(esteEl('span', 'lz-poc', m.p.pocas.texto));
+    return a;
+  }
+  function l15Seccion(m) {
+    var S = m.p.seccion; if (!S || location.pathname !== '/') return false;
+    var hero = q('.js-home-sections-container > .section-slider-home'); if (!hero || !hero.parentNode) return false;
+    var an = q('.sc-e14-sec') || q('.sc-est-home'); if (!an || an.parentNode !== hero.parentNode) an = hero;
+    var sec = l15Marca(esteEl('section', 'lz-sec')), anti = m.fase === 'anticipo', cuerpo = esteEl('div', 'lz-in');
+    var tit = S.titulo || m.nombre; sec.setAttribute('aria-label', tit);
+    var tx = esteEl('div', 'lz-tx');
+    var kick = esteEl('span', 'lz-kick', anti ? 'Próximamente' : (m.p.etiqueta || 'Nuevo')); if (anti) kick.setAttribute('data-lz-kick', '1'); tx.appendChild(kick);
+    tx.appendChild(esteEl('h2', '', tit));
+    if (S.texto) tx.appendChild(esteEl('p', '', S.texto));
+    var n = 0;
+    if (anti) {
+      if (m.sale) { var fe = esteEl('p', 'lz-fe', 'Sale el ' + l15Fecha(m.sale)); if (S.cuenta) { fe.appendChild(document.createTextNode(' · ')); fe.appendChild(l15Cuenta(m)); } tx.appendChild(fe); }
+      if (m.a) tx.appendChild(l15Form(m));
+      if (S.imagen) { var im = esteEl('img', 'lz-img'); im.src = S.imagen; im.alt = ''; im.width = 800; im.height = 600; im.decoding = 'async'; cuerpo.className += ' lz-dos'; cuerpo.appendChild(im); }
+      cuerpo.appendChild(tx); sec.appendChild(cuerpo);
+    } else {
+      sec.appendChild(tx);
+      var fila = esteEl('div', 'lz-fila');
+      m.prods.slice(0, 8).forEach(function (p) { if (p.url && p.img) { fila.appendChild(l15Tarjeta(m, p)); n++; } });
+      if (n) sec.appendChild(fila);
+      var rg = l15Regalo(m); if (rg) sec.appendChild(rg);
+      if (!n && !rg) return false;
+    }
+    an.parentNode.insertBefore(sec, an.nextSibling);
+    l15RsvSoltar(sec, anti ? m.sale : (m.hasta || Date.now() + 3 * 86400000), 'home');
+    return true;
+  }
+  function l15PidActual() { try { return String(window.LS && window.LS.product && window.LS.product.id || ''); } catch (e) { return ''; } }
+  function l15Producto(ls) {
+    var pid = l15PidActual(), form = q('form#product_form'); if (!pid || !form) return false;
+    var m = null, pr = null;
+    ls.some(function (x) { var p = x.prods.filter(function (y) { return y.id === pid; })[0]; if (p) { m = x; pr = p; return true; } return false; });
+    if (!m) return false;
+    var ref = l15Fuera(form), hay = false;
+    if (m.fase === 'anticipo') {
+      if (!(m.a || m.p.barra || m.p.seccion)) return false;
+      var bl = l15Marca(esteEl('div', 'lz-pp')); bl.setAttribute('role', 'group'); bl.setAttribute('aria-label', 'Próximo lanzamiento');
+      bl.appendChild(esteEl('span', 'lz-kick', 'Próximamente'));
+      if (m.sale) { var fe = esteEl('p', 'lz-fe', 'Sale el ' + l15Fecha(m.sale) + ' · '); fe.appendChild(l15Cuenta(m)); bl.appendChild(fe); }
+      if (m.a) bl.appendChild(l15Form(m));
+      ref.parentNode.insertBefore(bl, ref);
+      l15RsvSoltar(bl, m.sale, 'prod', [pid]);
+      return true;
+    }
+    var h1 = q('.js-product-name') || q('h1'), puntos = [];
+    var et = m.p.etiqueta && h1 && h1.parentNode ? l15Marca(esteEl('span', 'lz-et', m.p.etiqueta)) : null;
+    if (et) { h1.parentNode.insertBefore(et, h1); hay = true; }
+    var pc = q('.js-price-container') || (q('#price_display') && q('#price_display').parentNode);
+    if (m.p.leyenda && pr.promo > 0 && pr.precio > pr.promo && (!m.p.leyenda.hasta || m.p.leyenda.hasta > l15Ahora()) && pc && pc.parentNode) {
+      var le = l15Marca(esteEl('p', 'lz-ley', m.p.leyenda.texto)); pc.parentNode.insertBefore(le, pc.nextSibling); hay = true; puntos.push(le);
+    }
+    if (m.p.pocas && pr.stock != null && pr.stock > 0 && pr.stock <= m.p.pocas.umbral && pc && pc.parentNode) {
+      var po = l15Marca(esteEl('p', 'lz-poc lz-poc-f', m.p.pocas.texto)); pc.parentNode.insertBefore(po, pc.nextSibling); hay = true;
+    }
+    var rg = l15Regalo(m); if (rg) { ref.parentNode.insertBefore(rg, ref); hay = true; }
+    return hay;
+  }
+  /* repasa lo que Tienda Nube vuelve a dibujar (listados que cargan mas, carrito que se re-arma) sin repetir nada */
+  function l15Pasada() {
+    try {
+      var mapa = {}, hay = false;
+      L15.lista.forEach(function (m) { if (m.fase === 'disponible' && m.p.etiqueta) m.prods.forEach(function (p) { mapa[p.id] = m.p.etiqueta; hay = true; }); });
+      if (hay) qa('.js-item-product[data-product-id]').forEach(function (it) {
+        var t = mapa[it.getAttribute('data-product-id')]; if (!t || it.querySelector('.lz-pill')) return;
+        var img = it.querySelector('.item-image, .js-item-image-container, picture, img'), host = img && (img.tagName === 'IMG' ? img.parentNode : img);
+        if (!host) return;
+        if (getComputedStyle(host).position === 'static') { host.style.position = 'relative'; host.setAttribute('data-lz-pos', '1'); }
+        host.appendChild(l15Marca(esteEl('span', 'lz-pill', t)));
+      });
+      L15.lista.forEach(function (m) {
+        var v = L15.cod[m.id]; if (!(v && v.codigo)) return;
+        ['#modal-cart', '#shoppingCartPage'].forEach(function (sel) {
+          var raiz = q(sel); if (!raiz || q('.lz-reg', raiz)) return;
+          var lista = q('.js-ajax-cart-list', raiz); if (!lista || !lista.parentNode) return;
+          var box = l15Marca(esteEl('div', 'lz-reg')); l15RegaloLlenar(box, v); lista.parentNode.insertBefore(box, lista);
+        });
+      });
+    } catch (e) {}
+  }
+  function l15Limpiar() {
+    qa('[data-sc-lz]').forEach(l15Quitar); l15Quitar(document.getElementById('lz-css'));
+    qa('[data-lz-pos]').forEach(function (n) { n.style.position = ''; n.removeAttribute('data-lz-pos'); });
+    if (L15.tim) { clearInterval(L15.tim); L15.tim = null; }
+    if (L15.vis) { document.removeEventListener('visibilitychange', L15.vis); L15.vis = null; }
+    if (L15.obs) { L15.obs.disconnect(); L15.obs = null; }
+    if (L15.od) { clearTimeout(L15.od); L15.od = 0; }
+    L15.tms.forEach(clearTimeout); L15.tms = [];
+    L15.undo.forEach(function (f) { try { f(); } catch (e) {} }); L15.undo = [];
+  }
+  function l15Css() {
+    var FJ2 = '"Plus Jakarta Sans",system-ui,sans-serif', C = L15_COLOR, K = L15_CREMA, B = 'rgba(52,33,27,.14)';
+    return [
+      '.lz-barra{position:absolute;left:0;right:0;top:0;bottom:0;display:flex;align-items:center;justify-content:center;z-index:10001;font:600 11px/1.2 ' + FJ2 + ';letter-spacing:.04em;text-transform:uppercase;text-align:center;padding:0 16px;overflow:hidden;white-space:nowrap;border-radius:inherit;background:' + C + ';color:' + K + '}',
+      '.lz-barra>a,.lz-barra>div{display:flex;gap:10px;align-items:center;justify-content:center;max-width:100%;min-width:0;text-decoration:none}',
+      '.lz-barra,.lz-barra *{color:' + K + '!important}.lz-barra span{overflow:hidden;text-overflow:ellipsis}',
+      '.lz-barra a:focus-visible{outline:2px solid ' + K + ';outline-offset:3px}',
+      '.lz-cuenta{font-variant-numeric:tabular-nums;white-space:nowrap}',
+      '.lz-kick{display:inline-block;font:700 11px/1.3 ' + FJ2 + ';letter-spacing:.08em;text-transform:uppercase;color:#7a5a4a}',
+      '.lz-sec{box-sizing:border-box;margin:16px 12px;padding:24px 18px;background:#fff;border:1px solid ' + B + ';border-radius:16px;color:' + C + ';font-family:' + FJ2 + '}',
+      '@media(min-width:768px){.lz-sec{margin:24px auto;max-width:1100px;padding:32px 36px}}',
+      '.lz-in{display:flex;flex-direction:column;gap:16px}@media(min-width:768px){.lz-in.lz-dos{flex-direction:row;align-items:center}.lz-in.lz-dos>*{flex:1 1 0;min-width:0}}',
+      '.lz-img{display:block;width:100%;height:auto;aspect-ratio:4/3;object-fit:cover;border-radius:12px;background:' + K + '}',
+      '.lz-sec h2,.lz-dlg h2{font:700 22px/1.2 ' + FJ2 + ';margin:4px 0 8px;color:' + C + '}',
+      '.lz-sec p,.lz-dlg p,.lz-pp p{margin:0 0 10px;font:400 14px/1.5 ' + FJ2 + ';color:' + C + '}',
+      '.lz-fe{font-weight:600!important}',
+      '.lz-fila{display:flex;gap:12px;overflow-x:auto;padding:4px 0;margin-top:12px}',
+      '.lz-card{position:relative;flex:0 0 150px;display:flex;flex-direction:column;gap:4px;text-decoration:none;color:' + C + '}',
+      '.lz-card img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;border-radius:12px;background:' + K + '}',
+      '.lz-nom{font:600 13px/1.3 ' + FJ2 + '}.lz-pr{font:400 13px/1.3 ' + FJ2 + '}.lz-pr b{font-weight:700}.lz-pr s{margin-left:6px;opacity:.6}',
+      '.lz-card:focus-visible,.lz-copy:focus-visible,.lz-btn:focus-visible,.lz-btn2:focus-visible,.lz-form input:focus-visible{outline:2px solid ' + C + ';outline-offset:2px}',
+      '.lz-pill{position:absolute;right:8px;top:8px;z-index:3;padding:3px 9px;border-radius:999px;background:' + C + ';color:' + K + ';font:700 11px/1.3 ' + FJ2 + ';letter-spacing:.02em;pointer-events:none}',
+      '.lz-poc{font:700 12px/1.3 ' + FJ2 + ';color:#9b2c1d}.lz-poc-f{margin:4px 0}',
+      '.lz-et{display:inline-block;padding:3px 10px;margin:0 0 6px;border-radius:999px;background:' + C + ';color:' + K + ';font:700 11px/1.4 ' + FJ2 + ';letter-spacing:.06em;text-transform:uppercase}',
+      '.lz-ley{margin:4px 0;font:600 12.5px/1.3 ' + FJ2 + ';color:' + C + '}',
+      '.lz-pp{box-sizing:border-box;margin:14px 0;padding:16px;background:#fff;border:1px solid ' + B + ';border-radius:16px;color:' + C + ';font-family:' + FJ2 + '}',
+      '.lz-fw{margin:12px 0;font-family:' + FJ2 + ';color:' + C + '}',
+      '.lz-ft{margin:0 0 4px!important;font:700 15px/1.3 ' + FJ2 + '!important}.lz-fx{margin:0 0 8px!important}',
+      '.lz-form{position:relative;display:flex;flex-direction:column;gap:10px;margin:0}',
+      '.lz-form label{display:block;margin-bottom:4px;font:600 12px/1.3 ' + FJ2 + ';color:' + C + '}',
+      '.lz-form input[type=email],.lz-form input[type=tel]{display:block;width:100%;box-sizing:border-box;height:46px;padding:0 14px;border:1px solid rgba(52,33,27,.35);border-radius:12px;background:#fff;color:' + C + ';font:400 16px ' + FJ2 + '}',
+      '.lz-form input[aria-invalid=true]{border-color:#9b2c1d}',
+      '.lz-hp{position:absolute!important;left:-9999px;top:auto;width:1px;height:1px;overflow:hidden}',
+      '.lz-btn,.lz-btn2{display:inline-flex;align-items:center;justify-content:center;box-sizing:border-box;min-height:46px;padding:0 22px;border-radius:999px;border:1px solid ' + C + ';background:' + C + ';color:' + K + '!important;font:700 14px ' + FJ2 + ';text-decoration:none;cursor:pointer}',
+      '.lz-btn2{background:transparent;color:' + C + '!important}.lz-btn[disabled]{opacity:.6;cursor:default}',
+      '.lz-cons{margin:0!important;font:400 11.5px/1.4 ' + FJ2 + '!important;opacity:.8}',
+      '.lz-st{min-height:20px;margin:0!important;font:600 13px/1.4 ' + FJ2 + '!important;outline:0}.lz-st.lz-err{color:#9b2c1d!important}',
+      '.lz-ok .lz-form>:not(.lz-st){display:none}',
+      '.lz-reg{display:flex;align-items:center;flex-wrap:wrap;gap:12px;margin:12px 0;padding:14px 16px;border:1px dashed rgba(52,33,27,.4);border-radius:16px;background:' + K + ';color:' + C + ';font-family:' + FJ2 + '}',
+      '.lz-reg[hidden]{display:none}.lz-rt{display:flex;flex-direction:column;gap:2px;flex:1 1 160px}.lz-rt b{font:700 13px/1.3 ' + FJ2 + '}.lz-rt small{font:400 12px/1.3 ' + FJ2 + '}',
+      '.lz-cod{font:700 18px/1.2 ui-monospace,Menlo,monospace;letter-spacing:.06em}.lz-copy{min-height:40px}',
+      '.lz-sr{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}',
+      '.lz-ov{position:fixed;left:0;right:0;top:0;bottom:0;z-index:100000;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(52,33,27,.5)}',
+      '.lz-dlg{box-sizing:border-box;width:100%;max-width:380px;padding:24px;background:#fff;border-radius:16px;color:' + C + ';font-family:' + FJ2 + ';animation:lz-in .3s ease-out}',
+      '.lz-ac{display:flex;flex-direction:column;gap:8px;margin-top:12px}',
+      '@keyframes lz-in{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}',
+      '@media(prefers-reduced-motion:reduce){.lz-dlg{animation:none}.lz-fila{scroll-behavior:auto}}'
+    ].join('\n');
+  }
+  function l15Pintar() {
+    l15Limpiar();
+    var ls = L15.lista; if (!ls.length) return;
+    var st = document.createElement('style'); st.id = 'lz-css'; st.textContent = l15Css(); (document.head || document.documentElement).appendChild(st);
+    var pri = function (fn) { for (var i = 0; i < ls.length; i++) { try { if (fn(ls[i])) return true; } catch (e) {} } return false; };
+    if (!L15.pbarra) pri(function (m) { return m.p.barra ? l15Barra(m) : false; });
+    pri(function (m) { return m.p.seccion ? l15Seccion(m) : false; });
+    try { l15Producto(ls); } catch (e) {}
+    pri(function (m) { return m.p.cartel ? l15Cartel(m) : false; });
+    ls.forEach(function (m) { try { l15Codigo(m, function () { l15Pasada(); }); } catch (e) {} });
+    l15Pasada();
+    if (qa('[data-lz-cuenta]').length) {
+      L15.tim = setInterval(l15Tic, 1000);
+      document.addEventListener('visibilitychange', L15.vis = function () { if (!document.hidden) l15Tic(); });
+      l15Tic();
+    }
+    if (typeof MutationObserver === 'function' && document.body) {
+      L15.obs = new MutationObserver(function () { if (L15.od) return; L15.od = setTimeout(function () { L15.od = 0; l15Pasada(); }, 250); });
+      L15.obs.observe(document.body, { childList: true, subtree: true });
+    }
+  }
+  function l15Aplicar(d) {
+    if (!d || typeof d !== 'object' || !('campana' in d)) return;
+    var cru = Array.isArray(d.lanzamientos) ? d.lanzamientos : [];
+    var ah = Date.parse(d.ahora); if (isFinite(ah)) L15.skew = ah - Date.now();
+    var lista = cru.slice(0, 6).map(l15Min).filter(Boolean);
+    if (!lista.length && !L15.sig) { l15HintAjustar(); return; }   /* sin lanzamientos y nada pintado: no se hace nada */
+    var camps = []; try { camps = esteCampanas(d) || []; } catch (e) {}
+    var pb = false, pc = false;
+    try {
+      pb = camps.some(function (c) { var e = c && c.visual && c.visual.estetica; return !!(e && e.barra && e.barra.activa && e.barra.mensaje); });
+      pc = camps.some(function (k) {
+        var e = k && k.visual && k.visual.estetica; if (!e) return false;
+        var ko = 'sc_cartel_' + k.slug;
+        if (k.extendida && k.extendida.numero != null) return !e14Vis(ko + '_x' + k.extendida.numero);
+        return e14Flag(e, 'cartel_entrada', false) && !e14Vis(ko);
+      });
+    } catch (e) {}
+    var sig = JSON.stringify([lista, pb, pc]);
+    L15.pbarra = pb; L15.pcart = pc;
+    if (sig !== L15.sig) {
+      L15.sig = sig; L15.lista = lista;
+      var go = function () { try { l15Pintar(); } catch (e) { try { l15Limpiar(); } catch (_) {} } };
+      if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go); else go();
+    }
+    /* sigue en anticipo con la hora ya pasada: reintentar el contrato */
+    if (lista.some(function (m) { return m.fase === 'anticipo' && m.sale && m.sale <= l15Ahora(); })) L15.tms.push(setTimeout(l15Salio, 7000));
+    l15HintAjustar();
+  }
+  /* ---- 1.15: el hueco de las secciones del inicio / ficha se reserva ANTES de pintar (sin saltos) ----
+     Se guarda la altura medida de la seccion pintada (por tamano de pantalla) y, en la visita siguiente, se pone un espaciador que se va al pintar la real. Sin dato guardado no hay nodo. */
+  function l15RsvGuardar(kind, nodo, hasta, ids) {
+    if (estePrev || !nodo) return;
+    try {
+      var cs = getComputedStyle(nodo), h = Math.round(nodo.offsetHeight + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0)); if (!(h > 40)) return;
+      var o = null; try { o = JSON.parse(localStorage.getItem(L15_RSV) || 'null'); } catch (e) {}
+      if (!o || typeof o !== 'object' || !o.h) o = { h: {} };
+      o.h[kind + rsvClase()] = h; if (ids) o.ids = ids;
+      o.hasta = Math.max(+o.hasta > Date.now() ? +o.hasta : 0, typeof hasta === 'string' ? Date.parse(hasta) || 0 : (+hasta || 0), Date.now() + 3600000);
+      localStorage.setItem(L15_RSV, JSON.stringify(o)); L15.rsvTocado = 1; L15.rsvKind = kind;
+    } catch (e) {}
+  }
+  function l15RsvSoltar(nodo, hasta, kind, ids) {
+    qa('[data-lz-rsv]').forEach(l15Quitar);
+    if (L15.rsvT) { clearTimeout(L15.rsvT); L15.rsvT = 0; }
+    if (L15.rsvO) { L15.rsvO.disconnect(); L15.rsvO = null; }
+    if (nodo && kind) l15RsvGuardar(kind, nodo, hasta, ids);
+  }
+  function l15HintAjustar() {   /* si ya no hay seccion que reservar, se borra el dato para que la proxima visita no deje un hueco */
+    if (!L15.rsvTocado || estePrev) return;
+    setTimeout(function () {
+      try {
+        var kind = L15.rsvKind, hay = kind === 'home' ? q('.sc-e14-sec,.lz-sec') : q('.lz-pp');
+        if (hay) return;
+        var o = JSON.parse(localStorage.getItem(L15_RSV) || 'null');
+        if (o && o.h) { delete o.h[kind + 'c']; delete o.h[kind + 'p']; localStorage.setItem(L15_RSV, JSON.stringify(o)); }
+        l15RsvSoltar();
+      } catch (e) {}
+    }, 500);
+  }
+  function l15RsvBoot() {
+    try {
+      if (estePrev) return;
+      var o = JSON.parse(localStorage.getItem(L15_RSV) || 'null'); if (!o) return;
+      if (!(o.hasta > Date.now())) { localStorage.removeItem(L15_RSV); return; }
+      var kind = location.pathname === '/' ? 'home' : /^\/productos\//.test(location.pathname) ? 'prod' : ''; if (!kind) return;
+      var h = o.h && o.h[kind + rsvClase()]; if (!(h > 40 && h < 1400)) return;
+      if (kind === 'prod') { var pid = l15PidActual(); if (!pid || !Array.isArray(o.ids) || o.ids.indexOf(pid) < 0) return; }
+      L15.rsvTocado = 1; L15.rsvKind = kind;
+      var poner = function () {
+        if (q('[data-lz-rsv]')) return true;
+        var ref = null, antes = false;
+        if (kind === 'home') { ref = q('.js-home-sections-container > .section-slider-home'); }
+        else { var f = q('form#product_form'); if (f) { ref = l15Fuera(f); antes = true; } }
+        if (!ref || !ref.parentNode) return false;
+        var sp = document.createElement('div'); sp.setAttribute('data-lz-rsv', '1'); sp.setAttribute('aria-hidden', 'true'); sp.style.minHeight = h + 'px';
+        ref.parentNode.insertBefore(sp, antes ? ref : ref.nextSibling); return true;
+      };
+      if (!poner() && typeof MutationObserver === 'function') {
+        L15.rsvO = new MutationObserver(function () { if (poner() && L15.rsvO) { L15.rsvO.disconnect(); L15.rsvO = null; } });
+        L15.rsvO.observe(document.documentElement, { childList: true, subtree: true });
+      }
+      L15.rsvT = setTimeout(function () { l15RsvSoltar(); }, 6000);   /* red de seguridad: el hueco nunca queda mas de 6 s */
     } catch (e) {}
   }
 
@@ -1830,6 +2313,7 @@
   try { esteDesdeCache(); } catch (e) {}   /* 1.10: estetica desde la cache chica, lo antes posible */
   aplicarContrato(leerContratoGuardado());   /* lo ultimo que dijo el ERP, para arrancar sin esperar la red */
   armarTextos();
+  try { l15RsvBoot(); } catch (e) {}
   sincronizarContrato();
   estePreview();
   if (activo() || vista) arrancar();
