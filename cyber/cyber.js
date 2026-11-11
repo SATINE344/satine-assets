@@ -1,3 +1,4 @@
+/* 1.21.0 (11/11/2026): WEB 3d. Banda de /en-oferta/ y seccion del inicio con aire y forma de tarjeta (esquinas redondeadas, sin pegarse a los bordes); tarjeta tematica sola en la ultima fila de la grilla ocupa el ancho completo; etiqueta Nuevo y pastilla de descuento con la misma altura y margen; entrada SIN salto de diseno: las piezas se insertan y lo que sigue se compensa en el mismo cuadro y se desliza a su lugar (esteEntrar), el margen de la banda ya no mueve el body, el aviso de entrada ya no toca el overflow de html. */
 /* 1.20.0 (11/11/2026): WEB 3c. La cinta de "arriba" (ofertas y lanzamientos) corre ADENTRO de la franja oscura del encabezado, recortada por ella: el encabezado no cambia de forma ni de alto (se borra el relleno del body y el corrimiento de Filtrar); Filtrar queda donde esta sin promo. Etiqueta Nuevo arriba a la izquierda de la foto (a la derecha si ya hay pastilla de oferta). Pastilla flotante: no va en la ficha, se esconde con el pie en pantalla, maximo 60 % del ancho. Tarjeta de grilla con las columnas de los productos y sin contar los ocultos. */
 /* 1.19.0 (11/11/2026): WEB 3b. Ficha: cupon y boton extra van DEBAJO del boton de compra (no lo mueven); Filtrar/Ordenar de /en-oferta/ en su propia fila bajo la banda (ya no tapan carrito ni menu); tarjeta de la grilla; sello sobre la foto de la ficha; lanzamientos: entrada de menu y cinta. */
 /* 1.18.0 (11/11/2026): WEB 3a. Pulido de 1.17: nombre de la categoria en oferta (menu del celular) con el color de la oferta; el boton Filtrar del theme ya no tapa la banda de /en-oferta/; el alto de la banda se reserva en el head (sc_est_reserva) para que la grilla no salte en la visita siguiente; hueco banda-grilla parejo. Piezas nuevas, cada una solo si viene activa en el contrato: cinta de frases (estetica.cinta), botones (estetica.botones: seccion_inicio, pagina_oferta, ficha, flotante), cierre (estetica.cierre), cupon copiable (campana.cupon) y brillo del titulo (estetica.efecto). Todo con data-sc-est="1"; sin promo, cero nodos. Cache sc_est_v1 pasa a v:5. */
@@ -33,7 +34,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.20.0',
+    version: '1.21.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -1092,7 +1093,7 @@
       a.appendChild(pr); fila.appendChild(a); n++;
     });
     if (!n) return;
-    inn.appendChild(fila); sec.appendChild(inn); an.parentNode.insertBefore(sec, an.nextSibling);
+    inn.appendChild(fila); sec.appendChild(inn); esteEntrar(sec, function () { an.parentNode.insertBefore(sec, an.nextSibling); });
     if (vivo) esteRelojIniciar();
     /* entrada: opacidad + 12 px una sola vez al aparecer en pantalla; sin IntersectionObserver (o pestana oculta) entra sola a los 1,5 s para no quedar invisible */
     var entrar = function () { sec.classList.add('sc-in'); };
@@ -1140,7 +1141,9 @@
       var h2 = esteEl('h2', '', titulo); h2.id = idt; d.appendChild(h2); if (texto) d.appendChild(esteEl('p', '', texto));
       if (c.hasta && new Date(c.hasta).getTime() > Date.now()) { var cf = esteEl('p', 'sc-cart-fin', 'Termina en ' + esteTiempo(c.hasta)); cf.setAttribute('data-sc-fin', c.hasta); cf.setAttribute('data-sc-pre', 'Termina en '); cf.setAttribute('data-sc-est', '1'); d.appendChild(cf); esteRelojIniciar(); }
       var bt = esteEl('a', 'sc-cart-bt', boton); bt.href = dest; d.appendChild(bt);
-      w.appendChild(fondo); w.appendChild(d); document.body.appendChild(w); H.style.overflow = 'hidden';
+      w.appendChild(fondo); w.appendChild(d); document.body.appendChild(w);
+      /* bloqueo del scroll de atras SIN tocar el overflow de html (eso movia el layout): el velo cubre todo y frena rueda y arrastre */
+      ['touchmove', 'wheel'].forEach(function (ev) { w.addEventListener(ev, function (e2) { if (!d.contains(e2.target)) e2.preventDefault(); }, { passive: false }); });
       var cerrado = false;
       var cerrar = function () {
         if (cerrado) return; cerrado = true;
@@ -1204,6 +1207,35 @@
     H.style.setProperty('--sc-mof', e17Hx(c));
   }
   /* pagina /en-oferta/: cabecera tematica arriba de la grilla; el h1 nativo queda en el DOM pero recortado (lector de pantalla) */
+
+  /* 1.21: ENTRADA SIN SALTO. Inserta la pieza en el flujo y, EN EL MISMO CUADRO, baja el contenido que queda debajo con translateY(-H) (su lugar en pantalla no cambia: el navegador no cuenta salto).
+     Al cuadro siguiente lo deja deslizar a 0 (transform: no es layout) y la pieza aparece con su fade. Al terminar se quita el transform. Con movimiento reducido: duracion 0.
+     Nunca se pone transform en body ni en un ancestro de elementos fixed: solo en los hermanos que siguen a la pieza (y a sus ancestros), salteando los fixed y los que contienen uno. */
+  function esteEntrar(sec, poner) {
+    var mov = false; try { mov = window.matchMedia('(prefers-reduced-motion:reduce)').matches; } catch (e) {}
+    poner(); if (!sec.isConnected) return;
+    var r = sec.getBoundingClientRect(), cs = getComputedStyle(sec), H = Math.round(r.height + (parseFloat(cs.marginTop) || 0) + (parseFloat(cs.marginBottom) || 0));
+    if (!(H > 0) || (window.pageYOffset || 0) > Math.max(0, r.top + (window.pageYOffset || 0) - 4)) { if (H > 0 && (window.pageYOffset || 0) > 0 && r.top < 0) { try { window.scrollBy(0, H); } catch (e) {} } return; }   /* el visitante ya paso la pieza: se inserta y se compensa el scroll */
+    var lista = [], n = sec, tope = 0;
+    while (n && n !== document.body && tope < 80) {
+      for (var s = n.nextElementSibling; s && tope < 80; s = s.nextElementSibling) {
+        if (/^(SCRIPT|STYLE|LINK|TEMPLATE|NOSCRIPT)$/.test(s.tagName) || s.hasAttribute('data-sc-est')) continue;
+        var pos = getComputedStyle(s).position; if (pos === 'fixed' || pos === 'sticky') continue;
+        if (s.querySelector('[style*="fixed"],.js-modal,.modal,#satine-filtrar-dock')) { if (s.getBoundingClientRect().top > innerHeight * 1.5) continue; }
+        if (s.style.transform && s.__scO === undefined) continue;
+        lista.push(s); tope++;
+      }
+      n = n.parentNode;
+    }
+    /* varias piezas pueden entrar a la vez (banda + cinta): cada elemento acumula el desplazamiento de todas (x.__scO) y cada pieza devuelve solo el suyo */
+    var pon = function (x, d) { x.__scO = (x.__scO || 0) + d; x.style.transform = 'translate3d(0,' + x.__scO + 'px,0)'; };
+    lista.forEach(function (x) { x.style.transition = ''; pon(x, -H); });
+    var dur = mov ? 0 : 300, fin = function () { lista.forEach(function (x) { if (Math.abs(x.__scO) < 0.5) { x.__scO = undefined; x.style.transition = ''; x.style.transform = ''; if (!x.getAttribute('style')) x.removeAttribute('style'); } }); };
+    requestAnimationFrame(function () { requestAnimationFrame(function () {
+      lista.forEach(function (x) { if (dur) x.style.transition = 'transform ' + dur + 'ms cubic-bezier(.22,1,.36,1)'; pon(x, H); });
+      if (!dur) fin(); else { setTimeout(fin, dur + 120); }
+    }); });
+  }
   function e17Pagina(camps) {
     var c = e17Camp(camps, 'pagina_oferta'); if (!c) return;
     var E = c.visual.estetica, pg = E.pagina_oferta, eo = c.en_oferta;
@@ -1236,8 +1268,9 @@
       ch.forEach(function (k) { var a = esteEl('a', 'sc-e17-chip', e14Cortar(k.nombre, 40)); a.href = k.ruta; nav.appendChild(a); });
       inn.appendChild(nav);
     }
-    sec.appendChild(inn); ant.parentNode.insertBefore(sec, ant);
-    try { var hd = q('header.js-head-main'), cs = getComputedStyle(hd || document.body); if (hd && cs.position === 'fixed') { var off = hd.getBoundingClientRect().bottom - sec.getBoundingClientRect().top; if (off > 0) { sec.style.marginTop = Math.round(off) + 'px'; sec.setAttribute('data-mt0', Math.round(off)); } } } catch (e) {}   /* el header del theme es fijo y transparente: la banda arranca debajo de el, no tapada */
+    sec.appendChild(inn); esteEntrar(sec, function () { ant.parentNode.insertBefore(sec, ant);
+    try { var hd = q('header.js-head-main'), cs = getComputedStyle(hd || document.body); if (hd && cs.position === 'fixed') { var off = hd.getBoundingClientRect().bottom - sec.getBoundingClientRect().top; if (off > 0) { sec.style.marginTop = Math.round(off) + 'px'; sec.setAttribute('data-mt0', Math.round(off)); if (sec.parentNode && getComputedStyle(sec.parentNode).display === 'block') sec.parentNode.setAttribute('data-sc-fr', '1'); } } } catch (e) {}   /* el header del theme es fijo y transparente: la banda arranca debajo de el, no tapada */
+    });
     qa('section.js-category-controls h1,section.js-category-controls .s266-k,[data-store="page-title"] h1,[data-store="page-title"] .s266-k').forEach(function (h) { h.classList.add('sc-e17-oc'); });
     if (vivo && pg.cuenta !== false) esteRelojIniciar();
   }
@@ -1293,15 +1326,17 @@
     });
     e17Mem.forEach(function (m) { try { m.el.textContent = m.t; } catch (e) {} }); e17Mem = [];
     document.documentElement.style.removeProperty('--sc-mof');
+    qa('[data-sc-fr]').forEach(function (n) { n.removeAttribute('data-sc-fr'); });
   }
   function e17Css(FJ, AM) {
     var V = 'html.scm ', P = V + '.sc-e17-pg';
     return [
       '@keyframes sc-e17-in{from{opacity:0}to{opacity:1}}',
-      P + '{box-sizing:border-box;position:relative;isolation:isolate;overflow:hidden;width:100%;min-height:200px;margin:0;padding:30px 0 22px;font-family:' + FJ + ';color:var(--of-ink);background:var(--of-fondo,#efe9e3);border-top:3px solid var(--of);animation:sc-e17-in .35s ease both}',
+      P + '{box-sizing:border-box;position:relative;isolation:isolate;overflow:hidden;width:auto;min-height:200px;margin:0 12px;border-radius:14px;padding:30px 0 22px;font-family:' + FJ + ';color:var(--of-ink);background:var(--of-fondo,#efe9e3);border-top:3px solid var(--of);animation:sc-e17-in .35s ease both}',
       'html.scm.scm-b .sc-e17-pg{color:var(--of-tx);background:var(--of);border-top:0}',
       'html.scm.scm-c:not(.scm-liso) .sc-e17-pg{background:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.6px) 0 0/7px 7px,linear-gradient(135deg,rgba(var(--of-osc-rgb),0),rgba(var(--of-osc-rgb),.22)),var(--of)}',
       V + '.sc-e17-pg.sc-e17-img{color:#fff;background:var(--of-osc,#2b1a14);border-top:0}',
+      V + '[data-sc-fr]{display:flow-root}',   /* el margen de la banda no se escapa hacia el body (movia toda la caja) */
       V + '.sc-e17-bg{position:absolute;inset:0;z-index:-2}',
       V + '.sc-e17-bg img{display:block;width:100%;height:100%;object-fit:cover}',
       V + '.sc-e17-img::before{content:"";position:absolute;inset:0;z-index:-1;background:rgba(var(--of-osc-rgb),.78)}',
@@ -1446,7 +1481,7 @@
     if (tp) { var vp = esteEl('div', 'sc-e18-vp'); vp.appendChild(pista); el.appendChild(vp); } else el.appendChild(pista);
     var pp = function (v) { return function () { el.classList.toggle('sc-e18-pp', v); }; };
     el.addEventListener('touchstart', pp(true), { passive: true }); el.addEventListener('touchend', pp(false), { passive: true }); el.addEventListener('touchcancel', pp(false), { passive: true });
-    if (tp) tp.host.insertBefore(el, tp.host.firstChild); else a.p.insertBefore(el, a.r);
+    if (tp) tp.host.insertBefore(el, tp.host.firstChild); else esteEntrar(el, function () { a.p.insertBefore(el, a.r); });
     if (tp) e20Sync(el, tp.ad, '.sc-est-barra', ci.frases, '.sc-e18-g', e18Llenar);
     e18Rep(el, ci.frases);
   }
@@ -1498,6 +1533,10 @@
     var idx = Math.min(t.pos - 1, items.length), ref = items[idx] || null;   /* menos productos que la posicion: va al final */
     var actual = [].filter.call(tb.children, function (n) { return n === el || (n.classList.contains('js-item-product') && n.getClientRects().length > 0); }).indexOf(el);
     if (el.parentNode !== tb || actual !== idx) tb.insertBefore(el, ref && ref !== el ? ref : (idx >= items.length ? items[items.length - 1].nextSibling : ref));
+    ['flex','max-width','width'].forEach(function (k) { el.style.removeProperty(k); });
+    el.classList.remove('sc-e18-tg-sola');   /* 1.21: si queda sola en la ultima fila, ocupa el ancho entero (sin hueco feo) */
+    var vis = [].filter.call(tb.children, function (n) { return n === el || (n.classList.contains('js-item-product') && n.getClientRects().length > 0); });
+    if (vis.length > 1 && vis[vis.length - 1] === el && vis[vis.length - 2].getBoundingClientRect().top < el.getBoundingClientRect().top - 4) { el.classList.add('sc-e18-tg-sola'); el.style.setProperty('flex', '0 0 100%', 'important'); el.style.setProperty('max-width', '100%', 'important'); el.style.setProperty('width', '100%', 'important'); }   /* inline !important: el tema trae reglas propias de columna con !important */
   }
   function e18Sello(D, X) {   /* sello sobre la foto principal de la ficha de un producto en oferta */
     var s = D.sello, m = X && X.pid && X.reg && X.reg[X.pid], host = s && m && q('.product-image-container'), w = q('.sc-e18-sello');
@@ -1678,6 +1717,7 @@
       V + '.sc-e18-fil{box-sizing:border-box;display:flex;justify-content:flex-end;align-items:center;gap:8px;padding:0 12px;margin:0 0 8px;min-height:44px}',
       V + '.sc-e18-fil .sc-e18-dk{position:static!important;top:auto!important;right:auto!important;left:auto!important;transform:none!important;opacity:1!important;pointer-events:auto!important;display:flex!important;min-height:44px;margin:0!important;z-index:1!important}',
       V + '.sc-e18-tg{padding:0 6px;margin-bottom:12px}',
+      V + '.sc-e18-tg.sc-e18-tg-sola{flex:0 0 100%!important;max-width:100%!important;width:100%!important}' + V + '.sc-e18-tg-sola .sc-e18-tgi{aspect-ratio:auto;min-height:150px}',
       V + '.sc-e18-tgi{box-sizing:border-box;position:relative;display:flex;flex-direction:column;justify-content:flex-end;width:100%;height:100%;min-height:200px;aspect-ratio:3/4;overflow:hidden;border-radius:12px;background:var(--of);color:var(--of-tx)!important;text-decoration:none;font-family:' + FJ + '}',
       V + '.sc-e18-tgm{position:absolute;left:0;top:0;width:100%;height:100%;object-fit:cover;opacity:.55}',
       V + '.sc-e18-tgc{position:relative;display:flex;flex-direction:column;gap:6px;padding:14px;background:linear-gradient(to top,var(--of) 55%,transparent)}',
@@ -1705,7 +1745,7 @@
       V + '.sc-e17-img .sc-e18-cupb{background:rgba(255,255,255,.16);color:#fff;border-color:rgba(255,255,255,.7)}',
       V + '.sc-e17-img .sc-e18-cc{color:#fff}',
       /* cierre */
-      V + '.sc-e18-cierre{box-sizing:border-box;width:100%;padding:44px 16px;text-align:center;font-family:' + FJ + ';color:var(--of-ink);background:var(--of-fondo,#efe9e3);border-top:3px solid var(--of)}',
+      V + '.sc-e18-cierre{box-sizing:border-box;width:auto;margin:16px 12px 24px;border-radius:14px;padding:44px 16px;text-align:center;font-family:' + FJ + ';color:var(--of-ink);background:var(--of-fondo,#efe9e3);border-top:3px solid var(--of)}',
       B + '.sc-e18-cierre{color:var(--of-tx);background:var(--of);border-top:0}',
       V + '.sc-e18-cierre h2{margin:0 auto;padding:0;font:700 clamp(24px,6.4vw,38px)/1.1 ' + AM + ';max-width:24ch;letter-spacing:-.02em;text-transform:none;color:inherit}',
       V + '.sc-e18-cierre p{margin:10px auto 0;font:500 15px/1.5 ' + FJ + ';max-width:46ch;opacity:.88;color:inherit}',
@@ -1773,7 +1813,7 @@
       V + '.sc-e14-ah b{color:var(--of);font-weight:800}',
       V + '.sc-e14-fin{font:700 11.5px/1 ' + FJ + ';padding:6px 10px;border-radius:999px;background:rgba(var(--of-rgb),.1);color:var(--of)}',
       /* 1.16: seccion del inicio. Banda de ancho completo con los tonos de la campana (--of*); la intensidad la dan las clases de <html>: sin scm-b = sobrio, scm-b = destacado, scm-c = total (scm-liso = sin grano) */
-      V + '.sc-e14-sec{box-sizing:border-box;width:100%;margin:0;padding:36px 0 30px;min-height:600px;font-family:' + FJ + ';color:var(--of-ink);background:var(--of-fondo,#efe9e3);border-top:3px solid var(--of);opacity:0;transform:translateY(12px);transition:opacity .3s ease,transform .3s ease}',
+      V + '.sc-e14-sec{box-sizing:border-box;width:auto;margin:16px 12px;border-radius:14px;overflow:hidden;padding:36px 0 30px;min-height:600px;font-family:' + FJ + ';color:var(--of-ink);background:var(--of-fondo,#efe9e3);border-top:3px solid var(--of);opacity:0;transform:translateY(12px);transition:opacity .3s ease,transform .3s ease}',
       V + '.sc-e14-sec.sc-in{opacity:1;transform:none}',
       'html.scm.scm-b .sc-e14-sec{color:var(--of-tx);background:var(--of);border-top:0}',
       'html.scm.scm-c:not(.scm-liso) .sc-e14-sec{background:radial-gradient(rgba(255,255,255,.07) 1px,transparent 1.6px) 0 0/7px 7px,linear-gradient(135deg,rgba(var(--of-osc-rgb),0),rgba(var(--of-osc-rgb),.22)),var(--of)}',
@@ -1854,7 +1894,7 @@
       '.sc-est-barra span{overflow:hidden;text-overflow:ellipsis}',
       '.sc-est-cuenta{font-variant-numeric:tabular-nums;opacity:.85;flex:none}',
       'html .sc-pill-on .js-offer-label-private,html .sc-pill-on .js-offer-label,html .sc-pill-on .js-promotion-label-private{display:none!important}',
-      '.sc-est-pill{position:absolute;left:8px;top:8px;z-index:3;padding:3px 9px;border-radius:999px;font:700 11px/1.3 var(--cy-sans,system-ui,sans-serif);pointer-events:none;letter-spacing:.02em}',
+      '.sc-est-pill{position:absolute;left:8px;top:8px;z-index:3;display:inline-flex;align-items:center;min-height:22px;box-sizing:border-box;padding:3px 10px;border-radius:999px;font:700 11px/1.3 var(--cy-sans,system-ui,sans-serif);pointer-events:none;letter-spacing:.02em}',
       '.sc-est-banner{display:block;margin:0 12px 16px;border-radius:18px;overflow:hidden;text-decoration:none;position:relative}',
       '.sc-est-banner-img{aspect-ratio:2/1;background:rgba(0,0,0,.04)}@media(min-width:768px){.sc-est-banner-img{aspect-ratio:4/1}}',
       '.sc-est-banner picture,.sc-est-banner img{display:block;width:100%;height:100%;object-fit:cover}',
@@ -2632,7 +2672,7 @@
       var rg = l15Regalo(m); if (rg) sec.appendChild(rg);
       if (!n && !rg) return false;
     }
-    an.parentNode.insertBefore(sec, an.nextSibling);
+    esteEntrar(sec, function () { an.parentNode.insertBefore(sec, an.nextSibling); });
     l15RsvSoltar(sec, anti ? m.sale : (m.hasta || Date.now() + 3 * 86400000), 'home');
     return true;
   }
