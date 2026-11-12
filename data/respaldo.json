@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-11-11T15:00:18.110Z",
+ "actualizado": "2026-11-12T03:00:09.574Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-11",
+ "google_ultimo_ok": "2026-11-12",
  "google": {
   "rating": 4.5,
-  "count": 43,
+  "count": 44,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -56,11 +56,11 @@
   ]
  },
  "ml": {
-  "ventas": 72266,
+  "ventas": 72484,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
-  "ventas_dia_30": 56,
+  "ventas_dia_30": 58,
   "ventas_dia_7": 63
  }
 }
