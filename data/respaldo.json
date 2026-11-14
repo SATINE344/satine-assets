@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-11-13T15:00:14.378Z",
+ "actualizado": "2026-11-14T03:00:09.604Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-13",
+ "google_ultimo_ok": "2026-11-14",
  "google": {
   "rating": 4.7,
-  "count": 63,
+  "count": 75,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -15,7 +15,7 @@
     "rating": 5,
     "texto": "Hoy llegó mi funda! Espectacular, la calidad es mejor de lo que imaginaba. Un 10!",
     "fecha": "2026-11-06T20:47:16.669989377Z",
-    "cuando": "en la última semana"
+    "cuando": "Hace una semana"
    },
    {
     "autor": "marie La mejor",
@@ -27,13 +27,13 @@
     "cuando": "Hace 2 semanas"
    },
    {
-    "autor": "Carla Pachado",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjUuSsSK96GNc7NcNjZJ8WUtXHM8jaOTyL0jkHSclX2hjYvE8tOE=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/107424386486761311942/reviews",
+    "autor": "Gregorio Lopez Ogawa",
+    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWcotfjeF28BlbMxqMBaBFJk9ShPSVg5SD4Rgat1n2JVqB-4n53LA=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/105007259164677751795/reviews",
     "rating": 5,
-    "texto": "Muy linda la calidad de las fundas y variedad de colores, volveria a comprar",
-    "fecha": "2026-10-13T17:08:28.857978588Z",
-    "cuando": "Hace 1 mes"
+    "texto": "Increíble la calidad de las fundas, 10/10 la presentación de producto.",
+    "fecha": "2026-10-15T22:37:01.013481396Z",
+    "cuando": "Hace 4 semanas"
    },
    {
     "autor": "Leonel Gonzalez",
@@ -56,11 +56,11 @@
   ]
  },
  "ml": {
-  "ventas": 72611,
+  "ventas": 72797,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
   "ventas_dia_30": 58,
-  "ventas_dia_7": 63
+  "ventas_dia_7": 62
  }
 }
