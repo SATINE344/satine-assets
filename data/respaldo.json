@@ -1,13 +1,22 @@
 {
- "actualizado": "2026-11-14T15:00:10.914Z",
+ "actualizado": "2026-11-15T03:00:07.979Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-14",
+ "google_ultimo_ok": "2026-11-15",
  "google": {
   "rating": 4.8,
-  "count": 84,
+  "count": 92,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
+   {
+    "autor": "Fabián Borrás",
+    "foto": "https://lh3.googleusercontent.com/a/ACg8ocLEdpvNUn98_Mwgl9-ZVwOfH4uK32DN__BeChb18VUlAm_pqQ=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/113937016286842156542/reviews",
+    "rating": 5,
+    "texto": "Súper recomendables, muy buena calidad, acorde al precio",
+    "fecha": "2026-11-10T22:36:39.465428927Z",
+    "cuando": "en la última semana"
+   },
    {
     "autor": "Nico Pucherta",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWNhNmJ7kfj3-nDHzrWqaX23MhkWGipmn7s3rUNg0t6_wHnVmCp=s128-c0x00000000-cc-rp-mo",
@@ -25,15 +34,6 @@
     "texto": "Es impresionante la amé. !!!\nExcelente calidad 🫶🏻",
     "fecha": "2026-10-26T23:23:32.070082381Z",
     "cuando": "Hace 2 semanas"
-   },
-   {
-    "autor": "Gregorio Lopez Ogawa",
-    "foto": "https://lh3.googleusercontent.com/a-/ALV-UjWcotfjeF28BlbMxqMBaBFJk9ShPSVg5SD4Rgat1n2JVqB-4n53LA=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/105007259164677751795/reviews",
-    "rating": 5,
-    "texto": "Increíble la calidad de las fundas, 10/10 la presentación de producto.",
-    "fecha": "2026-10-15T22:37:01.013481396Z",
-    "cuando": "Hace 4 semanas"
    },
    {
     "autor": "Leonel Gonzalez",
@@ -56,11 +56,11 @@
   ]
  },
  "ml": {
-  "ventas": 72711,
+  "ventas": 72868,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
-  "ventas_dia_30": 58,
+  "ventas_dia_30": 57,
   "ventas_dia_7": 62
  }
 }
