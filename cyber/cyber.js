@@ -1,3 +1,4 @@
+/* 1.22.0 (15/11/2026): CARRITO CON OFERTA. (1) El ahorro se lee en PESOS (data-priceraw viene en centavos: decia «ahorras $5.999.900» por $59.999). (2) Una sola tarjeta arriba: «Ahorras $X / Promo aplicada: <etiqueta>»; la tarjeta blanca de progreso no la repite. (3) Precio tachado en la linea (data-satine-compare del theme) cuando la cuenta cierra al peso y la promo esta en una sola linea. (4) Resumen: el renglon «Descuento por cantidad» pasa a «Promo <etiqueta>» y al lado del Total (y en la barra de pago) va tachado lo que se pagaria sin la promo. (5) El chip de la promo va adentro del bloque del nombre (ya no pisa el precio ni se estira). (6) Arreglo general, con o sin oferta: en computadora el numero de cantidad no se veia (relleno de 16 px en un casillero de 34): #sc-fix-css. */
 /* 1.21.2 (11/11/2026): banda de /en-oferta/ en celular (<768): padding-top 58 -> 30 px (sobraba aire arriba del texto) y contenido centrado en vertical cuando la banda mide el alto minimo. Solo CSS. */
 /* 1.21.1 (11/11/2026): WEB 3e. (1) Ficha de lanzamiento: la etiqueta NUEVO es una pastilla chica (ancho del texto, 22 px de alto, a la izquierda), no una barra de lado a lado. (2) Seccion del inicio sin alto minimo fijo (sobraba rojo debajo con 1 producto; la tarjeta ya reserva su imagen con aspect-ratio). (3) /en-oferta/: una sola banda; el texto del banner de categoria pasa de subtitulo adentro de la banda (otras rutas igual). (4) Barra de la capsula: el mensaje largo se desliza despacio de ida y vuelta (contador fijo, bordes difuminados); con reduce-motion queda cortado con puntos suspensivos. */
 /* 1.21.0 (11/11/2026): WEB 3d. Banda de /en-oferta/ y seccion del inicio con aire y forma de tarjeta (esquinas redondeadas, sin pegarse a los bordes); tarjeta tematica sola en la ultima fila de la grilla ocupa el ancho completo; etiqueta Nuevo y pastilla de descuento con la misma altura y margen; entrada SIN salto de diseno: las piezas se insertan y lo que sigue se compensa en el mismo cuadro y se desliza a su lugar (esteEntrar), el margen de la banda ya no mueve el body, el aviso de entrada ya no toca el overflow de html. */
@@ -36,7 +37,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.21.2',
+    version: '1.22.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -861,6 +862,9 @@
     if (esteTimer) { clearTimeout(esteTimer); esteTimer = null; }
     qa('[data-sc-est]').forEach(function (n) { if (n !== document.documentElement && n.parentNode) n.parentNode.removeChild(n); });   /* ojo: <html> tambien lleva data-sc-est */
     qa('[data-sc-est-pos]').forEach(function (n) { n.style.position = ''; n.removeAttribute('data-sc-est-pos'); });
+    /* 1.22: lo que se repinto del carrito (renglon del descuento y precio tachado de la linea) vuelve a como lo dejo el theme */
+    qa('[data-sc-rl]').forEach(function (n) { var t = n.firstChild; if (t && t.nodeType === 3) t.nodeValue = n.getAttribute('data-sc-rl'); n.removeAttribute('data-sc-rl'); });
+    qa('[data-sc-lin]').forEach(function (n) { n.removeAttribute('data-sc-lin'); if (n.hasAttribute('data-cyber-cmp')) { n.removeAttribute('data-satine-compare'); n.removeAttribute('data-cyber-cmp'); } devolverTexto(n); });
     var e = document.getElementById('sc-est-css'); if (e && e.parentNode) e.parentNode.removeChild(e);
     document.documentElement.removeAttribute('data-sc-est');
     var H = document.documentElement;   /* 1.13: clases y variables del modo oferta, y las clases que se le pusieron a cards del theme */
@@ -995,8 +999,10 @@
     var sacar = function () { if (prev && prev.parentNode) prev.parentNode.removeChild(prev); };
     if (!lista || !items.length || !lista.parentNode) { sacar(); return; }
     var progOn = e14Algun(camps, 'progreso_carrito', true), ahoOn = e14Algun(camps, 'ahorro_visible', true), regOn = e14Algun(camps, 'aviso_regalo', true);
-    var mt = e14Metas(camps, items), main = null, gift = null, real = ahoOn ? X.real(raiz) : 0;
+    var dup = !!q('.sc-of-carro[data-ah]', raiz);   /* 1.22: si el aviso de la promo ya dice cuanto se ahorra, aca no se repite (una sola tarjeta) */
+    var mt = e14Metas(camps, items), main = null, gift = null, real = ahoOn && !dup ? X.real(raiz) : 0;
     if (progOn) main = mt.metas.filter(function (m) { return !m.hecho; })[0] || mt.metas[0] || null;
+    if (dup && main && main.hecho) main = null;
     if (regOn) gift = mt.regalos.filter(function (g) { return g.cumple; })[0] || null;
     if (!main && !(real > 0) && !gift) { sacar(); return; }
     var ex = main && main.camp.extendida, sub = ex && ex.texto ? e14Cortar(ex.texto, 100) : '';
@@ -1017,7 +1023,8 @@
           main.marcas.forEach(function (m, i) { if (i < main.marcas.length - 1 || main.marcas.length > 1) { var mk = esteEl('s'); mk.style.left = Math.min(100, m / main.tope * 100) + '%'; bar.appendChild(mk); } });
           pg.appendChild(bar);
         }
-        if (real > 0) { var ah = esteEl('small', 'sc-pg-ah', 'Con esta promo ahorrás '); ah.appendChild(esteEl('b', '', plata(real))); pg.appendChild(ah); }
+        if (real > 0 && main) { var ah = esteEl('small', 'sc-pg-ah', 'Con esta promo ahorrás '); ah.appendChild(esteEl('b', '', plata(real))); pg.appendChild(ah); }
+        else if (real > 0) { pg.appendChild(esteEl('b', '', 'Ahorrás ' + plata(real))); pg.appendChild(esteEl('small', '', 'Descuento ya aplicado en el total')); }
         w.appendChild(pg);
       }
       if (gift) {
@@ -1962,7 +1969,10 @@
       'html.scm .sc-of-carro em{display:block;height:4px;border-radius:99px;background:rgba(var(--of-tx-rgb),.25);margin-top:6px;overflow:hidden}',
       'html.scm .sc-of-carro em u{display:block;height:100%;border-radius:99px;background:var(--of-tx);transition:width .3s}',
       'html.scm .sc-of-carro .sc-of-mas{flex:none;position:relative;z-index:1;background:var(--of-tx);color:var(--of)!important;font:700 12px/1 ' + FJ + ';padding:9px 13px;border-radius:999px;text-decoration:none}',
-      'html.scm .sc-of-tag{display:inline-block;margin-top:5px;font:700 10.5px/1 ' + FJ + ';letter-spacing:.02em;color:var(--of-ink);background:var(--of-t10);padding:4px 8px;border-radius:999px}',
+      'html.scm .sc-of-tag{display:inline-block;align-self:flex-start;width:-moz-fit-content;width:fit-content;max-width:100%;white-space:nowrap;margin-top:5px;font:700 10.5px/1 ' + FJ + ';letter-spacing:.02em;color:var(--of-ink);background:var(--of-t10);padding:4px 8px;border-radius:999px}',
+      /* 1.22: total de antes, tachado, al lado del Total del Resumen y de la barra de pago */
+      'html.scm .satine-resumen .rtot>s.sc-rt-antes{margin-left:auto;margin-right:8px;align-self:center;font:500 13px/1 ' + FJ + ';color:rgba(52,33,27,.5);text-decoration:line-through;white-space:nowrap}',
+      'html.scm .satine-paybar-tot>s.sc-pt-antes{margin-left:auto;margin-right:8px;font:500 12px/1 ' + FJ + ';color:inherit;opacity:.55;text-decoration:line-through;white-space:nowrap}',
       'html.scm .sc-of-chip{margin-left:auto;margin-right:8px;font:700 10.5px/1 ' + FJ + ';color:var(--of-tx);background:var(--of);padding:5px 9px;border-radius:999px;white-space:nowrap}',
       'html.scm #nav-hamburger a.rowl.of .sc-of-chip+*{margin-left:0!important}',
       'html.scm .sc-of-pest{position:absolute;left:18px;bottom:100%;font:700 10.5px/1 ' + FJ + ';color:var(--of-tx);background:var(--of);padding:6px 10px 5px;border-radius:10px 10px 0 0;white-space:nowrap}',
@@ -2090,24 +2100,61 @@
       qa('.js-cart-item', lista).forEach(function (it) {
         var pidI = String(it.getAttribute('data-store') || '').replace(/^cart-item-/, ''), rg = reg[pidI]; if (!rg) return;
         var inp = q('.js-cart-quantity-input', it), cant = inp ? parseInt(inp.value, 10) : 1; if (!(cant > 0)) cant = 1;
-        var sub = q('.js-cart-item-subtotal', it), unit = sub ? numero(txt(sub)) / cant : 0;
+        var sub = q('.js-cart-item-subtotal', it), unit = sub ? numeroDec(textoOri(sub)) / cant : 0;   /* 1.22: el texto original (la linea puede estar repintada con el precio con promo) */
         var g = grupos[pidI] || (grupos[pidI] = { rg: rg, cant: 0, unit: unit, items: [] });
         g.cant += cant; g.items.push({ el: it, cant: cant }); hay = true;
       });
       return hay ? grupos : null;
     };
     var carroDescuentoReal = function (raiz) {   /* descuento que de verdad aplico el carrito (promocion de Tienda Nube); 0 si no se puede leer */
-      var e = q('.js-cart-discount[data-priceraw]', raiz) || q('.js-cart-discount[data-priceraw]'), v = e ? parseFloat(e.getAttribute('data-priceraw')) : 0;
-      if (!(v > 0)) { var f = q('.js-total-promotions-detail-row [data-priceraw]', raiz); v = f ? parseFloat(f.getAttribute('data-priceraw')) : 0; }
-      return v > 0 ? v : 0;
+      /* 1.22: en PESOS. data-priceraw viene en centavos: hasta 1.21 se mostraba tal cual («ahorras $5.999.900» por $59.999) y la comparacion con lo esperado nunca cerraba. Se suman los renglones de promocion de Tienda Nube (texto «3x2 : -$59.999,00»); el priceraw queda de respaldo, dividido por 100. */
+      var tot = 0, vistos = {};
+      qa('.js-total-promotions-detail-row', raiz).forEach(function (f) {
+        var t = txt(f), ms = t.match(/\$\s?[\d.]+(?:,\d+)?/g), v = ms ? numeroDec(ms[ms.length - 1]) : 0, k = (f.id || '') + '|' + t;
+        if (!(v > 0)) { var p = q('[data-priceraw]', f); v = p ? parseFloat(p.getAttribute('data-priceraw')) / 100 : 0; }
+        if (v > 0 && !vistos[k]) { vistos[k] = 1; tot += v; }
+      });
+      if (!(tot > 0)) { var e = q('.js-cart-discount[data-priceraw]', raiz) || q('.js-cart-discount[data-priceraw]'); tot = e ? parseFloat(e.getAttribute('data-priceraw')) / 100 : 0; }
+      return tot > 0 ? tot : 0;
+    };
+    /* 1.22: precio tachado en la linea, con el mismo dibujo que ya usa el theme (data-satine-compare). Solo cuando la cuenta cierra al peso; si no, la linea queda como la dejo el theme. */
+    var carroLinea = function (sp, antes, ahora) {
+      if (!sp) return;
+      if (antes > 0 && ahora > 0 && ahora < antes && !carritoTimer) {
+        fijarTexto(sp, plata2(ahora)); sp.setAttribute('data-sc-lin', '1');
+        if (!sp.hasAttribute('data-satine-compare') || sp.hasAttribute('data-cyber-cmp')) { var c = plata2(antes); if (sp.getAttribute('data-satine-compare') !== c) sp.setAttribute('data-satine-compare', c); sp.setAttribute('data-cyber-cmp', '1'); }
+      } else if (sp.hasAttribute('data-sc-lin')) {
+        sp.removeAttribute('data-sc-lin'); if (sp.hasAttribute('data-cyber-cmp')) { sp.removeAttribute('data-satine-compare'); sp.removeAttribute('data-cyber-cmp'); } devolverTexto(sp);
+      }
+    };
+    /* 1.22: el Resumen del theme dice de que promo sale el descuento (en vez de «Descuento por cantidad») y muestra tachado lo que se pagaria sin la promo, al lado del Total (tambien en la barra de pago de la hoja) */
+    var carroResumen = function (raiz, real, nombre) {
+      var et = nombre && real > 0 ? 'Promo ' + e14Cortar(nombre, 28) + ' ' : '';
+      qa('.satine-resumen .rl', raiz).forEach(function (f) {
+        var tn = f.firstChild; if (!tn || tn.nodeType !== 3) return;
+        var mio = f.hasAttribute('data-sc-rl');
+        if (et && (mio || /^\s*descuento/i.test(tn.nodeValue))) { if (!mio) f.setAttribute('data-sc-rl', tn.nodeValue); if (tn.nodeValue !== et) tn.nodeValue = et; }
+        else if (mio) { tn.nodeValue = f.getAttribute('data-sc-rl'); f.removeAttribute('data-sc-rl'); }
+      });
+      [['.satine-resumen .rtot', '.rtv', 'sc-rt-antes'], ['.satine-paybar-tot', '.pt-v', 'sc-pt-antes']].forEach(function (d) {
+        qa(d[0], raiz).forEach(function (c) {
+          var v = q(d[1], c), s = q('.' + d[2], c), tot = v ? numeroDec(txt(v)) : 0;
+          if (!(real > 0) || !(tot > 0) || !v || v.parentNode !== c) { if (s && s.parentNode) s.parentNode.removeChild(s); return; }
+          var t = plata(tot + real);
+          if (!s) { s = esteEl('s', d[2], t); s.setAttribute('data-sc-est', '1'); c.insertBefore(s, v); } else if (s.textContent !== t) s.textContent = t;
+        });
+      });
     };
     var carroPintar = function () {
       ['#modal-cart', '#shoppingCartPage'].forEach(function (sel) {
         var raiz = q(sel); if (!raiz) return;
         var lista = q('.js-ajax-cart-list', raiz), grupos = lista ? carroLeer(raiz, lista) : null, previos = qa('.sc-of-carro', raiz);
+        var real = lista && e14Algun(camps, 'ahorro_visible', true) ? carroDescuentoReal(raiz) : 0;
         if (!grupos) {   /* carrito vacio o sin productos de la promo: no queda nada nuestro */
           previos.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
           qa('.sc-of-tag', raiz).forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
+          qa('.js-cart-item-subtotal[data-sc-lin]', raiz).forEach(function (n) { carroLinea(n, 0, 0); });
+          carroResumen(raiz, real, '');
           return;
         }
         qa('.js-cart-item', lista).forEach(function (it) {
@@ -2116,40 +2163,48 @@
           if (ex) { if (ex.textContent !== rg.et) ex.textContent = rg.et; return; }
           var nm = q('.cart-item-name', it) || qa('a', it).filter(function (a) { return !a.querySelector('img') && txt(a).length > 8; })[0];
           if (!nm || !nm.parentNode) return;
-          var tg = esteEl('span', 'sc-of-tag', rg.et); tg.setAttribute('data-sc-est', '1'); nm.insertAdjacentElement('afterend', tg);
+          var tg = esteEl('span', 'sc-of-tag', rg.et); tg.setAttribute('data-sc-est', '1');
+          /* 1.22: va ADENTRO del bloque del nombre. Suelto al lado, en celular caia encima del precio y en computadora se estiraba a todo el ancho. */
+          if (nm.classList && nm.classList.contains('cart-item-name')) { var lb = q('[data-store="cart-item-labels"]', nm); if (lb && lb.parentNode === nm) nm.insertBefore(tg, lb); else nm.appendChild(tg); }
+          else nm.insertAdjacentElement('afterend', tg);
         });
-        /* 1.15: con progreso_carrito apagado tampoco queda el aviso viejo (cabo de 1.14) */
-        if (!e14Algun(camps, 'progreso_carrito', true)) { previos.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); }); return; }
         /* el aviso: se arma segun lo que hay en el carrito y la regla de la promo */
         var gs = Object.keys(grupos).map(function (k) { return grupos[k]; }), cond = gs.filter(function (g) { return g.rg.mec.n; });
-        var prim = gs[0], falta = 0, cumple = false;
+        var prim = gs[0], falta = 0, cumple = false, esp = 0, porEt = {};
         if (cond.length) {
           cumple = cond.some(function (g) { return g.cant >= g.rg.mec.n; });
           if (!cumple) { prim = cond.slice().sort(function (a, b) { return b.cant / b.rg.mec.n - a.cant / a.rg.mec.n; })[0]; falta = prim.rg.mec.n - prim.cant; }
           else prim = cond.filter(function (g) { return g.cant >= g.rg.mec.n; })[0];
         }
-        var mec = prim.rg.mec, tit, sub = '', icono = '%', pasos = 0, boton = null;
-        if (cond.length && !cumple) {
+        /* 1.22: lo que la regla deberia descontar, grupo por grupo. "exacto" = el carrito real descuenta eso mismo (+-1,5): recien ahi se nombra la promo y se tacha el precio de la linea. */
+        cond.forEach(function (g) {
+          porEt[g.rg.et] = (porEt[g.rg.et] || 0) + g.cant;
+          g.esp = g.cant < g.rg.mec.n ? 0 : (g.rg.mec.k === 'seg' ? Math.floor(g.cant / 2) * g.unit * g.rg.mec.pct / 100 : Math.floor(g.cant / g.rg.mec.l) * g.unit * (g.rg.mec.l - g.rg.mec.p));
+          esp += g.esp;
+        });
+        var exacto = real > 0 && esp > 0 && Math.abs(real - esp) <= 1.5, mix = cond.some(function (g) { return porEt[g.rg.et] >= g.rg.mec.n; });
+        var aplicada = real > 0 && (exacto || mix || !cond.length), conNombre = real > 0 && (exacto || mix);
+        gs.forEach(function (g) {
+          var uno = exacto && g.esp > 0 && g.items.length === 1, bruto = g.unit * g.cant;   /* con la misma promo repartida en varias lineas no se inventa un reparto: la cuenta queda en el Resumen */
+          g.items.forEach(function (i) { carroLinea(q('.js-cart-item-subtotal', i.el), uno ? bruto : 0, uno ? bruto - g.esp : 0); });
+        });
+        carroResumen(raiz, real, conNombre ? prim.rg.et : '');
+        /* 1.15: con progreso_carrito apagado tampoco queda el aviso viejo (cabo de 1.14) */
+        if (!e14Algun(camps, 'progreso_carrito', true)) { previos.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); }); return; }
+        var mec = prim.rg.mec, tit, sub = '', icono = '%', pasos = 0, boton = null, ah = 0;
+        if (aplicada) {   /* 1.22: una sola tarjeta, con el ahorro real del carrito en pesos */
+          tit = 'Ahorrás ' + plata(real); icono = '✓'; ah = 1; sub = conNombre ? 'Promo aplicada: ' + prim.rg.et : 'Descuento ya aplicado en el total';
+        } else if (cond.length && !cumple) {
           var pm = prim.rg.et.match(/\d+(?:[.,]\d+)?\s?%/), pt = pm ? pm[0] : mec.pct + '%';   /* el porcentaje con la misma forma que trae la etiqueta */
           tit = mec.k === 'seg' ? 'Sumá ' + falta + ' más y la 2.ª te sale ' + pt + ' OFF' : 'Sumá ' + falta + ' más: llevás ' + mec.l + ' y pagás ' + mec.p;
           sub = nomUtil(prim.rg.nom, tit, prim.rg.et); pasos = Math.round(prim.cant / mec.n * 100);
           var mejor = prim.items.slice().sort(function (a, b) { return b.cant - a.cant; })[0];
           if (mejor && q('[data-component="quantity.plus"]', mejor.el)) boton = mejor.el;
-        } else {
-          tit = 'Promoción SATINE'; sub = nomUtil(prim.rg.nom, tit, prim.rg.et) || prim.rg.et;
-          if (cond.length && cumple) {   /* "aplicada" solo si el carrito real descuenta lo que la regla dice (mismo criterio que Cyber, +-1,5) */
-            var real = carroDescuentoReal(raiz), esp = 0;
-            cond.forEach(function (g) {
-              if (g.cant < g.rg.mec.n) return;
-              esp += g.rg.mec.k === 'seg' ? Math.floor(g.cant / 2) * g.unit * g.rg.mec.pct / 100 : Math.floor(g.cant / g.rg.mec.l) * g.unit * (g.rg.mec.l - g.rg.mec.p);
-            });
-            if (real > 0 && esp > 0 && Math.abs(real - esp) <= 1.5) { tit = 'Promoción aplicada: ahorrás ' + plata(real); icono = '✓'; sub = nomUtil(prim.rg.nom, tit, prim.rg.et); }
-          }
-        }
-        var sig = [tit, sub, pasos, boton ? 1 : 0].join('|');
+        } else { tit = 'Promoción SATINE'; sub = nomUtil(prim.rg.nom, tit, prim.rg.et) || prim.rg.et; }
+        var sig = [tit, sub, pasos, boton ? 1 : 0, ah].join('|');
         if (previos.length === 1 && previos[0].getAttribute('data-sig') === sig && previos[0].nextElementSibling === lista) return;
         previos.forEach(function (n) { if (n.parentNode) n.parentNode.removeChild(n); });
-        var av = esteEl('div', 'sc-of-carro'); av.setAttribute('data-sc-est', '1'); av.setAttribute('data-sig', sig);
+        var av = esteEl('div', 'sc-of-carro'); av.setAttribute('data-sc-est', '1'); av.setAttribute('data-sig', sig); if (ah) av.setAttribute('data-ah', '1');
         av.appendChild(esteEl('i', '', icono));
         var sp = esteEl('span'); sp.appendChild(esteEl('b', '', tit)); if (sub) sp.appendChild(esteEl('small', '', sub));
         if (pasos) { var em = esteEl('em'), u = esteEl('u'); u.style.width = pasos + '%'; em.appendChild(u); sp.appendChild(em); }
@@ -3036,6 +3091,14 @@
 
   /* ---------- encendido / apagado ---------- */
   var prendido = false, estilo = null, apagarTimer = null;
+  /* 1.22.0: arreglo general del carrito, con o sin oferta (no es estetica de promo). En computadora el casillero de cantidad mide 34 px y el theme le deja 16 px de relleno de cada lado: el numero no entra y se ve en blanco. El lugar definitivo de esta regla es el CSS del theme (este archivo lo carga un cargador que vence el 31/12/2026). */
+  try {
+    if (!document.getElementById('sc-fix-css')) {
+      var fixCss = document.createElement('style'); fixCss.id = 'sc-fix-css';
+      fixCss.textContent = 'html body #modal-cart .js-cart-item .form-quantity input.js-cart-quantity-input.form-control,html body #shoppingCartPage .js-cart-item .form-quantity input.js-cart-quantity-input.form-control{padding-left:0!important;padding-right:0!important;text-align:center!important}';
+      (document.head || document.documentElement).appendChild(fixCss);
+    }
+  } catch (e) {}
   function arrancar() {
     if (prendido) return;
     prendido = true; API.prendido = true;
