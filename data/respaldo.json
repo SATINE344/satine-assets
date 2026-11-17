@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-11-16T15:00:12.115Z",
+ "actualizado": "2026-11-17T03:00:16.840Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-16",
+ "google_ultimo_ok": "2026-11-17",
  "google": {
   "rating": 4.8,
-  "count": 100,
+  "count": 115,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -33,7 +33,7 @@
     "rating": 5,
     "texto": "Es impresionante la amé. !!!\nExcelente calidad 🫶🏻",
     "fecha": "2026-10-26T23:23:32.070082381Z",
-    "cuando": "Hace 2 semanas"
+    "cuando": "Hace 3 semanas"
    },
    {
     "autor": "Leonel Gonzalez",
@@ -56,11 +56,11 @@
   ]
  },
  "ml": {
-  "ventas": 73099,
+  "ventas": 73341,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
-  "ventas_dia_30": 57,
-  "ventas_dia_7": 61
+  "ventas_dia_30": 58,
+  "ventas_dia_7": 62
  }
 }
