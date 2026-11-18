@@ -1,3 +1,4 @@
+/* 1.23.0 (18/11/2026): ARMADOR DE COMBOS CON LOS ESCALONES DEL SOFTWARE. En /?combos=1 el armador del theme busca los escalones en una tabla de la ficha que Tienda Nube ya no trae: mostraba «2 productos −5%» fijo pero el total no descontaba nada (el carrito si). Ahora los escalones y su alcance salen de permanentes[] del contrato (regla escala_cantidad): mismo numero que el carrito. Si una oferta pausa el beneficio o esta apagado, se sacan los escalones y el total queda sin descuento; si la oferta excluye sus productos, esos no cuentan. Sin dato del ERP no se toca nada. Con el modo Cyber prendido manda el modo Cyber. Volver atras: git revert de este commit. */
 /* 1.22.1 (18/11/2026): CARRITO SIN RENGLONES SUELTOS. Con un descuento por cantidad de siempre (Combos: 2 productos 5 %, 3 o mas 10 %) y sin campana prendida, en /comprar/ quedaban dos renglones nativos de Tienda Nube fuera de las tarjetas, debajo de los iconos de confianza: el nombre de la promocion con su monto y «O $X con Transferencia». La tarjeta RESUMEN del theme ya muestra «Descuento por cantidad», asi que cuando esa tarjeta existe se ocultan los dos (clase sc-res-ok en <html>, sin :has). Siempre prendido: no depende de ninguna campana. */
 /* 1.22.0 (15/11/2026): CARRITO CON OFERTA. (1) El ahorro se lee en PESOS (data-priceraw viene en centavos: decia «ahorras $5.999.900» por $59.999). (2) Una sola tarjeta arriba: «Ahorras $X / Promo aplicada: <etiqueta>»; la tarjeta blanca de progreso no la repite. (3) Precio tachado en la linea (data-satine-compare del theme) cuando la cuenta cierra al peso y la promo esta en una sola linea. (4) Resumen: el renglon «Descuento por cantidad» pasa a «Promo <etiqueta>» y al lado del Total (y en la barra de pago) va tachado lo que se pagaria sin la promo. (5) El chip de la promo va adentro del bloque del nombre (ya no pisa el precio ni se estira). (6) Arreglo general, con o sin oferta: en computadora el numero de cantidad no se veia (relleno de 16 px en un casillero de 34): #sc-fix-css. */
 /* 1.21.2 (11/11/2026): banda de /en-oferta/ en celular (<768): padding-top 58 -> 30 px (sobraba aire arriba del texto) y contenido centrado en vertical cuando la banda mide el alto minimo. Solo CSS. */
@@ -38,7 +39,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.22.1',
+    version: '1.23.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -700,6 +701,113 @@
     if (cont) qa('.scb-sec[data-sc-i]', cont).sort(function (a, b) { return (+a.getAttribute('data-sc-i')) - (+b.getAttribute('data-sc-i')); })
       .forEach(function (s) { cont.appendChild(s); s.removeAttribute('data-sc-i'); });
     combosOrig = null;
+  }
+
+  /* ---------- 6b. (1.23.0) pagina de combos SIN Cyber: los escalones de siempre salen del software ----------
+     esc = null: sin dato del ERP, no se toca nada. esc.tiers vacio: el beneficio no corre hoy (pausado por una oferta o apagado).
+     esc.ids: si viene, solo esos productos cuentan (una oferta saco los suyos). Los nodos NO llevan data-sc (apagar() los barreria). */
+  var esc = null, escMapa = null, escObs = null, escEspera = null, escSub = null, escSel = {};
+  var ESC_SIN = 'Elegís tus productos y los sumás al carrito en un paso.';
+  function escLeer(d) {
+    try {
+      if (!d || typeof d !== 'object' || !Array.isArray(d.permanentes)) return null;
+      var r = null;
+      d.permanentes.forEach(function (p) {
+        if (!r && p && p.tipo === 'escala_cantidad' && p.condicion && Array.isArray(p.condicion.tiers) && !(p.tn && p.tn.estado && p.tn.estado !== 'prendida')) r = p;
+      });
+      var o = { tiers: [], ids: null };
+      if (!r) return o;
+      r.condicion.tiers.forEach(function (t) { var u = Math.round(+t.minimo), p = +t.pct; if (u > 0 && p > 0 && p < 100) o.tiers.push({ u: u, pct: p }); });
+      o.tiers.sort(function (a, b) { return a.u - b.u; });
+      var ids = r.alcance && r.alcance.productos_resueltos;
+      if (Array.isArray(ids) && ids.length) o.ids = ids.map(String);
+      return o;
+    } catch (e) { return null; }
+  }
+  function escPoner(o, guardar) {
+    if (!o || !Array.isArray(o.tiers)) return;
+    esc = o; escMapa = null;
+    if (o.ids && o.ids.length) { escMapa = {}; o.ids.forEach(function (i) { escMapa[i] = 1; }); }
+    if (guardar) { try { localStorage.setItem('satineEscala', JSON.stringify({ v: 1, t: Date.now(), o: o })); } catch (e) {} }
+    API.escala = o;
+    escIr();
+  }
+  function escDeCache() {
+    try {
+      var j = JSON.parse(localStorage.getItem('satineEscala') || 'null');
+      if (j && j.v === 1 && j.o && Date.now() - j.t < 36 * 3600e3) escPoner(j.o, false);
+    } catch (e) {}
+  }
+  function escTxt(p) { return String(Math.round(p * 100) / 100).replace('.', ','); }
+  function escAplicar() {
+    var raiz = q('#satine-combos'); if (!raiz || !esc || (prendido && CFG.combos)) return;
+    var T2 = esc.tiers, hay = T2.length > 0, ult = T2.length - 1;
+    var caja = q('#scb-tiers', raiz);
+    if (caja) {
+      var firma = hay ? T2.map(function (t) { return t.u + ':' + t.pct; }).join(',') : 'no';
+      if (caja.getAttribute('data-esc') !== firma || (hay ? !q('.sc-esc-tier', caja) : !!caja.firstChild)) {
+        caja.innerHTML = '';
+        T2.forEach(function (t, i) {
+          var s = document.createElement('span'); s.className = 'scb-tier sc-esc-tier';
+          s.appendChild(document.createTextNode(i === ult ? t.u + ' o más' : t.u + ' producto' + (t.u > 1 ? 's' : '')));
+          var b = document.createElement('b'); b.textContent = '−' + escTxt(t.pct) + '%'; s.appendChild(b); caja.appendChild(s);
+        });
+        caja.setAttribute('data-esc', firma);
+      }
+      var cv = hay ? '' : 'none'; if (caja.style.display !== cv) caja.style.display = cv;
+    }
+    var sub = q('.scb-sub', raiz);
+    if (sub) {
+      if (!hay) { if (escSub == null) escSub = sub.textContent; if (sub.textContent !== ESC_SIN) sub.textContent = ESC_SIN; }
+      else if (escSub != null) { if (sub.textContent === ESC_SIN) sub.textContent = escSub; escSub = null; }
+    }
+    var prog = q('.scbp-prog', raiz);
+    if (prog) { var pv = hay ? '' : 'none'; if (prog.style.display !== pv) prog.style.display = pv; }
+    var keys = qa('#scbp-tray .scbp-chip[data-k]', raiz).map(function (c) { return c.getAttribute('data-k'); });
+    if (!keys.length) keys = qa('#scb-secs .scb-opt.on[data-k]', raiz).map(function (o) { return o.getAttribute('data-k'); });
+    var vivos = {}, n = 0, total = 0, nIn = 0, subIn = 0, roto = false, k;
+    keys.forEach(function (k) {
+      if (!k || vivos[k]) return; vivos[k] = 1;
+      var m = escSel[k];
+      if (!m) {   /* se anota al elegirlo, igual que el armador: si despues cambia el modelo, la misma casilla es otro producto */
+        var o = q('#scb-secs .scb-opt[data-k="' + k + '"]', raiz), p = o ? parseFloat(o.getAttribute('data-p')) : NaN;
+        if (o && p > 0) m = escSel[k] = { p: p, pid: String(o.getAttribute('data-pid') || '') };
+      }
+      if (!m) { roto = true; return; }
+      n++; total += m.p;
+      if (!escMapa || escMapa[m.pid]) { nIn++; subIn += m.p; }
+    });
+    for (k in escSel) if (!vivos[k]) delete escSel[k];
+    if (roto) return;   /* no se pudo leer un precio: mejor el numero del armador que uno inventado */
+    var pct = 0; T2.forEach(function (t) { if (nIn >= t.u) pct = t.pct; });
+    var fin = Math.round(total - subIn * pct / 100), d = Math.round(total) - fin, prox = null;
+    T2.forEach(function (t) { if (!prox && nIn < t.u) prox = t; });
+    var lbl = !hay ? '' : !nIn ? 'Sumá ' + T2[0].u + ' y obtené −' + escTxt(T2[0].pct) + '%'
+      : prox ? 'Sumá ' + (prox.u - nIn) + ' más y ' + (pct ? 'subís a' : 'obtené') + ' −' + escTxt(prox.pct) + '%'
+      : 'Máximo descuento −' + escTxt(pct) + '% ✓';
+    var poner = function (id, v) { var el = document.getElementById(id); if (el && el.textContent !== v) el.textContent = v; };
+    poner('scb-cnt', n ? n + ' producto' + (n > 1 ? 's' : '') + (pct ? ' · −' + escTxt(pct) + '%' : '') : 'Tu combo está vacío');
+    poner('scb-tot', n ? plata(fin) : '$0'); poner('scb-sv', d > 0 ? 'Ahorrás ' + plata(d) : ''); poner('scbp-lbl', lbl);
+    var fill = document.getElementById('scbp-fill'), tope = hay ? T2[ult].u : 1, w = (nIn >= tope ? 100 : Math.round(nIn / tope * 100)) + '%';
+    if (fill && fill.style.width !== w) fill.style.width = w;
+    qa('#scb-tiers .sc-esc-tier', raiz).forEach(function (el, i) { var on = !!T2[i] && nIn >= T2[i].u; if (el.classList.contains('scbp-hit') !== on) el.classList.toggle('scbp-hit', on); });
+  }
+  function escIr() {
+    if (!esc || !esCombos()) return;
+    if (escObs) { try { escAplicar(); } catch (e) {} return; }
+    if (escEspera) return;
+    var vueltas = 0;
+    var mirar = function () {
+      escEspera = null;
+      var raiz = q('#satine-combos');
+      if (!raiz) { if (++vueltas < 120) escEspera = setTimeout(mirar, 250); return; }
+      try { escAplicar(); } catch (e) {}
+      if (!escObs && window.MutationObserver) {
+        escObs = new MutationObserver(function () { try { escAplicar(); } catch (e) {} });
+        escObs.observe(raiz, { childList: true, subtree: true, characterData: true });
+      }
+    };
+    mirar();
   }
 
   /* ---------- 1.10: estetica temporal de la web desde Promociones (barra, acento, etiquetas, banner, ficha) ----------
@@ -3080,6 +3188,7 @@
     try {
       fetch(CFG.contrato, { credentials: 'omit', cache: 'default' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
         esteAplicar(d);   /* 1.10: estetica generica (independiente de Cyber) */
+        try { escPoner(escLeer(d), true); } catch (e) {}   /* 1.23.0: escalones de siempre para el armador de combos */
         var o = extraerContrato(d); if (!o) return;
         try { localStorage.setItem('satineOfertas', JSON.stringify({ v: 1, t: Date.now(), o: o })); } catch (e) {}
         var cambio = aplicarContrato(o);
@@ -3140,6 +3249,7 @@
     franjaVolver();
     setSatineVolver();
     try { combosVolver(); } catch (e) {}
+    try { var escCaja = q('#satine-combos #scb-tiers'); if (escCaja) escCaja.removeAttribute('data-esc'); escIr(); } catch (e) {}   /* 1.23.0: al irse el Cyber vuelven los escalones de siempre */
     if (estilo && estilo.parentNode) estilo.parentNode.removeChild(estilo);
     estilo = null;
     document.documentElement.removeAttribute('data-satine-cyber');
@@ -3196,6 +3306,7 @@
   gArrancar();
 
   try { esteDesdeCache(); } catch (e) {}   /* 1.10: estetica desde la cache chica, lo antes posible */
+  try { escDeCache(); } catch (e) {}   /* 1.23.0 */
   aplicarContrato(leerContratoGuardado());   /* lo ultimo que dijo el ERP, para arrancar sin esperar la red */
   armarTextos();
   try { l15RsvBoot(); } catch (e) {}
