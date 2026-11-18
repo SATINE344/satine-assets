@@ -1,3 +1,4 @@
+/* 1.24.0 (18/11/2026): CONTRATO AL INSTANTE. El software ahora deja el contrato guardado en la red hasta un dia: contesta siempre al instante con la copia y la renueva por atras. La cabecera Age dice cuantos segundos tiene esa copia: se le suman a «ahora» (asi los relojes de lanzamientos no se atrasan) y, si la copia tiene mas de un minuto, se vuelve a pedir sola a los 2,5 s, 8 s y 20 s (sin pasar por la memoria del navegador) hasta recibir la nueva. Si el software no manda Age, todo funciona igual que en 1.23.0. */
 /* 1.23.0 (18/11/2026): ARMADOR DE COMBOS CON LOS ESCALONES DEL SOFTWARE. En /?combos=1 el armador del theme busca los escalones en una tabla de la ficha que Tienda Nube ya no trae: mostraba «2 productos −5%» fijo pero el total no descontaba nada (el carrito si). Ahora los escalones y su alcance salen de permanentes[] del contrato (regla escala_cantidad): mismo numero que el carrito. Si una oferta pausa el beneficio o esta apagado, se sacan los escalones y el total queda sin descuento; si la oferta excluye sus productos, esos no cuentan. Sin dato del ERP no se toca nada. Con el modo Cyber prendido manda el modo Cyber. Volver atras: git revert de este commit. */
 /* 1.22.1 (18/11/2026): CARRITO SIN RENGLONES SUELTOS. Con un descuento por cantidad de siempre (Combos: 2 productos 5 %, 3 o mas 10 %) y sin campana prendida, en /comprar/ quedaban dos renglones nativos de Tienda Nube fuera de las tarjetas, debajo de los iconos de confianza: el nombre de la promocion con su monto y «O $X con Transferencia». La tarjeta RESUMEN del theme ya muestra «Descuento por cantidad», asi que cuando esa tarjeta existe se ocultan los dos (clase sc-res-ok en <html>, sin :has). Siempre prendido: no depende de ninguna campana. */
 /* 1.22.0 (15/11/2026): CARRITO CON OFERTA. (1) El ahorro se lee en PESOS (data-priceraw viene en centavos: decia «ahorras $5.999.900» por $59.999). (2) Una sola tarjeta arriba: «Ahorras $X / Promo aplicada: <etiqueta>»; la tarjeta blanca de progreso no la repite. (3) Precio tachado en la linea (data-satine-compare del theme) cuando la cuenta cierra al peso y la promo esta en una sola linea. (4) Resumen: el renglon «Descuento por cantidad» pasa a «Promo <etiqueta>» y al lado del Total (y en la barra de pago) va tachado lo que se pagaria sin la promo. (5) El chip de la promo va adentro del bloque del nombre (ya no pisa el precio ni se estira). (6) Arreglo general, con o sin oferta: en computadora el numero de cantidad no se veia (relleno de 16 px en un casillero de 34): #sc-fix-css. */
@@ -39,7 +40,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.23.0',
+    version: '1.24.0',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -3183,10 +3184,21 @@
     } catch (e) {}
     return null;
   }
-  function sincronizarContrato() {
+  /* 1.24.0: `n` = numero de reintento (0 = el pedido normal). Ver la cabecera del archivo. */
+  var CONTRATO_ESPERAS = [2500, 8000, 20000];
+  function sincronizarContrato(n) {
     if (!CFG.contrato || typeof fetch !== 'function') return;
+    n = n > 0 ? n | 0 : 0;
     try {
-      fetch(CFG.contrato, { credentials: 'omit', cache: 'default' }).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      var edad = 0;
+      fetch(CFG.contrato, { credentials: 'omit', cache: n ? 'reload' : 'default' }).then(function (r) {
+        if (!r.ok) return null;
+        try { edad = parseInt(r.headers.get('age'), 10); } catch (e) { edad = 0; }
+        if (!(edad > 0)) edad = 0;
+        return r.json();
+      }).then(function (d) {
+        if (d && edad > 0) { var t0 = Date.parse(d.ahora); if (isFinite(t0)) d.ahora = new Date(t0 + edad * 1000).toISOString(); }
+        if (d && edad > 60 && n < CONTRATO_ESPERAS.length) setTimeout(function () { sincronizarContrato(n + 1); }, CONTRATO_ESPERAS[n]);
         esteAplicar(d);   /* 1.10: estetica generica (independiente de Cyber) */
         try { escPoner(escLeer(d), true); } catch (e) {}   /* 1.23.0: escalones de siempre para el armador de combos */
         var o = extraerContrato(d); if (!o) return;
