@@ -1,3 +1,4 @@
+/* 1.22.1 (18/11/2026): CARRITO SIN RENGLONES SUELTOS. Con un descuento por cantidad de siempre (Combos: 2 productos 5 %, 3 o mas 10 %) y sin campana prendida, en /comprar/ quedaban dos renglones nativos de Tienda Nube fuera de las tarjetas, debajo de los iconos de confianza: el nombre de la promocion con su monto y «O $X con Transferencia». La tarjeta RESUMEN del theme ya muestra «Descuento por cantidad», asi que cuando esa tarjeta existe se ocultan los dos (clase sc-res-ok en <html>, sin :has). Siempre prendido: no depende de ninguna campana. */
 /* 1.22.0 (15/11/2026): CARRITO CON OFERTA. (1) El ahorro se lee en PESOS (data-priceraw viene en centavos: decia «ahorras $5.999.900» por $59.999). (2) Una sola tarjeta arriba: «Ahorras $X / Promo aplicada: <etiqueta>»; la tarjeta blanca de progreso no la repite. (3) Precio tachado en la linea (data-satine-compare del theme) cuando la cuenta cierra al peso y la promo esta en una sola linea. (4) Resumen: el renglon «Descuento por cantidad» pasa a «Promo <etiqueta>» y al lado del Total (y en la barra de pago) va tachado lo que se pagaria sin la promo. (5) El chip de la promo va adentro del bloque del nombre (ya no pisa el precio ni se estira). (6) Arreglo general, con o sin oferta: en computadora el numero de cantidad no se veia (relleno de 16 px en un casillero de 34): #sc-fix-css. */
 /* 1.21.2 (11/11/2026): banda de /en-oferta/ en celular (<768): padding-top 58 -> 30 px (sobraba aire arriba del texto) y contenido centrado en vertical cuando la banda mide el alto minimo. Solo CSS. */
 /* 1.21.1 (11/11/2026): WEB 3e. (1) Ficha de lanzamiento: la etiqueta NUEVO es una pastilla chica (ancho del texto, 22 px de alto, a la izquierda), no una barra de lado a lado. (2) Seccion del inicio sin alto minimo fijo (sobraba rojo debajo con 1 producto; la tarjeta ya reserva su imagen con aspect-ratio). (3) /en-oferta/: una sola banda; el texto del banner de categoria pasa de subtitulo adentro de la banda (otras rutas igual). (4) Barra de la capsula: el mensaje largo se desliza despacio de ida y vuelta (contador fijo, bordes difuminados); con reduce-motion queda cortado con puntos suspensivos. */
@@ -37,7 +38,7 @@
 
   /* ---------- CONFIGURACION (lo unico que haria falta tocar) ---------- */
   var CFG = {
-    version: '1.22.0',
+    version: '1.22.1',
     desde: '2026-10-31T18:55:00-03:00',   /* se prende solo a esta hora (reloj del celular del cliente) */
     hasta: '2026-11-05T00:00:00-03:00',   /* fin del 4/11 inclusive; "a definir segun rendimiento" */
     fin: 'Hasta el 4/11',
@@ -3095,9 +3096,21 @@
   try {
     if (!document.getElementById('sc-fix-css')) {
       var fixCss = document.createElement('style'); fixCss.id = 'sc-fix-css';
-      fixCss.textContent = 'html body #modal-cart .js-cart-item .form-quantity input.js-cart-quantity-input.form-control,html body #shoppingCartPage .js-cart-item .form-quantity input.js-cart-quantity-input.form-control{padding-left:0!important;padding-right:0!important;text-align:center!important}';
+      fixCss.textContent = 'html body #modal-cart .js-cart-item .form-quantity input.js-cart-quantity-input.form-control,html body #shoppingCartPage .js-cart-item .form-quantity input.js-cart-quantity-input.form-control{padding-left:0!important;padding-right:0!important;text-align:center!important}html.sc-res-ok body #cart-sticky-summary .js-total-promotions,html.sc-res-ok body #cart-sticky-summary .js-payment-discount-price-cart-container{display:none!important}';
       (document.head || document.documentElement).appendChild(fixCss);
     }
+  } catch (e) {}
+  /* 1.22.1: renglones nativos sueltos al pie del carrito (ver cabecera). La marca solo se pone si el Resumen del theme esta en la pagina: si el theme fallara, los renglones de Tienda Nube siguen a la vista. */
+  try {
+    var rsMarca = function () { try { var hay = !!q('#shoppingCartPage .satine-resumen'), de = document.documentElement; if (hay !== de.classList.contains('sc-res-ok')) de.classList.toggle('sc-res-ok', hay); } catch (e) {} };
+    var rsGo = function () {
+      var pg = document.getElementById('shoppingCartPage'); if (!pg) return;
+      rsMarca();
+      if (typeof MutationObserver !== 'function') return;
+      var rsT = 0;
+      new MutationObserver(function () { if (rsT) return; rsT = setTimeout(function () { rsT = 0; rsMarca(); }, 120); }).observe(pg, { childList: true, subtree: true });
+    };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', rsGo); else rsGo();
   } catch (e) {}
   function arrancar() {
     if (prendido) return;
