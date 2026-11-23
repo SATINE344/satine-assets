@@ -1,13 +1,22 @@
 {
- "actualizado": "2026-11-23T03:00:09.903Z",
+ "actualizado": "2026-11-23T15:00:12.574Z",
  "google_estado": "ok",
  "google_ultimo_ok": "2026-11-23",
  "google": {
   "rating": 4.9,
-  "count": 177,
+  "count": 179,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
+   {
+    "autor": "Jaster Rogue",
+    "foto": "https://lh3.googleusercontent.com/a/ACg8ocLpI0Ym9QCn7Qcd6N0SPZwaUZT0gPLFp1K_JNOxalIfx2O8bw=s128-c0x00000000-cc-rp-mo",
+    "perfil": "https://www.google.com/maps/contrib/110941162154739778898/reviews",
+    "rating": 5,
+    "texto": "Excelente producto la primer compra que fue una funda me viene de otro modelo lo pude devolver  y y me entregaron el correspondiente la verdad sin quejas 10 de 10",
+    "fecha": "2026-11-18T21:18:35.940691338Z",
+    "cuando": "en la última semana"
+   },
    {
     "autor": "Carla Pachado",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjUuSsSK96GNc7NcNjZJ8WUtXHM8jaOTyL0jkHSclX2hjYvE8tOE=s128-c0x00000000-cc-rp-mo",
@@ -36,15 +45,6 @@
     "cuando": "Hace 2 semanas"
    },
    {
-    "autor": "marie La mejor",
-    "foto": "https://lh3.googleusercontent.com/a/ACg8ocIVnnCzzB_Sjg322jSmoXHUmmwgYXnSooxy3xH4W42my6tyxQ=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/106775795236219544561/reviews",
-    "rating": 5,
-    "texto": "Es impresionante la amé. !!!\nExcelente calidad 🫶🏻",
-    "fecha": "2026-10-26T23:23:32.070082381Z",
-    "cuando": "Hace 3 semanas"
-   },
-   {
     "autor": "Leonel Gonzalez",
     "foto": "https://lh3.googleusercontent.com/a-/ALV-UjXFzAm05RoC5cJaGatlXQ7UoNGIconwQVsJw6G7XWV8By7PXxyX=s128-c0x00000000-cc-rp-mo",
     "perfil": "https://www.google.com/maps/contrib/114868970455463947630/reviews",
@@ -56,7 +56,7 @@
   ]
  },
  "ml": {
-  "ventas": 74242,
+  "ventas": 74265,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
