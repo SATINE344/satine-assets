@@ -1,21 +1,21 @@
 {
- "actualizado": "2026-11-23T15:00:12.574Z",
+ "actualizado": "2026-11-24T03:00:14.442Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-23",
+ "google_ultimo_ok": "2026-11-24",
  "google": {
   "rating": 4.9,
-  "count": 179,
+  "count": 182,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
    {
-    "autor": "Jaster Rogue",
-    "foto": "https://lh3.googleusercontent.com/a/ACg8ocLpI0Ym9QCn7Qcd6N0SPZwaUZT0gPLFp1K_JNOxalIfx2O8bw=s128-c0x00000000-cc-rp-mo",
-    "perfil": "https://www.google.com/maps/contrib/110941162154739778898/reviews",
+    "autor": "Gimena Cuenca",
+    "foto": "https://lh3.googleusercontent.com/a/ACg8ocJEedCpgoM6vs8BZKnXVOewfsP2mbp_-2ETqvWtqxxSXjTDmYQ=s128-c0x00000000-cc-rp-mo-ba3",
+    "perfil": "https://www.google.com/maps/contrib/104161524894642927594/reviews",
     "rating": 5,
-    "texto": "Excelente producto la primer compra que fue una funda me viene de otro modelo lo pude devolver  y y me entregaron el correspondiente la verdad sin quejas 10 de 10",
-    "fecha": "2026-11-18T21:18:35.940691338Z",
-    "cuando": "en la última semana"
+    "texto": "Muy buenos productos. La funda de cuero es excelente. A medida que pasa el tiempo se ve cada vez mejor. El vidrio protector un 10 también. Muy práctico el sistema para colocarlo. El cable a veces no carga, no sé por qué pero no lo uso tanto y termina funcionando eventualmente.",
+    "fecha": "2026-11-16T19:50:56.269341104Z",
+    "cuando": "Hace una semana"
    },
    {
     "autor": "Carla Pachado",
@@ -56,11 +56,11 @@
   ]
  },
  "ml": {
-  "ventas": 74265,
+  "ventas": 74513,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
-  "ventas_dia_30": 56,
-  "ventas_dia_7": 52
+  "ventas_dia_30": 57,
+  "ventas_dia_7": 51
  }
 }
