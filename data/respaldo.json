@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-11-26T15:00:13.771Z",
+ "actualizado": "2026-11-27T03:00:14.922Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-26",
+ "google_ultimo_ok": "2026-11-27",
  "google": {
-  "rating": 4.9,
-  "count": 191,
+  "rating": 4.8,
+  "count": 192,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -15,7 +15,7 @@
     "rating": 5,
     "texto": "Excelente calidad de la funda!! Al día de hoy la sigo usando. Se nota un poco el desgaste por el uso pero debe ser normal. Volvería a comprar sin dudas. Recomendados",
     "fecha": "2026-11-19T16:22:52.573871683Z",
-    "cuando": "en la última semana"
+    "cuando": "Hace una semana"
    },
    {
     "autor": "Daniel Ochoa",
@@ -56,11 +56,11 @@
   ]
  },
  "ml": {
-  "ventas": 75173,
+  "ventas": 75524,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
-  "ventas_dia_30": 59,
-  "ventas_dia_7": 59
+  "ventas_dia_30": 61,
+  "ventas_dia_7": 69
  }
 }
