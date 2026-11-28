@@ -1,10 +1,10 @@
 {
- "actualizado": "2026-11-27T15:00:13.351Z",
+ "actualizado": "2026-11-28T03:00:08.888Z",
  "google_estado": "ok",
- "google_ultimo_ok": "2026-11-27",
+ "google_ultimo_ok": "2026-11-28",
  "google": {
-  "rating": 4.8,
-  "count": 193,
+  "rating": 4.9,
+  "count": 194,
   "url": "https://maps.google.com/?cid=13348124733494463638&g_mp=Cidnb29nbGUubWFwcy5wbGFjZXMudjEuUGxhY2VzLlNlYXJjaFRleHQQAhgEIAA",
   "place_id": "ChIJvx9d6gozo5URlgyLRbkQPrk",
   "resenas": [
@@ -33,7 +33,7 @@
     "rating": 5,
     "texto": "Muy linda la calidad de las fundas y variedad de colores, volveria a comprar. Una la regale a un amigo y esta muy contento con la funda",
     "fecha": "2026-11-13T21:22:33.850338437Z",
-    "cuando": "Hace una semana"
+    "cuando": "Hace 2 semanas"
    },
    {
     "autor": "Fabián Borrás",
@@ -56,11 +56,11 @@
   ]
  },
  "ml": {
-  "ventas": 75491,
+  "ventas": 75839,
   "nivel": "platinum",
   "level_id": "5_green",
   "desde": 2011,
-  "ventas_dia_30": 61,
-  "ventas_dia_7": 69
+  "ventas_dia_30": 63,
+  "ventas_dia_7": 76
  }
 }
